@@ -57,10 +57,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/tom/Documents/10_10_25_Codebase
+CMAKE_SOURCE_DIR = /home/tom/Documents/Repo/MNCM
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/tom/Documents/10_10_25_Codebase/build
+CMAKE_BINARY_DIR = /home/tom/Documents/Repo/MNCM/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,9 +87,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/tom/Documents/10_10_25_Codebase/build/CMakeFiles /home/tom/Documents/10_10_25_Codebase/build//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/tom/Documents/Repo/MNCM/build/CMakeFiles /home/tom/Documents/Repo/MNCM/build//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/tom/Documents/10_10_25_Codebase/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/tom/Documents/Repo/MNCM/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -166,30 +166,6 @@ main.f90.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/executable_name.dir/build.make CMakeFiles/executable_name.dir/main.f90.s
 .PHONY : main.f90.s
 
-src/m_MMS_driver.o: src/m_MMS_driver.f90.o
-.PHONY : src/m_MMS_driver.o
-
-# target to build an object file
-src/m_MMS_driver.f90.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_MMS_driver.f90.o
-.PHONY : src/m_MMS_driver.f90.o
-
-src/m_MMS_driver.i: src/m_MMS_driver.f90.i
-.PHONY : src/m_MMS_driver.i
-
-# target to preprocess a source file
-src/m_MMS_driver.f90.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_MMS_driver.f90.i
-.PHONY : src/m_MMS_driver.f90.i
-
-src/m_MMS_driver.s: src/m_MMS_driver.f90.s
-.PHONY : src/m_MMS_driver.s
-
-# target to generate assembly for a file
-src/m_MMS_driver.f90.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_MMS_driver.f90.s
-.PHONY : src/m_MMS_driver.f90.s
-
 src/m_MMS_solver.o: src/m_MMS_solver.f90.o
 .PHONY : src/m_MMS_solver.o
 
@@ -238,6 +214,54 @@ src/m_constants.f90.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_constants.f90.s
 .PHONY : src/m_constants.f90.s
 
+src/m_driver.o: src/m_driver.f90.o
+.PHONY : src/m_driver.o
+
+# target to build an object file
+src/m_driver.f90.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_driver.f90.o
+.PHONY : src/m_driver.f90.o
+
+src/m_driver.i: src/m_driver.f90.i
+.PHONY : src/m_driver.i
+
+# target to preprocess a source file
+src/m_driver.f90.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_driver.f90.i
+.PHONY : src/m_driver.f90.i
+
+src/m_driver.s: src/m_driver.f90.s
+.PHONY : src/m_driver.s
+
+# target to generate assembly for a file
+src/m_driver.f90.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_driver.f90.s
+.PHONY : src/m_driver.f90.s
+
+src/m_thomas_algorithm.o: src/m_thomas_algorithm.f90.o
+.PHONY : src/m_thomas_algorithm.o
+
+# target to build an object file
+src/m_thomas_algorithm.f90.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_thomas_algorithm.f90.o
+.PHONY : src/m_thomas_algorithm.f90.o
+
+src/m_thomas_algorithm.i: src/m_thomas_algorithm.f90.i
+.PHONY : src/m_thomas_algorithm.i
+
+# target to preprocess a source file
+src/m_thomas_algorithm.f90.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_thomas_algorithm.f90.i
+.PHONY : src/m_thomas_algorithm.f90.i
+
+src/m_thomas_algorithm.s: src/m_thomas_algorithm.f90.s
+.PHONY : src/m_thomas_algorithm.s
+
+# target to generate assembly for a file
+src/m_thomas_algorithm.f90.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_thomas_algorithm.f90.s
+.PHONY : src/m_thomas_algorithm.f90.s
+
 src/m_vacuum_BC_solver.o: src/m_vacuum_BC_solver.f90.o
 .PHONY : src/m_vacuum_BC_solver.o
 
@@ -275,15 +299,18 @@ help:
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
-	@echo "... src/m_MMS_driver.o"
-	@echo "... src/m_MMS_driver.i"
-	@echo "... src/m_MMS_driver.s"
 	@echo "... src/m_MMS_solver.o"
 	@echo "... src/m_MMS_solver.i"
 	@echo "... src/m_MMS_solver.s"
 	@echo "... src/m_constants.o"
 	@echo "... src/m_constants.i"
 	@echo "... src/m_constants.s"
+	@echo "... src/m_driver.o"
+	@echo "... src/m_driver.i"
+	@echo "... src/m_driver.s"
+	@echo "... src/m_thomas_algorithm.o"
+	@echo "... src/m_thomas_algorithm.i"
+	@echo "... src/m_thomas_algorithm.s"
 	@echo "... src/m_vacuum_BC_solver.o"
 	@echo "... src/m_vacuum_BC_solver.i"
 	@echo "... src/m_vacuum_BC_solver.s"

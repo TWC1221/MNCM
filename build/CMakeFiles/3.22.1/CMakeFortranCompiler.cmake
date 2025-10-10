@@ -1,4 +1,4 @@
-set(CMAKE_Fortran_COMPILER "/usr/bin/gfortran")
+set(CMAKE_Fortran_COMPILER "/usr/bin/f95")
 set(CMAKE_Fortran_COMPILER_ARG1 "")
 set(CMAKE_Fortran_COMPILER_ID "GNU")
 set(CMAKE_Fortran_COMPILER_VERSION "11.4.0")
