@@ -1,0 +1,6 @@
+# The fortran modules provided by this target.
+provides
+ m_constants.mod
+ m_mms_driver.mod
+ m_mms_solver.mod
+ m_vacuum_bc_solver.mod

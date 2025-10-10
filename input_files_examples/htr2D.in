@@ -1,0 +1,26 @@
+MeshPath        ../PhD_Meshes/2D/htr/htr_fem_test.asmg
+MatPath         materials/htr.dat
+OutVTKPath      ../outputs/TEST.vtk
+OutDataPath     /home/ciaran/Documents/Paper/NESEM_Diffusion/htr/FEM_2_None
+OutVTK          True
+RUNANALYSIS     True
+OutData         False
+OutMaterial     False
+OutFluxInt      False
+CalcKeff        True
+CalcDiffCoeff   False
+Method          Diffusion
+CoordSystem     0
+Preconditioner  0
+Source          Eigenvalue
+Groups          7
+SN              2
+Anisotropic     0
+Adjoint         False
+Tolerance       1e-08
+MaxIterations   1000
+CalcCondition   False
+TerminalOutput  True
+
+
+

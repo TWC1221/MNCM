@@ -1,0 +1,55 @@
+Determining if the Fortran sgemm exists failed with the following output:
+Change Dir: /home/tom/Documents/10_10_25_Codebase/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_9e75d/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_9e75d.dir/build.make CMakeFiles/cmTC_9e75d.dir/build
+gmake[1]: Entering directory '/home/tom/Documents/10_10_25_Codebase/build/CMakeFiles/CMakeTmp'
+Building Fortran object CMakeFiles/cmTC_9e75d.dir/testFortranCompiler.f.o
+/usr/bin/gfortran   -Wall -ffree-line-length-none   -c /home/tom/Documents/10_10_25_Codebase/build/CMakeFiles/CMakeTmp/testFortranCompiler.f -o CMakeFiles/cmTC_9e75d.dir/testFortranCompiler.f.o
+Linking Fortran executable cmTC_9e75d
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_9e75d.dir/link.txt --verbose=1
+/usr/bin/gfortran  -Wall -ffree-line-length-none   CMakeFiles/cmTC_9e75d.dir/testFortranCompiler.f.o -o cmTC_9e75d 
+/usr/bin/ld: CMakeFiles/cmTC_9e75d.dir/testFortranCompiler.f.o: in function `MAIN__':
+testFortranCompiler.f:(.text+0xa): undefined reference to `sgemm_'
+collect2: error: ld returned 1 exit status
+gmake[1]: *** [CMakeFiles/cmTC_9e75d.dir/build.make:99: cmTC_9e75d] Error 1
+gmake[1]: Leaving directory '/home/tom/Documents/10_10_25_Codebase/build/CMakeFiles/CMakeTmp'
+gmake: *** [Makefile:127: cmTC_9e75d/fast] Error 2
+
+
+
+Determining if the Fortran cheev exists failed with the following output:
+Change Dir: /home/tom/Documents/10_10_25_Codebase/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_19ef3/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_19ef3.dir/build.make CMakeFiles/cmTC_19ef3.dir/build
+gmake[1]: Entering directory '/home/tom/Documents/10_10_25_Codebase/build/CMakeFiles/CMakeTmp'
+Building Fortran object CMakeFiles/cmTC_19ef3.dir/testFortranCompiler.f.o
+/usr/bin/gfortran   -Wall -ffree-line-length-none   -c /home/tom/Documents/10_10_25_Codebase/build/CMakeFiles/CMakeTmp/testFortranCompiler.f -o CMakeFiles/cmTC_19ef3.dir/testFortranCompiler.f.o
+Linking Fortran executable cmTC_19ef3
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_19ef3.dir/link.txt --verbose=1
+/usr/bin/gfortran  -Wall -ffree-line-length-none   CMakeFiles/cmTC_19ef3.dir/testFortranCompiler.f.o -o cmTC_19ef3  /usr/lib/x86_64-linux-gnu/libblas.so -lm -ldl 
+/usr/bin/ld: CMakeFiles/cmTC_19ef3.dir/testFortranCompiler.f.o: in function `MAIN__':
+testFortranCompiler.f:(.text+0xa): undefined reference to `cheev_'
+collect2: error: ld returned 1 exit status
+gmake[1]: *** [CMakeFiles/cmTC_19ef3.dir/build.make:100: cmTC_19ef3] Error 1
+gmake[1]: Leaving directory '/home/tom/Documents/10_10_25_Codebase/build/CMakeFiles/CMakeTmp'
+gmake: *** [Makefile:127: cmTC_19ef3/fast] Error 2
+
+
+
+Determining if the Fortran cheev exists failed with the following output:
+Change Dir: /home/tom/Documents/10_10_25_Codebase/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_3023d/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_3023d.dir/build.make CMakeFiles/cmTC_3023d.dir/build
+gmake[1]: Entering directory '/home/tom/Documents/10_10_25_Codebase/build/CMakeFiles/CMakeTmp'
+Building Fortran object CMakeFiles/cmTC_3023d.dir/testFortranCompiler.f.o
+/usr/bin/gfortran   -Wall -ffree-line-length-none   -c /home/tom/Documents/10_10_25_Codebase/build/CMakeFiles/CMakeTmp/testFortranCompiler.f -o CMakeFiles/cmTC_3023d.dir/testFortranCompiler.f.o
+Linking Fortran executable cmTC_3023d
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_3023d.dir/link.txt --verbose=1
+/usr/bin/gfortran  -Wall -ffree-line-length-none   CMakeFiles/cmTC_3023d.dir/testFortranCompiler.f.o -o cmTC_3023d  /usr/lib/x86_64-linux-gnu/liblapack.so /usr/lib/x86_64-linux-gnu/libblas.so -fortranlibs 
+gfortran: error: unrecognized command-line option ‘-fortranlibs’
+gmake[1]: *** [CMakeFiles/cmTC_3023d.dir/build.make:101: cmTC_3023d] Error 1
+gmake[1]: Leaving directory '/home/tom/Documents/10_10_25_Codebase/build/CMakeFiles/CMakeTmp'
+gmake: *** [Makefile:127: cmTC_3023d/fast] Error 2
+
+
+
