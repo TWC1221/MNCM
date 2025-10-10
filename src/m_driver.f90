@@ -1,4 +1,4 @@
-module m_MMS_driver
+module m_driver
 !------------------------------------------------------------------------!
 !  Purpose:                                                             -!
 !  Contains the subroutines required to drive solvers                   -!
@@ -92,7 +92,7 @@ module m_MMS_driver
         !-----------------------------
         open(unit=993, file="error.dat", status="replace", action="write")
         ii=0
-        do N = 5, 5000, 1
+        do N = 5, 40, 1
             allocate(a(N), b(N), c(N), phi(N), phi_analytical(N))
             call build_matrix_A_vacuum(a, b, c, N, alpha, phi, phi_analytical, L2Err)
             write(993,'(F10.5,1(1X,E15.8))') log10(real(N)), log10(L2Err)
@@ -133,7 +133,7 @@ module m_MMS_driver
         !-----------------------------
         open(unit=995, file="plot_flux.gp", status="replace", action="write")
         write(995,*) "set term wxt 1 title 'Flux vs x'"
-        write(995,*) "set title 'Flux vs x for different alpha'"
+        write(995,*) "set title 'Flux vs x'"
         write(995,*) "set xlabel 'x'"
         write(995,*) "set ylabel 'phi(x)'"
         write(995,*) "plot 'flux.dat' using 1:2 with lines title 'numerical', \"
@@ -142,5 +142,26 @@ module m_MMS_driver
         call system("gnuplot -persist plot_flux.gp")
 
     end subroutine Vacuum_BC_driver
-end module m_MMS_driver
+
+    subroutine heterogeneous_driver()
+        implicit none
+        integer :: N = 1000, N_interface = 500
+        real(8) :: alpha = 0.0
+        real(8), allocatable :: a(:), b(:), c(:), phi(:)
+
+        allocate(a(N), b(N), c(N), phi(N))
+
+        call build_matrix_A_heterogeneous_m1(a, b, c, N, N_interface, alpha, phi)
+
+        open(unit=995, file="plot_flux.gp", status="replace", action="write")
+        write(995,*) "set term wxt 1 title 'Flux vs x'"
+        write(995,*) "set title 'Flux vs x for different alpha'"
+        write(995,*) "set xlabel 'x'"
+        write(995,*) "set ylabel 'phi(x)'"
+        write(995,*) "plot 'flux.dat' using 1:2 with lines title 'numerical'"
+        close(995)
+        call system("gnuplot -persist plot_flux.gp")
+    end subroutine heterogeneous_driver
+
+end module m_driver
 
