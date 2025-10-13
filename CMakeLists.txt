@@ -56,8 +56,9 @@ find_package(BLAS REQUIRED)
 add_library(src
     src/m_MMS_solver.f90
     src/m_constants.f90
-    src/m_MMS_driver.f90
+    src/m_driver.f90
     src/m_vacuum_BC_solver.f90
+    src/m_thomas_algorithm
     )
 add_executable(executable_name main.f90)
 

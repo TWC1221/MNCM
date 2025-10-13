@@ -1,4 +1,4 @@
-# Install script for directory: /home/tom/Documents/Repo/MNCM
+# Install script for directory: /mnt/c/Users/tc1221/Git_Directory/MNCM
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/tom/Documents/Repo/MNCM/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/mnt/c/Users/tc1221/Git_Directory/MNCM/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

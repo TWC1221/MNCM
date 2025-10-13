@@ -143,7 +143,7 @@ module m_driver
 
     end subroutine Vacuum_BC_driver
 
-    subroutine heterogeneous_driver()
+    subroutine heterogeneous_driver_m1()
         implicit none
         integer :: N = 1000, N_interface = 500
         real(8) :: alpha = 0.0
@@ -161,7 +161,27 @@ module m_driver
         write(995,*) "plot 'flux.dat' using 1:2 with lines title 'numerical'"
         close(995)
         call system("gnuplot -persist plot_flux.gp")
-    end subroutine heterogeneous_driver
+    end subroutine heterogeneous_driver_m1
+
+     subroutine heterogeneous_driver_m2()
+        implicit none
+        integer :: N = 1000, N_interface = 500
+        real(8) :: alpha = 0.0, x_interface = 1
+        real(8), allocatable :: a(:), b(:), c(:), phi(:)
+
+        allocate(a(N), b(N), c(N), phi(N))
+
+        call build_matrix_A_heterogeneous_m2(a, b, c, N, N_interface, x_interface, alpha, phi)
+
+        open(unit=995, file="plot_flux.gp", status="replace", action="write")
+        write(995,*) "set term wxt 1 title 'Flux vs x'"
+        write(995,*) "set title 'Flux vs x for different alpha'"
+        write(995,*) "set xlabel 'x'"
+        write(995,*) "set ylabel 'phi(x)'"
+        write(995,*) "plot 'flux.dat' using 1:2 with lines title 'numerical', 'flux.dat' using 1:3 with lines title 'analytical'"
+        close(995)
+        call system("gnuplot -persist plot_flux.gp")
+    end subroutine heterogeneous_driver_m2
 
 end module m_driver
 

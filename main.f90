@@ -1,5 +1,5 @@
 program main
-    use m_MMS_driver
+    use m_driver
     implicit none
-    call MMS_driver() !vacuum_BC_driver()
+    call heterogeneous_driver_m2() !MMS_driver() !vacuum_BC_driver()
 end program main

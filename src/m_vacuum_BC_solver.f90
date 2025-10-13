@@ -130,52 +130,60 @@ contains
 
     end subroutine build_matrix_A_heterogeneous_m1
 
-        subroutine build_matrix_A_heterogeneous_m2(a, b, c, N, N_interface, alpha, phi)
+        subroutine build_matrix_A_heterogeneous_m2(a, b, c, N, N_interface, x_interface, alpha, phi)
         use m_constants
         use m_thomas_algorithm
         implicit none
         integer, intent(in) :: N, N_interface
-        real(8), intent(in) :: alpha
+        real(8), intent(in) :: alpha, x_interface
         real(8), intent(inout) :: a(N), b(N), c(N)
         real(8), intent(out) :: phi(N)
 
-        real(8) :: X_interface
-        real(8), dimension(2) :: Dif = 1.0/3.0d0
-        real(8), dimension(2) :: Sigma_a = [0.01, 0.02]
-        real(8), dimension(2) :: S0 = [1.0, 1.0]
-        real(8), dimension(2) :: dx
-        real(8), dimension(2) :: L
-        real(8), dimension(N) :: d, dxVis, Sigma_aVis
-        integer :: ii, IDX
+        real(8), dimension(N) :: Dif, Sigma_a, S0, L, d, phi_analytical, AA, x
+        real(8), dimension(N-1) :: dx
+        integer :: ii
+        real(8) :: R_domain = 1
 
-        X_interface = ((real(N_interface)/real(N)))
-        dx = [X_interface/(N_interface-1), (1-X_interface)/(N-N_interface-1)]
-        L = [sqrt(Dif(1)/Sigma_a(1)), sqrt(Dif(2)/Sigma_a(2))]
+        Dif(1:N_interface) = 1.0/3.0d0 ;  Dif(N_interface+1:N) = 1.0/3.0d0
+        Sigma_a(1:N_interface) = 0.01 ; Sigma_a(N_interface+1:N) = 0.01
+        S0(1:N_interface) = 1.0 ; S0(N_interface+1:N) = 1.0
+
+        ! First segment: 0 to x_interface
+        dx(1:N_interface-1) = x_interface / real(N_interface-1, 8)
+
+        ! Second segment: x_interface to 1.0
+        dx(N_interface:N-1) = (1.0d0 - x_interface) / real(N - N_interface, 8)
+
+
+        L = sqrt(Dif(1:N)/Sigma_a(1:N))
+
+        x(1) = 0.0d0
+        do ii = 2, N
+            x(ii) = x(ii-1) + dx(ii-1)
+        end do
 
         do ii = 1, N
-            if (ii <= N_interface) then
-                IDX=1
+            if (ii == 1) then
+                a(ii) = 0.0d0
+                b(ii) = Sigma_a(ii) + ((Dif(ii+1)*Dif(ii)) / (dx(ii)*(Dif(ii)*dx(ii)+Dif(ii+1)*dx(ii))) + &
+                                    ((1-alpha)*Dif(ii)) / (dx(ii)*(4*Dif(ii)*(1+alpha)+(1-alpha)*dx(ii))))
+                c(ii) = -(Dif(ii+1)*Dif(ii)) / (dx(ii)*(Dif(ii)*dx(ii)+Dif(ii+1)*dx(ii)))
+                d(ii) = S0(ii)
+            elseif (ii == N) then
+                a(ii) = -(Dif(ii-1)*Dif(ii)) / (dx(ii-1)*(Dif(ii)*dx(ii-1)+Dif(ii-1)*dx(ii-1)))
+                b(ii) = Sigma_a(ii) + (Dif(ii-1)*Dif(ii)) / (dx(ii-1)*(Dif(ii)*dx(ii-1)+Dif(ii-1)*dx(ii-1))) + &
+                        (1-alpha)*Dif(ii)/(dx(ii-1)*(4*Dif(ii)*(1+alpha)+(1-alpha)*dx(ii-1)))
+                c(ii) = 0.0d0
+                d(ii) = S0(ii)
             else
-                IDX=2
-            end if
-            if (ii == N) then
-                a(ii) = -2*Dif(IDX)/dx(IDX)**2
-                b(ii) = Sigma_a(IDX) + 2.0*Dif(IDX)/dx(IDX)**2 + (1/dx(IDX))*(1-alpha)/(1+alpha)
-                c(ii) = 0.0
-                d(ii) = S0(IDX)
-            elseif (ii == 1) then
-                a(ii) = 0.0
-                b(ii) = Sigma_a(IDX) + 2*Dif(IDX)/dx(IDX)**2 + (1/dx(IDX))*(1-alpha)/(1+alpha)
-                c(ii) = -2*Dif(IDX)/dx(IDX)**2
-                d(ii) = S0(IDX)
-            else
-                a(ii) = -Dif(IDX)/dx(IDX)**2
-                b(ii) = Sigma_a(IDX) + 2.0*Dif(IDX)/dx(IDX)**2
-                c(ii) = -Dif(IDX)/dx(IDX)**2
-                d(ii) = S0(IDX)
-            end if
-            dxVis(ii) = dx(IDX)*ii
-            Sigma_aVis(ii) = Sigma_a(IDX) 
+            ! Use left spacing dx(ii-1) for a(), right spacing dx(ii) for c()
+            a(ii) = -(Dif(ii-1)*Dif(ii)) / (dx(ii-1)*(Dif(ii)*dx(ii-1)+Dif(ii-1)*dx(ii-1)))
+            b(ii) = Sigma_a(ii) + ((Dif(ii-1)*Dif(ii)) / (dx(ii-1)*(Dif(ii)*dx(ii-1)+Dif(ii-1)*dx(ii-1))) + &
+                                    (Dif(ii+1)*Dif(ii)) / (dx(ii)*(Dif(ii)*dx(ii)+Dif(ii+1)*dx(ii))))
+            c(ii) = -(Dif(ii+1)*Dif(ii)) / (dx(ii)*(Dif(ii)*dx(ii)+Dif(ii+1)*dx(ii)))
+            d(ii) = S0(ii)
+        end if
+
         end do
 
         ! Solve system
@@ -183,14 +191,14 @@ contains
 
         ! Write all columns at once after the loop
         open(unit=991, file="flux.dat", status="replace", action="write")
-
-
         do ii = 1, N
-            write(991,'(F10.5,2(1X,E15.8))') dxVis(ii), phi(ii)
+            AA(ii) = - ( ( S0(ii) / (2.0d0 * Sigma_a(ii)) ) * ( ( L(ii) / (2.0d0 * Dif(ii)) ) * sinh(R_domain / L(ii)) + 1.0d0 + cosh(R_domain / L(ii)) ) ) &
+          / ( cosh(R_domain / L(ii)) + ( ( L(ii) / (4.0d0 * Dif(ii)) ) + ( Dif(ii) / L(ii) ) ) * sinh(R_domain / L(ii)) )
+            phi_analytical(ii) = AA(ii) * cosh( x(ii) / L(ii) ) + ( L(ii) / (2.0d0 * Dif(ii)) ) * ( AA(ii) + S0(ii) / Sigma_a(ii) ) * sinh( x(ii) / L(ii) ) + S0(ii) / Sigma_a(ii)
+            write(991,'(F10.5,2(1X,E15.8))') x(ii), phi(ii), phi_analytical(ii)
         end do
         close(991)
 
     end subroutine build_matrix_A_heterogeneous_m2
-
 
 end module m_Vacuum_BC_solver
