@@ -11,6 +11,7 @@ module m_driver
     use m_constants
     use m_MMS_solver
     use m_vacuum_BC_solver
+    use m_iterative_power_solver
     contains
     subroutine MMS_driver()
         implicit none
@@ -146,7 +147,7 @@ module m_driver
     subroutine heterogeneous_driver_m1()
         implicit none
         integer :: N = 1000, N_interface = 500
-        real(8) :: alpha = 0.0
+        real(8) :: alpha = 0
         real(8), allocatable :: a(:), b(:), c(:), phi(:)
 
         allocate(a(N), b(N), c(N), phi(N))
@@ -163,10 +164,10 @@ module m_driver
         call system("gnuplot -persist plot_flux.gp")
     end subroutine heterogeneous_driver_m1
 
-     subroutine heterogeneous_driver_m2()
+    subroutine heterogeneous_driver_m2()
         implicit none
-        integer :: N = 1000, N_interface = 500
-        real(8) :: alpha = 0.0, x_interface = 1
+        integer :: N = 100, N_interface = 5
+        real(8) :: alpha = 0.0, x_interface = 0.4
         real(8), allocatable :: a(:), b(:), c(:), phi(:)
 
         allocate(a(N), b(N), c(N), phi(N))
@@ -182,6 +183,47 @@ module m_driver
         close(995)
         call system("gnuplot -persist plot_flux.gp")
     end subroutine heterogeneous_driver_m2
+
+    subroutine iterative_power_driver()
+        implicit none
+        integer :: N = 100, N_interface = 100, jj = 1
+        real(8) :: alpha = 0.0, x_interface = 2, nu = 3, R_domain = 2
+        real(8), allocatable :: a(:), b(:), c(:), phi(:), dx(:), Dif(:), Sigma_a(:), Sigma_f(:), S0(:), dx_V(:), phi_old(:)
+        real(8), dimension(100) :: lambda
+
+        allocate(dx(N-1), Dif(N), Sigma_a(N), Sigma_f(N), S0(N), dx_V(N), phi(N), a(N), b(N), c(N), phi_old(N))
+
+        lambda(1) = 0.5; phi(1:N) = 1
+        dx(1:N_interface-1) = x_interface / real(N_interface-1, 8) ; dx(N_interface:N-1) = (R_domain - x_interface) / real(N - N_interface, 8)
+        dx_V(2:N) = 0.5*dx(1:N-1) ; dx_V(1:N-1) = dx_V(2:N) + 0.5 * dx(1:N-1)
+
+        Dif(1:N_interface-1) = 1.0/3.0d0 ;  Dif(N_interface:N) = 1.0/3.0d0
+        Sigma_a(1:N_interface-1) = 1 ; Sigma_a(N_interface:N) = 1
+        Sigma_f(1:N_interface-1) = 10 ; Sigma_f(N_interface:N) = 10
+
+        do
+            phi = phi / sum(phi* dx_V)
+            S0 = (nu * Sigma_f * phi) / lambda(jj)
+            jj = jj + 1
+            phi_old = phi
+            call build_matrix_A_iterative_power(a, b, c, N, alpha, phi, dx, Dif, Sigma_a, S0)
+            lambda(jj) = lambda(jj-1) * sum(nu*Sigma_f*phi*dx_V)/sum(nu*Sigma_f*phi_old*dx_V)
+            
+            ! Check convergence
+            if (abs((lambda(jj) - lambda(jj-1)) / lambda(jj-1)) < 1.0d-10) exit
+            if (maxval(abs(phi - phi_old)) < 1.0d-8) exit
+        end do
+
+        print*,"Keff =", 1/lambda(jj)
+        open(unit=995, file="plot_flux.gp", status="replace", action="write")
+        write(995,*) "set term wxt 1 title 'Flux vs x'"
+        write(995,*) "set title 'Flux vs x for different alpha'"
+        write(995,*) "set xlabel 'x'"
+        write(995,*) "set ylabel 'phi(x)'"
+        write(995,*) "plot 'flux.dat' using 1:2 with lines title 'numerical'"
+        close(995)
+        call system("gnuplot -persist plot_flux.gp")
+    end subroutine iterative_power_driver
 
 end module m_driver
 

@@ -144,9 +144,9 @@ contains
         integer :: ii
         real(8) :: R_domain = 1
 
-        Dif(1:N_interface) = 1.0/3.0d0 ;  Dif(N_interface+1:N) = 1.0/3.0d0
-        Sigma_a(1:N_interface) = 0.01 ; Sigma_a(N_interface+1:N) = 0.01
-        S0(1:N_interface) = 1.0 ; S0(N_interface+1:N) = 1.0
+        Dif(1:N_interface-1) = 1.0/3.0d0 ;  Dif(N_interface:N) = 1.0/3.0d0
+        Sigma_a(1:N_interface-1) = 0.01 ; Sigma_a(N_interface:N) = 0.01
+        S0(1:N_interface-1) = 1.0 ; S0(N_interface:N) = 1.0
 
         ! First segment: 0 to x_interface
         dx(1:N_interface-1) = x_interface / real(N_interface-1, 8)
@@ -154,34 +154,29 @@ contains
         ! Second segment: x_interface to 1.0
         dx(N_interface:N-1) = (1.0d0 - x_interface) / real(N - N_interface, 8)
 
-
         L = sqrt(Dif(1:N)/Sigma_a(1:N))
 
         x(1) = 0.0d0
         do ii = 2, N
             x(ii) = x(ii-1) + dx(ii-1)
         end do
-
+        print*,x
         do ii = 1, N
             if (ii == 1) then
                 a(ii) = 0.0d0
-                b(ii) = Sigma_a(ii) + ((Dif(ii+1)*Dif(ii)) / (dx(ii)*(Dif(ii)*dx(ii)+Dif(ii+1)*dx(ii))) + &
-                                    ((1-alpha)*Dif(ii)) / (dx(ii)*(4*Dif(ii)*(1+alpha)+(1-alpha)*dx(ii))))
-                c(ii) = -(Dif(ii+1)*Dif(ii)) / (dx(ii)*(Dif(ii)*dx(ii)+Dif(ii+1)*dx(ii)))
+                b(ii) = ((Dif(ii)+Dif(ii))/dx(ii)+(Dif(ii)+Dif(ii+1))/dx(ii))/(dx(ii)+dx(ii))+Sigma_a(ii) + 1/dx(ii)*(1-alpha)/(1+alpha)
+                c(ii) = -(Dif(ii)+Dif(ii+1))/(dx(ii)*(dx(ii)))
                 d(ii) = S0(ii)
             elseif (ii == N) then
-                a(ii) = -(Dif(ii-1)*Dif(ii)) / (dx(ii-1)*(Dif(ii)*dx(ii-1)+Dif(ii-1)*dx(ii-1)))
-                b(ii) = Sigma_a(ii) + (Dif(ii-1)*Dif(ii)) / (dx(ii-1)*(Dif(ii)*dx(ii-1)+Dif(ii-1)*dx(ii-1))) + &
-                        (1-alpha)*Dif(ii)/(dx(ii-1)*(4*Dif(ii)*(1+alpha)+(1-alpha)*dx(ii-1)))
+                a(ii) = -(Dif(ii-1)+Dif(ii))/(dx(ii-1)*dx(ii-1))
+                b(ii) = ((Dif(ii)+Dif(ii-1))/dx(ii-1)+(Dif(ii)+Dif(ii))/dx(ii-1))/(dx(ii-1)+dx(ii-1))+Sigma_a(ii) + 1/dx(ii-1)*(1-alpha)/(1+alpha)
                 c(ii) = 0.0d0
                 d(ii) = S0(ii)
             else
-            ! Use left spacing dx(ii-1) for a(), right spacing dx(ii) for c()
-            a(ii) = -(Dif(ii-1)*Dif(ii)) / (dx(ii-1)*(Dif(ii)*dx(ii-1)+Dif(ii-1)*dx(ii-1)))
-            b(ii) = Sigma_a(ii) + ((Dif(ii-1)*Dif(ii)) / (dx(ii-1)*(Dif(ii)*dx(ii-1)+Dif(ii-1)*dx(ii-1))) + &
-                                    (Dif(ii+1)*Dif(ii)) / (dx(ii)*(Dif(ii)*dx(ii)+Dif(ii+1)*dx(ii))))
-            c(ii) = -(Dif(ii+1)*Dif(ii)) / (dx(ii)*(Dif(ii)*dx(ii)+Dif(ii+1)*dx(ii)))
-            d(ii) = S0(ii)
+                a(ii) = -(Dif(ii-1)+Dif(ii))/(dx(ii-1)*(dx(ii)+dx(ii-1)))
+                b(ii) = ((Dif(ii)+Dif(ii-1))/dx(ii-1)+(Dif(ii)+Dif(ii+1))/dx(ii))/(dx(ii)+dx(ii-1))+Sigma_a(ii) 
+                c(ii) = -(Dif(ii)+Dif(ii+1))/(dx(ii)*(dx(ii)+dx(ii-1)))
+                d(ii) = S0(ii)
         end if
 
         end do
@@ -194,7 +189,7 @@ contains
         do ii = 1, N
             AA(ii) = - ( ( S0(ii) / (2.0d0 * Sigma_a(ii)) ) * ( ( L(ii) / (2.0d0 * Dif(ii)) ) * sinh(R_domain / L(ii)) + 1.0d0 + cosh(R_domain / L(ii)) ) ) &
           / ( cosh(R_domain / L(ii)) + ( ( L(ii) / (4.0d0 * Dif(ii)) ) + ( Dif(ii) / L(ii) ) ) * sinh(R_domain / L(ii)) )
-            phi_analytical(ii) = AA(ii) * cosh( x(ii) / L(ii) ) + ( L(ii) / (2.0d0 * Dif(ii)) ) * ( AA(ii) + S0(ii) / Sigma_a(ii) ) * sinh( x(ii) / L(ii) ) + S0(ii) / Sigma_a(ii)
+            !phi_analytical(ii) = AA(ii) * cosh( x(ii) / L(ii) ) + ( L(ii) / (2.0d0 * Dif(ii)) ) * ( AA(ii) + S0(ii) / Sigma_a(ii) ) * sinh( x(ii) / L(ii) ) + S0(ii) / Sigma_a(ii)
             write(991,'(F10.5,2(1X,E15.8))') x(ii), phi(ii), phi_analytical(ii)
         end do
         close(991)
