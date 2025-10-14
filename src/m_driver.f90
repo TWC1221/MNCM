@@ -186,35 +186,46 @@ module m_driver
 
     subroutine iterative_power_driver()
         implicit none
-        integer :: N = 100, N_interface = 100, jj = 1
-        real(8) :: alpha = 0.0, x_interface = 2, nu = 3, R_domain = 2
+        integer :: N = 1000, N_interface = 500, jj = 1
+        real(8) :: alpha = 0.0, x_interface = 1, nu = 3, R_domain = 2
         real(8), allocatable :: a(:), b(:), c(:), phi(:), dx(:), Dif(:), Sigma_a(:), Sigma_f(:), S0(:), dx_V(:), phi_old(:)
-        real(8), dimension(100) :: lambda
+        real(8), dimension(1000) :: lambda
 
         allocate(dx(N-1), Dif(N), Sigma_a(N), Sigma_f(N), S0(N), dx_V(N), phi(N), a(N), b(N), c(N), phi_old(N))
 
-        lambda(1) = 0.5; phi(1:N) = 1
-        dx(1:N_interface-1) = x_interface / real(N_interface-1, 8) ; dx(N_interface:N-1) = (R_domain - x_interface) / real(N - N_interface, 8)
-        dx_V(2:N) = 0.5*dx(1:N-1) ; dx_V(1:N-1) = dx_V(2:N) + 0.5 * dx(1:N-1)
+        !call random_number(phi(1:N)) 
+        phi(1:N) = 1 
+        lambda(1) = 1; !LAMBDA 0
 
+        dx(1:N_interface-1) = x_interface / real(N_interface-1, 8) ; dx(N_interface:N-1) = (R_domain - x_interface) / real(N - N_interface -1, 8)
+        dx_V(1:N-1) = 0.5*dx(1:N-1) ; dx_V(2:N) = dx_V(2:N) + 0.5 * dx(1:N-1)
+        !print*,dx
+        ! print*,''
+        ! print*,dx_V
         Dif(1:N_interface-1) = 1.0/3.0d0 ;  Dif(N_interface:N) = 1.0/3.0d0
-        Sigma_a(1:N_interface-1) = 1 ; Sigma_a(N_interface:N) = 1
-        Sigma_f(1:N_interface-1) = 10 ; Sigma_f(N_interface:N) = 10
+        Sigma_a(1:N_interface-1) = 0.01 ; Sigma_a(N_interface:N) = 0.01
+        Sigma_f(1:N_interface-1) = 0.06 ; Sigma_f(N_interface:N) = 0.06
 
         do
-            phi = phi / sum(phi* dx_V)
-            S0 = (nu * Sigma_f * phi) / lambda(jj)
+            S0 = (nu * Sigma_f * phi) / lambda(jj) !S(0)
+            S0(1:N) = S0(1:N)
+
             jj = jj + 1
-            phi_old = phi
+            phi_old = phi !PHI 0
             call build_matrix_A_iterative_power(a, b, c, N, alpha, phi, dx, Dif, Sigma_a, S0)
             lambda(jj) = lambda(jj-1) * sum(nu*Sigma_f*phi*dx_V)/sum(nu*Sigma_f*phi_old*dx_V)
             
-            ! Check convergence
+            !phi = phi /sum(phi*dx_V)
+            print*,"Iteration =", jj, "Keff =", lambda(jj), "phi_max_val =",maxval(phi)
+
             if (abs((lambda(jj) - lambda(jj-1)) / lambda(jj-1)) < 1.0d-10) exit
             if (maxval(abs(phi - phi_old)) < 1.0d-8) exit
         end do
 
-        print*,"Keff =", 1/lambda(jj)
+        !print*, lambda(jj)
+        !print*,S0
+        !print*,phi
+
         open(unit=995, file="plot_flux.gp", status="replace", action="write")
         write(995,*) "set term wxt 1 title 'Flux vs x'"
         write(995,*) "set title 'Flux vs x for different alpha'"

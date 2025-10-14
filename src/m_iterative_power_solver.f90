@@ -26,7 +26,7 @@ contains
 
         x(1) = 0.0d0
         do ii = 2, N
-            x(ii) = x(ii-1) + dx(ii-1)
+            x(ii) =  sum(dx(1:ii-1))
         end do
 
         do ii = 1, N
@@ -45,10 +45,8 @@ contains
                 b(ii) = ((Dif(ii)+Dif(ii-1))/dx(ii-1)+(Dif(ii)+Dif(ii+1))/dx(ii))/(dx(ii)+dx(ii-1))+Sigma_a(ii) 
                 c(ii) = -(Dif(ii)+Dif(ii+1))/(dx(ii)*(dx(ii)+dx(ii-1)))
                 d(ii) = S0(ii)
-        end if
-
+            end if
         end do
-
         ! Solve system
         call thomas_algorithm(a(2:N), b, c(1:N-1), d, phi, N)
 
@@ -58,7 +56,6 @@ contains
             write(991,'(F10.5,2(1X,E15.8))') x(ii), phi(ii)
         end do
         close(991)
-
     end subroutine build_matrix_A_iterative_power
 
 end module m_iterative_power_solver
