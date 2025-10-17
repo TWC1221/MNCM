@@ -160,7 +160,7 @@ contains
         do ii = 2, N
             x(ii) = x(ii-1) + dx(ii-1)
         end do
-        print*,x
+
         do ii = 1, N
             if (ii == 1) then
                 a(ii) = 0.0d0

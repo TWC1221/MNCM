@@ -6,12 +6,14 @@ module m_driver
 !  Record of revisions:                                                 -!
 !   Date       Programmer     Description of change                     -!
 !   ====       ==========     =====================                     -!
-! 09/10/2025    T. Charlton      Original code                          -!
+! 09/10/2025    T. Charlton      Original code
+! 15/10/2025    T. Charlton      Power Iterative  Method                -!
 !------------------------------------------------------------------------! 
     use m_constants
     use m_MMS_solver
     use m_vacuum_BC_solver
     use m_iterative_power_solver
+    use m_multigroup_1D_diffusion
     contains
     subroutine MMS_driver()
         implicit none
@@ -69,7 +71,7 @@ module m_driver
         !-----------------------------
         open(unit=995, file="plot_flux.gp", status="replace", action="write")
         write(995,*) "set term wxt 1 title 'Flux vs x'"
-        write(995,*) "set title 'Flux vs x for different alpha'"
+        write(995,*) "set title 'MMS derived Neutron Flux over 1-D domain (numerical & exact)'"
         write(995,*) "set xlabel 'x'"
         write(995,*) "set ylabel 'phi(x)'"
         write(995,*) "plot 'flux.dat' using 1:2 with lines title 'numerical', \"
@@ -186,8 +188,8 @@ module m_driver
 
     subroutine iterative_power_driver()
         implicit none
-        integer :: N = 1000, N_interface = 500, jj = 1
-        real(8) :: alpha = 0.0, x_interface = 1, nu = 3, R_domain = 2
+        integer :: N = 1000, N_interface = 1000, jj = 1
+        real(8) :: alpha = 0.0, x_interface = 10, nu = 3, R_domain = 10, Norm
         real(8), allocatable :: a(:), b(:), c(:), phi(:), dx(:), Dif(:), Sigma_a(:), Sigma_f(:), S0(:), dx_V(:), phi_old(:)
         real(8), dimension(1000) :: lambda
 
@@ -201,9 +203,9 @@ module m_driver
         dx_V(1:N-1) = 0.5*dx(1:N-1) ; dx_V(2:N) = dx_V(2:N) + 0.5 * dx(1:N-1)
         !print*,dx
         ! print*,''
-        ! print*,dx_V
-        Dif(1:N_interface-1) = 1.0/3.0d0 ;  Dif(N_interface:N) = 1.0/3.0d0
-        Sigma_a(1:N_interface-1) = 0.01 ; Sigma_a(N_interface:N) = 0.01
+        print*,dx_V
+        Dif(1:N_interface-1) = 1.0/(3.0*0.1) ;  Dif(N_interface:N) = 1.0/(3.0*0.1) 
+        Sigma_a(1:N_interface-1) = 0.1 ; Sigma_a(N_interface:N) = 0.1
         Sigma_f(1:N_interface-1) = 0.06 ; Sigma_f(N_interface:N) = 0.06
 
         do
@@ -211,12 +213,17 @@ module m_driver
             S0(1:N) = S0(1:N)
 
             jj = jj + 1
+
             phi_old = phi !PHI 0
+
             call build_matrix_A_iterative_power(a, b, c, N, alpha, phi, dx, Dif, Sigma_a, S0)
-            lambda(jj) = lambda(jj-1) * sum(nu*Sigma_f*phi*dx_V)/sum(nu*Sigma_f*phi_old*dx_V)
             
-            !phi = phi /sum(phi*dx_V)
-            print*,"Iteration =", jj, "Keff =", lambda(jj), "phi_max_val =",maxval(phi)
+            lambda(jj) = lambda(jj-1) * sum(nu*Sigma_f*phi*dx_V)/sum(nu*Sigma_f*phi_old*dx_V)
+
+            Norm = nu*sum(phi*Sigma_f*dx_V)/(lambda(jj))
+            phi = phi/Norm
+
+            print*,"Iteration =", jj, "Keff =", lambda(jj), "norm_check =",nu*sum(phi*Sigma_f*dx_V)/(lambda(jj))
 
             if (abs((lambda(jj) - lambda(jj-1)) / lambda(jj-1)) < 1.0d-10) exit
             if (maxval(abs(phi - phi_old)) < 1.0d-8) exit
@@ -224,7 +231,7 @@ module m_driver
 
         !print*, lambda(jj)
         !print*,S0
-        !print*,phi
+        !print*,sum()
 
         open(unit=995, file="plot_flux.gp", status="replace", action="write")
         write(995,*) "set term wxt 1 title 'Flux vs x'"
@@ -236,5 +243,52 @@ module m_driver
         call system("gnuplot -persist plot_flux.gp")
     end subroutine iterative_power_driver
 
+    subroutine multigroup_diffusion_iter()
+        implicit none
+        integer :: N = 10, G = 3, gg, jj
+        real(8) :: alpha = 0.0, nu = 3, R_domain = 10, k_eff_0 = 1, S_f_0 = 1
+        real(8), allocatable :: phi(:,:), dx(:), Dif(:,:), Sigma_aG(:), Sigma_sG(:), Sigma_f(:,:), Sigma_s_prime(:,:), S_f(:), A_scatter(:,:), dx_V(:), phi_old(:,:), chi(:)
+        real(8), dimension(1000) :: K_eff
+
+        allocate(dx(N-1), chi(G), Dif(G,N), Sigma_aG(G), Sigma_sG(G), Sigma_f(G,N), S_f(N), dx_V(N), phi(G,N), phi_old(G,N), A_scatter(G,G), Sigma_s_prime(G,G))
+        
+        dx(1:N-1) = R_domain / real(N-1, 8) 
+        dx_V(1:N-1) = 0.5*dx(1:N-1) ; dx_V(2:N) = dx_V(2:N) + 0.5 * dx(1:N-1)
+
+        chi = [0.5, 0.3, 0.2]
+        Dif(1, 1:N) = 1.0/(3.0*0.1) ; Dif(2, 1:N) = 1.0/(3.0*0.1) ; Dif(3, 1:N) = 1.0/(3.0*0.1) ;
+        Sigma_f(1, 1:N) = 0.06 ; Sigma_f(2, 1:N) = 0.06 ; Sigma_f(3, 1:N) = 0.06 ;
+        Sigma_aG = [0.1, 0.1, 0.1]
+        Sigma_sG = [0.01, 0.01, 0.01]
+        Sigma_s_prime = 0.01
+
+        do gg = 1,G
+            do jj = gg,G
+                if (gg == jj) then
+                    A_scatter(gg,jj) = Sigma_aG(gg) + Sigma_sG(gg) - Sigma_s_prime(gg,jj)
+                else
+                    A_scatter(gg,jj) = - Sigma_s_prime(gg,jj)
+                endif
+            end do
+        end do
+
+        S_f(1:N) = 1/K_eff_0 * chi(1) * S_f_0
+        do gg = 1,G
+            do
+                call build_matrix_multigroup(N, alpha, G, phi(gg,1:N), dx, Dif(gg,N), A_scatter(gg,G), S_f(N))
+                exit
+            end do
+            exit
+        end do
+
+        print *, "phi (group x spatial point):"
+        do gg = 1, G
+            write(*, '(A,I2,A)') "Group ", gg, ":"
+            write(*, '(100(1X,F8.4))') (phi(gg,jj), jj = 1, N)
+        end do
+
+    end subroutine multigroup_diffusion_iter
+
 end module m_driver
+
 
