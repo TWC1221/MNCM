@@ -1,6 +1,6 @@
 file(REMOVE_RECURSE
-  "/mnt/c/Users/tc1221/Git_Directory/MNCM/executable_name"
-  "/mnt/c/Users/tc1221/Git_Directory/MNCM/executable_name.pdb"
+  "../executable_name"
+  "../executable_name.pdb"
   "CMakeFiles/executable_name.dir/main.f90.o"
 )
 

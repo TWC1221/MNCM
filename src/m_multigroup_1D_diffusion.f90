@@ -7,7 +7,7 @@ contains
         implicit none
         integer, intent(in) :: N, G, gg
         real(8), intent(in) :: alpha
-        real(8), intent(inout) :: phi(N), dx(N-1), Dif, A_scatter(1:G,1:G), S0(N), Sigma_a
+        real(8), intent(inout) :: phi(gg,1:N), dx(N-1), Dif, A_scatter(1:G,1:G), S0(N), Sigma_a
 
         real(8), dimension(N) :: a, b, c, d, x
         integer :: ii
@@ -20,17 +20,17 @@ contains
         do ii = 1, N
             if (ii == 1) then
                 a(ii) = 0.0d0
-                b(ii) = ((Dif+Dif))/(dx(ii)*dx(ii))) + 1/dx(ii)*(1-alpha)/(1+alpha) + sum(A_scatter(gg,1:G)) + Sigma_a
+                b(ii) = ((Dif+Dif))/(dx(ii)*dx(ii)) + 1/dx(ii)*(1-alpha)/(1+alpha) + 0*sum(A_scatter(gg,1:G)) + Sigma_a
                 c(ii) = -(Dif+Dif)/(dx(ii)*(dx(ii)))
                 d(ii) = S0(ii)
             elseif (ii == N) then
                 a(ii) = -(Dif+Dif)/(dx(ii-1)*dx(ii-1))
-                b(ii) = ((Dif+Dif)/dx(ii-1))/(dx(ii-1)) + 1/dx(ii-1)*(1-alpha)/(1+alpha) + sum(A_scatter(gg,1:G)) + Sigma_a
+                b(ii) = ((Dif+Dif)/dx(ii-1))/(dx(ii-1)) + 1/dx(ii-1)*(1-alpha)/(1+alpha) + 0*sum(A_scatter(gg,1:G)) + Sigma_a
                 c(ii) = 0.0d0
                 d(ii) = S0(ii)
             else
                 a(ii) = -(Dif+Dif)/(dx(ii-1)*(dx(ii)+dx(ii-1)))
-                b(ii) = ((Dif+Dif)/dx(ii-1)+(Dif+Dif)/dx(ii))/(dx(ii)+dx(ii-1)) + sum(A_scatter(gg,1:G)) + Sigma_a
+                b(ii) = ((Dif+Dif)/dx(ii-1)+(Dif+Dif)/dx(ii))/(dx(ii)+dx(ii-1)) + 0*sum(A_scatter(gg,1:G)) + Sigma_a
                 c(ii) = -(Dif+Dif)/(dx(ii)*(dx(ii)+dx(ii-1)))
                 d(ii) = S0(ii)
             end if

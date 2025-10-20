@@ -1,4 +1,4 @@
-/mnt/c/Users/tc1221/Git_Directory/MNCM/build/CMakeFiles/src.dir
-/mnt/c/Users/tc1221/Git_Directory/MNCM/build/CMakeFiles/executable_name.dir
-/mnt/c/Users/tc1221/Git_Directory/MNCM/build/CMakeFiles/edit_cache.dir
-/mnt/c/Users/tc1221/Git_Directory/MNCM/build/CMakeFiles/rebuild_cache.dir
+/home/tom/Documents/Repo/MNCM/build/CMakeFiles/src.dir
+/home/tom/Documents/Repo/MNCM/build/CMakeFiles/executable_name.dir
+/home/tom/Documents/Repo/MNCM/build/CMakeFiles/edit_cache.dir
+/home/tom/Documents/Repo/MNCM/build/CMakeFiles/rebuild_cache.dir

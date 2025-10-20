@@ -240,56 +240,67 @@ module m_driver
 
     subroutine multigroup_diffusion_iter()
         implicit none
-        integer :: N = 10, G = 3, gg, jj
-        real(8) :: alpha = 0.0, R_domain = 5, k_eff_0 = 1, S_f_0 = 1
-        real(8), allocatable :: phi(:,:), dx(:), Dif(:), Sigma_a(:), nu_Sigma_f(:,:), Sigma_s_prime(:,:), S_f(:), A_scatter(:,:), dx_V(:), chi(:), phi_prime(:,:), K_eff(:), S_f_prime(:)
+        integer :: N = 10, G = 3, gg, jj = 2
+        real(8) :: alpha = 0.0, R_domain = 1, F
+        real(8), allocatable :: phi(:,:), dx(:), Dif(:), Sigma_a(:), nu_Sigma_f(:,:), Sigma_s_prime(:,:), S_f(:), A_scatter(:,:), dx_V(:), chi(:), phi_prime(:,:), K_eff(:), S_f_iter(:)
 
-        allocate(dx(N-1), chi(1:G), Dif(1:G), Sigma_a(1:G), nu_Sigma_f(1:G,1:N), S_f(1:N), dx_V(1:N), phi(1:G,1:N), A_scatter(1:G,1:G), Sigma_s_prime(1:G,1:G), phi_prime(1:G,1:N), S_f_prime(1:N), K_eff(10))
+        allocate(dx(N-1), chi(1:G), Dif(1:G), Sigma_a(1:G), nu_Sigma_f(1:G,1:N), S_f(1:N), dx_V(1:N), phi(1:G,1:N), A_scatter(1:G,1:G), Sigma_s_prime(1:G,1:G), phi_prime(1:G,1:N), S_f_iter(1:N), K_eff(1:1000))
         
         dx(1:N-1) = R_domain / real(N-1, 8) 
         dx_V(1:N-1) = 0.5*dx(1:N-1) ; dx_V(2:N) = dx_V(2:N) + 0.5 * dx(1:N-1)
 
-        chi = [0.9, 0.1, 0.0]
+        chi = [0.8, 0.1, 0.1]
 
-        Dif(1:G) = [1.0/0.30, 1.0/0.30, 1.0/0.3]
-        nu_Sigma_f(1,1:N) = 0.1; nu_Sigma_f(2,1:N) = 0.2; nu_Sigma_f(3,1:N) = 0.7;  
-        Sigma_a(1:G) = [0.1, 0.1, 0.1]
+        Dif(1:G) = [1.5, 1.0, 0.4]
+        nu_Sigma_f(1,1:N) = 0.02; nu_Sigma_f(2,1:N) = 0.1; nu_Sigma_f(3,1:N) = 0.35;  
+        Sigma_a(1:G) = [0.015, 0.025, 0.12]
 
-        Sigma_s_prime = 0.01
+        A_scatter = reshape([ &
+            0.00d0, 0.00d0, 0.00d0, &  ! column 1 (fortran stores column-major)
+            0.05d0, 0.00d0, 0.00d0, &  ! column 2
+            0.0d0, 0.07d0, 0.00d0  &  ! column 3
+        ], shape=[3,3])
 
-        do gg = 1,G
-            do jj = gg+1,G
-                    A_scatter(gg,jj) = - Sigma_s_prime(gg,jj)
-            end do
-        end do
 
-        S_f(1:N) = 1 ; K_eff(1) = 1; !hope
+
+        ! do gg = 1,G
+        !     do jj = gg+1,G
+        !             A_scatter(gg,jj) = Sigma_s_prime(gg,jj)
+        !     end do
+        ! end do
+
+        call random_number(F)
+        S_f(1:N) = F ; K_eff(1) = F;
 
         do jj = 2,10
-            phi_prime(:,:) = phi(:,:)
+            S_f_iter(1:N) = S_f(1:N)
             do gg = 1,3
                 if (gg == 1) then
-                    S_f(1:N) = chi(gg)/K_eff(jj-1) * S_f(1:N)
+                    S_f(1:N) = chi(gg)/real(K_eff(jj-1)) * S_f_iter(1:N)
                 elseif (gg == 2) then
-                    S_f(1:N) = chi(gg)/K_eff(jj-1) * S_f(1:N) + A_scatter(1,2) * phi(1,1:N)
+                    S_f(1:N) = chi(gg)/real(K_eff(jj-1)) * S_f_iter(1:N) + 0*A_scatter(1,2) * phi(1,1:N)
                 else
-                    S_f(1:N) = chi(gg)/K_eff(jj-1) * S_f(1:N) + A_scatter(1,3)*phi(1,1:N)+ A_scatter(2,3)*phi(2,1:N)
+                    S_f(1:N) = chi(gg)/real(K_eff(jj-1)) * S_f_iter(1:N) + 0*A_scatter(1,3)*phi(1,1:N)+ 0*A_scatter(2,3)*phi(2,1:N)
                 endif
                 
                 call build_matrix_multigroup(N, alpha, G, phi(gg,1:N), dx, Dif(gg), A_scatter(1:G,1:G), S_f(1:N), gg, Sigma_a(gg))
-                
             end do
+
+            print*,"Iteration =", jj-1, "Keff =", K_eff(jj-1)
+
             S_f(1:N) = sum(nu_Sigma_f(:,1:N)*phi(:,1:N))
-            S_f_prime(1:N) = sum(nu_Sigma_f(:,1:N)*phi_prime(:,1:N))
-            K_eff(jj) = K_eff(jj-1)*sum(S_f*dx_V)/sum(S_f_prime*dx_V)
+            K_eff(jj) = K_eff(jj-1)*sum(S_f*dx_V)/sum(S_f_iter*dx_V)
+ 
+            if (abs((K_eff(jj) - K_eff(jj-1)) / K_eff(jj-1)) < 1.0d-10) exit
             if (maxval(abs(phi - phi_prime)) < 1.0d-8) exit
         end do
-
-        print *, "phi (group x spatial point):"
-        do gg = 1, G
-            write(*, '(A,I2,A)') "Group ", gg, ":"
-            write(*, '(100(1X,F8.4))') (phi(gg,jj), jj = 1, N)
-        end do
+        
+        
+        ! print *, "phi (group x spatial point):"
+        ! do gg = 1, G
+        !     write(*, '(A,I2,A)') "Group ", gg, ":"
+        !     write(*, '(100(1X,F8.4))') (phi(gg,jj), jj = 1, N)
+        ! end do
 
     end subroutine multigroup_diffusion_iter
 

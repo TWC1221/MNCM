@@ -54,6 +54,8 @@ find_package(BLAS REQUIRED)
 
 # Add link directories
 add_library(src
+    src/m_iterative_power_solver.f90
+    src/m_multigroup_1D_diffusion.f90
     src/m_MMS_solver.f90
     src/m_constants.f90
     src/m_driver.f90
