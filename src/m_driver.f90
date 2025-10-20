@@ -188,7 +188,7 @@ module m_driver
 
     subroutine iterative_power_driver()
         implicit none
-        integer :: N = 1000, N_interface = 1000, jj = 1
+        integer :: N = 10, N_interface = 10, jj = 1
         real(8) :: alpha = 0.0, x_interface = 10, nu = 3, R_domain = 10, Norm
         real(8), allocatable :: a(:), b(:), c(:), phi(:), dx(:), Dif(:), Sigma_a(:), Sigma_f(:), S0(:), dx_V(:), phi_old(:)
         real(8), dimension(1000) :: lambda
@@ -201,9 +201,7 @@ module m_driver
 
         dx(1:N_interface-1) = x_interface / real(N_interface-1, 8) ; dx(N_interface:N-1) = (R_domain - x_interface) / real(N - N_interface -1, 8)
         dx_V(1:N-1) = 0.5*dx(1:N-1) ; dx_V(2:N) = dx_V(2:N) + 0.5 * dx(1:N-1)
-        !print*,dx
-        ! print*,''
-        print*,dx_V
+
         Dif(1:N_interface-1) = 1.0/(3.0*0.1) ;  Dif(N_interface:N) = 1.0/(3.0*0.1) 
         Sigma_a(1:N_interface-1) = 0.1 ; Sigma_a(N_interface:N) = 0.1
         Sigma_f(1:N_interface-1) = 0.06 ; Sigma_f(N_interface:N) = 0.06
@@ -217,7 +215,8 @@ module m_driver
             phi_old = phi !PHI 0
 
             call build_matrix_A_iterative_power(a, b, c, N, alpha, phi, dx, Dif, Sigma_a, S0)
-            
+            print*,phi
+            stop
             lambda(jj) = lambda(jj-1) * sum(nu*Sigma_f*phi*dx_V)/sum(nu*Sigma_f*phi_old*dx_V)
 
             Norm = nu*sum(phi*Sigma_f*dx_V)/(lambda(jj))
@@ -228,10 +227,6 @@ module m_driver
             if (abs((lambda(jj) - lambda(jj-1)) / lambda(jj-1)) < 1.0d-10) exit
             if (maxval(abs(phi - phi_old)) < 1.0d-8) exit
         end do
-
-        !print*, lambda(jj)
-        !print*,S0
-        !print*,sum()
 
         open(unit=995, file="plot_flux.gp", status="replace", action="write")
         write(995,*) "set term wxt 1 title 'Flux vs x'"
@@ -246,39 +241,48 @@ module m_driver
     subroutine multigroup_diffusion_iter()
         implicit none
         integer :: N = 10, G = 3, gg, jj
-        real(8) :: alpha = 0.0, nu = 3, R_domain = 10, k_eff_0 = 1, S_f_0 = 1
-        real(8), allocatable :: phi(:,:), dx(:), Dif(:,:), Sigma_aG(:), Sigma_sG(:), Sigma_f(:,:), Sigma_s_prime(:,:), S_f(:), A_scatter(:,:), dx_V(:), phi_old(:,:), chi(:)
-        real(8), dimension(1000) :: K_eff
+        real(8) :: alpha = 0.0, R_domain = 5, k_eff_0 = 1, S_f_0 = 1
+        real(8), allocatable :: phi(:,:), dx(:), Dif(:), Sigma_a(:), nu_Sigma_f(:,:), Sigma_s_prime(:,:), S_f(:), A_scatter(:,:), dx_V(:), chi(:), phi_prime(:,:), K_eff(:), S_f_prime(:)
 
-        allocate(dx(N-1), chi(G), Dif(G,N), Sigma_aG(G), Sigma_sG(G), Sigma_f(G,N), S_f(N), dx_V(N), phi(G,N), phi_old(G,N), A_scatter(G,G), Sigma_s_prime(G,G))
+        allocate(dx(N-1), chi(1:G), Dif(1:G), Sigma_a(1:G), nu_Sigma_f(1:G,1:N), S_f(1:N), dx_V(1:N), phi(1:G,1:N), A_scatter(1:G,1:G), Sigma_s_prime(1:G,1:G), phi_prime(1:G,1:N), S_f_prime(1:N), K_eff(10))
         
         dx(1:N-1) = R_domain / real(N-1, 8) 
         dx_V(1:N-1) = 0.5*dx(1:N-1) ; dx_V(2:N) = dx_V(2:N) + 0.5 * dx(1:N-1)
 
-        chi = [0.5, 0.3, 0.2]
-        Dif(1, 1:N) = 1.0/(3.0*0.1) ; Dif(2, 1:N) = 1.0/(3.0*0.1) ; Dif(3, 1:N) = 1.0/(3.0*0.1) ;
-        Sigma_f(1, 1:N) = 0.06 ; Sigma_f(2, 1:N) = 0.06 ; Sigma_f(3, 1:N) = 0.06 ;
-        Sigma_aG = [0.1, 0.1, 0.1]
-        Sigma_sG = [0.01, 0.01, 0.01]
+        chi = [0.9, 0.1, 0.0]
+
+        Dif(1:G) = [1.0/0.30, 1.0/0.30, 1.0/0.3]
+        nu_Sigma_f(1,1:N) = 0.1; nu_Sigma_f(2,1:N) = 0.2; nu_Sigma_f(3,1:N) = 0.7;  
+        Sigma_a(1:G) = [0.1, 0.1, 0.1]
+
         Sigma_s_prime = 0.01
 
         do gg = 1,G
-            do jj = gg,G
-                if (gg == jj) then
-                    A_scatter(gg,jj) = Sigma_aG(gg) + Sigma_sG(gg) - Sigma_s_prime(gg,jj)
-                else
+            do jj = gg+1,G
                     A_scatter(gg,jj) = - Sigma_s_prime(gg,jj)
-                endif
             end do
         end do
 
-        S_f(1:N) = 1/K_eff_0 * chi(1) * S_f_0
-        do gg = 1,G
-            do
-                call build_matrix_multigroup(N, alpha, G, phi(gg,1:N), dx, Dif(gg,N), A_scatter(gg,G), S_f(N))
-                exit
+        S_f(1:N) = 1 ; K_eff(1) = 1; !hope
+
+        do jj = 2,10
+            phi_prime(:,:) = phi(:,:)
+            do gg = 1,3
+                if (gg == 1) then
+                    S_f(1:N) = chi(gg)/K_eff(jj-1) * S_f(1:N)
+                elseif (gg == 2) then
+                    S_f(1:N) = chi(gg)/K_eff(jj-1) * S_f(1:N) + A_scatter(1,2) * phi(1,1:N)
+                else
+                    S_f(1:N) = chi(gg)/K_eff(jj-1) * S_f(1:N) + A_scatter(1,3)*phi(1,1:N)+ A_scatter(2,3)*phi(2,1:N)
+                endif
+                
+                call build_matrix_multigroup(N, alpha, G, phi(gg,1:N), dx, Dif(gg), A_scatter(1:G,1:G), S_f(1:N), gg, Sigma_a(gg))
+                
             end do
-            exit
+            S_f(1:N) = sum(nu_Sigma_f(:,1:N)*phi(:,1:N))
+            S_f_prime(1:N) = sum(nu_Sigma_f(:,1:N)*phi_prime(:,1:N))
+            K_eff(jj) = K_eff(jj-1)*sum(S_f*dx_V)/sum(S_f_prime*dx_V)
+            if (maxval(abs(phi - phi_prime)) < 1.0d-8) exit
         end do
 
         print *, "phi (group x spatial point):"
