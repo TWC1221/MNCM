@@ -45,5 +45,7 @@ contains
         end do
 
         deallocate(c_star, d_star)
+
     end subroutine thomas_algorithm
-end module m_Thomas_Algorithm
+
+end module

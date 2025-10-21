@@ -1,0 +1,153 @@
+Title: Simple one region pincell problem
+
+@
+@ - This is a simple one region pincell problem posed by AMEC Winfrith.
+@ - The purpose of this pincell problem is to determine the effects of
+@ - the use of the transport correction approximation to the use of the full
+@ - P1 scatter treatment approach. The pincell has a pitch of (diameter) 1.26cm. 
+@
+
+problem radiation         @ radiation problem
+geometry xy               @ 2D xy geometry
+case eigenvalue           @ Keff determination
+angle 9                   @ P25 angular flux expansion
+polynomial 1              @ order of spatial finite elements
+scatter 0                 @ order of scattering anisotropy
+groups 1                  @ one group problem
+upscatter no              @ No upscattering from lower energy groups to higher
+solution pcg5             @ matrix solution algorithm
+monitor eigenvalue        @ monitor the Keff (fundamental eigenvalue)
+
+sizeil 60000000
+sizerl 60000000
+SIZEIM 60000000
+SIZERM 60000000
+
+@
+@ - define points
+@
+
+pnt p1 0.0  0.0
+pnt p2 0.63 0.0
+pnt p3 0.63 0.63 
+
+@
+@ - define lines
+@
+
+line l1 p1 p2
+line l2 p2 p3
+line l3 p3 p1
+
+@
+@ - divide lines into intervals
+@
+
+divide 40 l1 l2 l3
+
+@
+@ - define material regions
+@
+
+region r1 l1 l2 l3 
+
+@
+@ - define mesh fill type (uniform triangles)
+@
+
+mesh r1 triang blend
+
+@
+@ - define material x/s data and x/s table format
+@
+
+@ - one group case
+xstab 5 6 6
+
+@ - two group case
+@xstab 5 6 7
+
+@
+@ - NB: That the x/s will be entered in according to the WIMS file 
+@ - format which is: sig_total, sigabs, nu*sigfiss, chi, sigfiss, sigscat 
+@
+
+@ - one group case
+
+@ - total abs fiss*nu fisschi fiss P0
+material pincell 6.060388E-01 2.422580E-02 ^
+                 1.431401E-02 1.000000E+00 ^
+                 5.763110E-03 5.818130E-01 
+@
+@trans abs fiss*nu fisschi fiss P0
+@material pincell 2.631290E-01 2.422580E-02 ^
+@                 1.431401E-02 1.000000E+00 ^
+@                 5.763110E-03 2.389032E-01
+
+@ - two group case
+
+@ - total abs fiss*nu fisschi fiss P0
+@material pincell 5.276614E-01 1.451920E-02 ^ 
+@                 4.876557E-03 1.000000E+00 1.881700E-03 ^
+@                 5.009750E-01 1.216720E-02 ^
+@                 1.403816E+00 1.230260E-01 ^
+@                 1.103745E-01 0.000000E+00 4.527070E-02 ^
+@                 8.202780E-04 1.279970E+00
+
+@ - trans abs fiss*nu fisschi fiss P0
+@material pincell 2.419260E-01 1.451920E-02 ^
+@                 4.876557E-03 1.000000E+00 1.881700E-03 ^
+@                 2.152396E-01 1.216720E-02 ^
+@                 9.591650E-01 1.230260E-01 ^
+@                 1.103745E-01 0.000000E+00 4.527070E-02 ^
+@                 8.202780E-04 8.353187E-01 ^
+
+@
+@ - define boundary conditions
+@
+
+boundary reflect l1 l2 l3
+
+@
+@ - assign material properties to regions
+@
+
+property r1 pincell
+
+@
+@ - define volume averaging regions (in this case the fuel and moderator regions)
+@ - NB: That the volume averages given out by EVENT will be the volumes 
+@ - as defined even if symmetry is used. Symmetry is used in this GEM file so
+@ - all the averages in filename/event/out/integral should be divided by eight
+@ - because the volumes are eight times smaller than the full geometry due to
+@ - the exploitation of the symmetry in the pincell geometry.
+@
+
+average 1 r1
+
+@
+@ - generate mesh
+@
+
+fill 
+
+@
+@ - dump out a vtu file for viewing mesh
+@
+
+dumpvtu
+
+@
+@ - output parameter, mesh file and matxs file to default directory locations
+@
+
+data
+
+@
+@ - stop the gem run
+@
+
+stop
+
+
+

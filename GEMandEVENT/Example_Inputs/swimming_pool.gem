@@ -1,0 +1,379 @@
+Title: Swimming Pool Reactor
+
+@
+@ - This GEM file is for modelling the XY geometry of the Swimming pool reactor Stepanek, Auerbach and Haelg (1983
+@
+
+@
+@ - define the main problem parameters
+@
+
+
+problem radiation        @ radiation problem
+mode direct              @ solution mode [direct,adjoint or both]
+case eigenvalue          @ Eigenvalue, criticality or Keff problem.
+geometry xy              @ 2D xy geometry.
+angle 7                  @ order of angular approximation (note that this is odd number i.e. 1 is diffusion, P3, P5, P7 etc are transport corrections).
+polynomial 1             @ order of basis functions
+scatter 0                @ order of scattering anisotropy (0 is isotropic, 1 is linearly anisotropic and 2 is quadratically anisoptropic etc).
+groups 1                 @ Number of energy groups for eigenvalue problem.
+upscatter No             @ No upscatter from lower groups as this is a one group or one speed problem.
+monitor eigenvalue       @ Print out the eigenvalue to the screen as it converges.
+
+
+@
+@ - define the amount of integer and real memory to pre-allocate for GEM
+@
+
+sizeil 9000000000
+sizerl 9000000000
+SIZEIM 9000000000
+SIZERM 9000000000
+
+@
+@ - define XY geometry of the Swimming Pool reactor by definining the geometry using points, lines and regions.
+@
+
+@
+@ - define detector points with label pdnumber (e.g. pd1. pd2. pd3 etc)
+@
+@ - pnt pd1 X co-ordinate Y co-ordinate
+@
+
+pnt pd1  0.0 0.0
+
+@
+@ - define points that make up the vertices of the Swimming Pool reactor model
+@
+@ - pnt pntname X co-ordinate Y co-ordinate
+@
+@
+
+pnt p1a   0.0  0.0
+pnt p2a  18.0  0.0
+pnt p3a  48.0  0.0
+pnt p4a  78.0  0.0
+pnt p5a  96.0  0.0
+
+pnt p1b   0.0 18.0
+pnt p2b  18.0 18.0
+pnt p3b  48.0 18.0
+pnt p4b  78.0 18.0 
+pnt p5b  96.0 18.0
+
+pnt p1c   0.0 43.0
+pnt p2c  18.0 43.0
+pnt p3c  48.0 43.0
+pnt p4c  78.0 43.0
+pnt p5c  96.0 43.0
+
+pnt p1d   0.0 68.0
+pnt p2d  18.0 68.0
+pnt p3d  48.0 68.0
+pnt p4d  78.0 68.0
+pnt p5d  96.0 68.0
+
+pnt p1e   0.0 86.0
+pnt p2e  18.0 86.0
+pnt p3e  48.0 86.0
+pnt p4e  78.0 86.0
+pnt p5e  96.0 86.0
+
+@
+@ - define lines by using the points defined above
+@
+@ - i.e. line linename pntname1 pntname2
+@
+
+@ - Horizonal first row of lines (a)
+
+line l1a p1a p2a
+line l2a p2a p3a
+line l3a p3a p4a
+line l4a p4a p5a
+
+@ - lines joining row a and b
+
+line l1ab p1a p1b
+line l2ab p2a p2b
+line l3ab p3a p3b
+line l4ab p4a p4b
+line l5ab p5a p5b
+
+@ - Horizonal first row of lines (b)
+
+line l1b p1b p2b
+line l2b p2b p3b
+line l3b p3b p4b
+line l4b p4b p5b
+
+@ - lines joining row b and c
+
+line l1bc p1b p1c
+line l2bc p2b p2c
+line l3bc p3b p3c
+line l4bc p4b p4c
+line l5bc p5b p5c
+
+@ - Horizonal first row of lines (c)
+
+line l1c p1c p2c
+line l2c p2c p3c
+line l3c p3c p4c
+line l4c p4c p5c
+
+@ - lines joining row c and d
+
+line l1cd p1c p1d
+line l2cd p2c p2d
+line l3cd p3c p3d
+line l4cd p4c p4d
+line l5cd p5c p5d
+
+@ - Horizonal first row of lines (d)
+
+line l1d p1d p2d
+line l2d p2d p3d
+line l3d p3d p4d
+line l4d p4d p5d
+
+@ - lines joining row d and e
+
+line l1de p1d p1e
+line l2de p2d p2e
+line l3de p3d p3e
+line l4de p4d p4e
+line l5de p5d p5e
+
+@ - Horizonal first row of lines (e)
+
+line l1e p1e p2e
+line l2e p2e p3e
+line l3e p3e p4e
+line l4e p4e p5e
+
+@
+@ - divide lines into intervals (divisions between opposite sides must be the same!)
+@
+
+@ - divide horizontal lines going from bottom to top in order
+
+divide 60  l1a l1b l1c l1d l1e 
+
+divide 60  l2a l2b l2c l2d l2e 
+
+divide 60  l3a l3b l3c l3d l3e 
+
+divide 60  l4a l4b l4c l4d l4e 
+
+@ - divide vertical lines going from bottom to top in order
+
+divide 60  l1ab l2ab l3ab l4ab l5ab 
+
+divide 60  l1bc l2bc l3bc l4bc l5bc 
+
+divide 60  l1cd l2cd l3cd l4cd l5cd 
+
+divide 60  l1de l2de l3de l4de l5de 
+
+@
+@ - read in mat1, mat2, mat3, mat4, mat5
+@ 
+@ - For multigroup data it is ordered as:
+@ - sigma_tg, sigma_ag, nu*sigma_fg, sigma_s0g->g, sigma_s0g->g+1 etc
+@
+
+material mat1 0.60 0.07 0.079 0.530
+material mat2 0.48 0.28 0.000 0.200
+material mat3 0.70 0.04 0.043 0.660
+material mat4 0.65 0.15 0.000 0.500
+material mat5 0.90 0.01 0.000 0.890
+
+@
+@ - define quadrilateral shaped regions
+@
+@ - These are defined as follows:
+@
+@ - region regioname linename1 linename2 linename3 linename4
+@
+
+@ - region ab (first row of regions)
+
+region r1ab l1a l2ab l1b l1ab
+region r2ab l2a l3ab l2b l2ab 
+region r3ab l3a l4ab l3b l3ab
+region r4ab l4a l5ab l4b l4ab
+
+@ - region bc (second row of regions)
+
+region r1bc l1b l2bc l1c l1bc
+region r2bc l2b l3bc l2c l2bc 
+region r3bc l3b l4bc l3c l3bc
+region r4bc l4b l5bc l4c l4bc
+
+@ - region cd (third row of regions)
+
+region r1cd l1c l2cd l1d l1cd
+region r2cd l2c l3cd l2d l2cd
+region r3cd l3c l4cd l3d l3cd
+region r4cd l4c l5cd l4d l4cd
+
+@ - region de (fourth row of regions)
+
+region r1de l1d l2de l1e l1de
+region r2de l2d l3de l2e l2de 
+region r3de l3d l4de l3e l3de
+region r4de l4d l5de l4e l4de
+
+@
+@ - assign material x/s properties regions
+@
+
+@ - assign material x/s properties to region ab (first row of regions)
+
+properties r1ab mat5
+properties r2ab mat5
+properties r3ab mat5
+properties r4ab mat5
+
+@ - assign material x/s properties to region bc (second row of regions)
+
+properties r1bc mat5 
+properties r2bc mat1 
+properties r3bc mat2 
+properties r4bc mat5  
+
+@ - assign material x/s properties to region cd (third row of regions)
+
+properties r1cd mat5  
+properties r2cd mat4 
+properties r3cd mat3  
+properties r4cd mat5    
+
+@ - assign material x/s properties to region de (fourth row of regions)
+
+properties r1de mat5   
+properties r2de mat5  
+properties r3de mat5  
+properties r4de mat5  
+
+@
+@ - add in scalar neutron flux detector (don't forget detector positions are listed at the beginining of the input deck)
+@
+
+sensor scalar pd1
+
+@ - regional averages
+@
+
+@ - material 1 average (e.g. region number, number of elements in region, total volume, flux average, average capture, average total source)
+
+average 1 r2bc
+
+@ - material 2 average (e.g. region number, number of elements in region, total volume, flux average, average capture, average total source)
+
+average 2 r3bc
+
+@ - material 3 average (e.g. region number, number of elements in region, total volume, flux average, average capture, average total source)
+
+average 3 r3cd
+
+@ - material 4 average (e.g. region number, number of elements in region, total volume, flux average, average capture, average total source)
+
+average 4 r2cd
+
+@ - material 5 average (e.g. region number, number of elements in region, total volume, flux average, average capture, average total source)
+
+average 5 r1ab r2ab r3ab r4ab ^
+          r1bc r1cd r4bc r4cd ^
+          r1de r2de r3de r4de
+
+@
+@ - define type of fill for regions
+@
+@ - This is defined as follows:
+@
+@ - mesh regioname filltype
+@
+@ - options for filltype are: triang blend, skew1, skew2, skew?, quad blend, front and delaunay
+@ - as we want a regular mesh we use filltype "quad blend" which uses a transfinite interpolation method 
+@ - to produce the mesh for the region.
+@
+
+@ - define mesh fill type for region ab (first row of regions)
+
+mesh r1ab quad blend
+mesh r2ab quad blend
+mesh r3ab quad blend
+mesh r4ab quad blend
+
+@ - define mesh fill type for region bc (second row of regions)
+
+mesh r1bc quad blend
+mesh r2bc quad blend
+mesh r3bc quad blend
+mesh r4bc quad blend
+
+@ - define mesh fill type for region cd (third row of regions)
+
+mesh r1cd quad blend
+mesh r2cd quad blend
+mesh r3cd quad blend
+mesh r4cd quad blend
+
+@ - define mesh fill type for region de (forfth row of regions)
+
+mesh r1de quad blend
+mesh r2de quad blend
+mesh r3de quad blend
+mesh r4de quad blend
+
+@
+@ - define boundary conditions
+@
+
+@ - bottom boundary condition is vacuum/bare
+
+boundary vacuum l1a l2a l3a l4a 
+
+@ - top boundary condition is vacuum/bare 
+
+boundary vacuum l1e l2e l3e l4e 
+
+@ - right hand side boundary is vacuum/bare
+
+boundary vacuum l5ab l5bc l5cd l5de 
+
+@ - left hand side boundary is vacuum/bare
+
+boundary vacuum l1ab l1bc l1cd l1de 
+
+@
+@ - define fission spectrum (must sum to unity)
+@
+
+spectrum  1.0
+
+@
+@ - fill up lines with nodes and elements
+@
+
+fill
+
+@
+@ - graphical output device
+@
+
+dumpvtu
+
+@
+@ - output mesh file to default file
+@
+
+data
+
+@
+@ - stop gem run
+@
+stop
+

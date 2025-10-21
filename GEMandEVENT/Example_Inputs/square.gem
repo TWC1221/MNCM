@@ -1,0 +1,134 @@
+Title: square
+
+problem radiation
+mode adjoint
+case eigenvalue      @ fixed problem
+geometry xy 	@ rz geometry
+angle 1
+scatter 0
+groups 1
+upscatter yes
+monitor pcgin pcgout
+
+
+@
+@ - pre-allocate real and integer memory for EVENT neutron transport code to run proper
+@
+
+sizeil 200000000
+sizerl 200000000
+SIZEIM 200000000
+SIZERM 200000000
+
+@
+@ - Define points for unit square geometry
+@
+
+pnt p1a 0.0 0.0 0.0
+pnt p2a 1.0 0.0 0.0
+
+pnt p1b 0.0 1.0 0.0
+pnt p2b 1.0 1.0 0.0
+
+
+@
+@ - Define lines joining the points
+@
+@bottom
+@top
+@left
+@right
+line l1a p1a p2a
+line l1b p1b p2b
+line l1ab p1a p1b
+line l2ab p2a p2b
+
+@
+@ - Divide lines
+@
+
+divide 100 l1a l1b
+
+divide 100 l1ab l2ab
+
+
+@
+@
+@ - DEFINE MATERIALS
+@
+@
+
+@ - 	sig_t sig_a nu*sig_f sig_s
+material mat1 3.0 2.0 0.0 1.0 @0.4 ^
+              @3.0 2.0 1.0 0.3 0.7
+
+@spectrum 1.0 0.0
+@
+@ - Define extraneous source
+@
+
+source sour1 0.0
+
+surface lhs_source 0.0
+surface rhs_source 0.0
+
+@
+@ - Define the whole region
+@
+
+region sqr l1a l2ab l1b l1ab 
+@ lines for region must be joined in a way that make sense
+
+@
+@ - Assign materials to region
+@
+
+properties sqr mat1
+
+@
+@ - how the mesh will be formed
+@
+
+mesh sqr quad blend
+
+@
+@ - define boundary conditions
+@
+
+boundary reflect l1a l1b
+boundary vacuum l2ab
+boundary reflect l1ab
+
+@boundary zero l1b
+
+@boundary zero l1ab
+
+@boundary zero l2ab
+
+
+@
+@ - Averages over the whole region
+@
+
+average 1 sqr
+
+@
+@ fill up lines and with nodes and elements
+@
+
+fill
+
+@
+@ want to use paraview
+@
+
+dumpvtu
+
+@
+@ output data to default file
+@
+
+data
+
+
+stop

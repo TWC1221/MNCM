@@ -1,0 +1,124 @@
+Title: Test file for box inside sphere
+
+@
+@ - This is a test file for a box contained within
+@ - a sphere. This mesh technique used will be a 
+@ - type of multiblock technique. The boundary 
+@ - representation for the problem will be in the 
+@ - form of sides, both plane and spherical.
+@
+
+@
+@ - define the main problem parameters
+@
+
+problem radiation    @ radiation problem
+geometry xyz         @ 3D xyz geometry
+case fixed           @ time-independent, fixed source
+angle 1              @ p1 expansion
+scatter 0            @ order of scattering anisotropy
+groups 1             @ one group problem
+print none           @ print out areas
+degree 1             @ order of FE basis
+solution pcg5        @ solution scheme
+
+
+pnt p1   -0.577350269 -0.577350269 -0.577350269
+pnt p2    0.577350269 -0.577350269 -0.577350269
+pnt p3   -0.577350269  0.577350269 -0.577350269
+pnt p4    0.577350269  0.577350269 -0.577350269
+
+pnt p5   -0.577350269 -0.577350269  0.577350269
+pnt p6    0.577350269 -0.577350269  0.577350269
+pnt p7   -0.577350269  0.577350269  0.577350269
+pnt p8    0.577350269  0.577350269  0.577350269
+
+pnt p11  -10.154700538 -10.154700538 -10.154700538
+pnt p12   10.154700538 -10.154700538 -10.154700538
+pnt p13  -10.154700538  10.154700538 -10.154700538
+pnt p14   10.154700538  10.154700538 -10.154700538
+
+pnt p15  -10.154700538 -10.154700538  10.154700538
+pnt p16   10.154700538 -10.154700538  10.154700538
+pnt p17  -10.154700538  10.154700538  10.154700538
+pnt p18   10.154700538  10.154700538  10.154700538
+
+pnt p0    0.0          0.0          0.0
+
+default itv 6
+
+side sid1 sphero p1 p2 p4 p3 p0
+side sid2 sphero p1 p2 p6 p5 p0
+side sid3 sphero p2 p4 p8 p6 p0
+side sid4 sphero p5 p6 p8 p7 p0
+side sid5 sphero p4 p3 p7 p8 p0
+side sid6 sphero p3 p1 p5 p7 p0
+
+side sid11 plane p11 p12 p14 p13
+side sid12 plane p11 p12 p16 p15
+side sid13 plane p12 p14 p18 p16
+side sid14 plane p15 p16 p18 p17
+side sid15 plane p14 p13 p17 p18
+side sid16 plane p13 p11 p15 p17
+
+side sid21 plane p11 p12 p2 p1
+side sid22 plane p12 p14 p4 p2
+side sid23 plane p14 p13 p3 p4
+side sid24 plane p13 p11 p1 p3
+
+side sid31 plane p15 p16 p6 p5
+side sid32 plane p16 p18 p8 p6
+side sid33 plane p18 p17 p7 p8
+side sid34 plane p17 p15 p5 p7
+
+side sid41 plane p12 p2 p6 p16
+side sid42 plane p4 p14 p18 p8
+side sid43 plane p3 p13 p17 p7
+side sid44 plane p11 p1 p5 p15
+
+region r1 sid1 sid2 sid3 sid4 sid5 sid6
+
+region r11 sid21 sid12 sid41 sid31 sid2  sid44
+region r12 sid22 sid41 sid13 sid32 sid42 sid3
+region r13 sid23 sid5  sid42 sid33 sid15 sid43
+region r14 sid24 sid44 sid6  sid34 sid43 sid16
+region r15 sid11 sid21 sid22 sid1  sid23 sid24
+region r16 sid4  sid31 sid32 sid14 sid33 sid34
+
+mesh r1 quad uniform
+mesh r11 quad uniform
+mesh r12 quad uniform
+mesh r13 quad uniform
+mesh r14 quad uniform
+mesh r15 quad uniform
+mesh r16 quad uniform
+
+mat ma1 1.0 0.5 0.0 0.5 
+mat ma2 1.0 0.8 0.0 0.2
+
+source s1 1.0
+
+
+average 1 r1 
+average 2 r11
+average 3 r12
+average 4 r13
+average 5 r14
+average 6 r15
+average 7 r16
+
+prop r1  ma1 s1
+prop r11 ma2 
+prop r12 ma2 
+prop r13 ma2 
+prop r14 ma2 
+prop r15 ma2 
+prop r16 ma2 
+
+fill 
+
+dev x11
+
+
+
+

@@ -1,0 +1,569 @@
+Title: Two-dimensional reactor
+
+@
+@ - This is a two-dimensional small reactor problem taken from
+@ - Prof R. T. Ackroyds book Finite Element Methods for Particle 
+@ - Transport p 569. The problem consists of four fuel clusters
+@ - with three control rods, embedded in a moderator and enclosed
+@ - by a bare surface. The slowing down source into the thermal 
+@ - energy group is assumed to be isotropic and uniform across
+@ - the fuel. There are no sources elsewhere.
+@
+
+@
+@ - Below is a diagram of the problem geometry
+@
+
+@  
+@      y (cm)
+@       ^
+@       |---------------------------------
+@    10 |                                 |
+@     9 |_________        ____________    |  B
+@  R    |  FUEL   |      |    FUEL    |   |  A
+@  E    |____     |      |            |   |  R
+@  F    | CR |    |      |            |   |  E
+@  L    |____|    |      |            |   |
+@  E    |         |      |            |   |  S
+@  C    |_________|      |____________|   |  U
+@  T    |                                 |  R
+@  I    |   Moderator regions             |  F
+@  N    |_________        ____________    |  A
+@  G    |  FUEL   |      |            |   |  C
+@       |____     |      |    ____    |   |  E
+@       | CR |    |      |   | CR |   |   |
+@       |    |    |      |   |    |   |   |
+@     0 --------------------------------------------- > x (cm)
+@       0   1     3      7   9    11  13  15
+@                      REFLECTING       
+@
+@
+@    key: CR = control rod
+@         
+@
+
+@ 
+@ - define the main problem parameters
+@
+
+problem radiation        @ radiation problem
+mode direct              @ solution mode [direct,adjoint or both]
+case eigenvalue               @ Fixed source problem
+geometry xy              @ 2D xy geometry
+angle 9                  @ order of angular approximation
+@spn                      @ SPN expansion of angular flux
+scatter 0                @ order of scattering anisotropy
+@print fluxes            @ print out fluxes to standard output
+groups 1                 @ one group problem
+degree 1                 @ order of FE basis
+
+@
+@ - allocate memory for the real and integer arrays of EVENT
+@
+
+SIZEIL 30000000
+SIZERL 30000000
+
+SIZEIM 30000000
+SIZERM 30000000
+                        
+@
+@ - define geometry
+@
+
+@
+@ - define points
+@
+
+point p1a    0.0   0.0
+point p2a    1.0   0.0
+point p3a    3.0   0.0
+point p4a    7.0   0.0
+point p5a    9.0   0.0
+point p6a   11.0   0.0
+point p7a   13.0   0.0
+point p8a   15.0   0.0
+
+point p1b    0.0   1.0
+point p2b    1.0   1.0
+point p3b    3.0   1.0
+point p4b    7.0   1.0
+point p5b    9.0   1.0
+point p6b   11.0   1.0
+point p7b   13.0   1.0
+point p8b   15.0   1.0
+
+point p1c    0.0   3.0
+point p2c    1.0   3.0
+point p3c    3.0   3.0
+point p4c    7.0   3.0
+point p5c    9.0   3.0
+point p6c   11.0   3.0
+point p7c   13.0   3.0
+point p8c   15.0   3.0
+
+point p1d    0.0   7.0
+point p2d    1.0   7.0
+point p3d    3.0   7.0
+point p4d    7.0   7.0
+point p5d    9.0   7.0
+point p6d   11.0   7.0
+point p7d   13.0   7.0
+point p8d   15.0   7.0
+
+point p1e    0.0   9.0
+point p2e    1.0   9.0
+point p3e    3.0   9.0
+point p4e    7.0   9.0
+point p5e    9.0   9.0
+point p6e   11.0   9.0
+point p7e   13.0   9.0
+point p8e   15.0   9.0
+
+point p1f    0.0  11.0
+point p2f    1.0  11.0
+point p3f    3.0  11.0
+point p4f    7.0  11.0
+point p5f    9.0  11.0
+point p6f   11.0  11.0
+point p7f   13.0  11.0
+point p8f   15.0  11.0
+
+point p1g    0.0  13.0
+point p2g    1.0  13.0
+point p3g    3.0  13.0
+point p4g    7.0  13.0
+point p5g    9.0  13.0
+point p6g   11.0  13.0
+point p7g   13.0  13.0
+point p8g   15.0  13.0
+
+point p1h    0.0  15.0
+point p2h    1.0  15.0
+point p3h    3.0  15.0
+point p4h    7.0  15.0
+point p5h    9.0  15.0
+point p6h   11.0  15.0
+point p7h   13.0  15.0
+point p8h   15.0  15.0
+
+
+pnt pd1 0.5 0.5
+pnt pd2 5 5
+pnt pd3 10 10
+
+
+
+@
+@ - define lines
+@
+
+line l1   p1a  p2a 
+line l2   p2a  p3a
+line l3   p3a  p4a
+line l4   p4a  p5a
+line l5   p5a  p6a
+line l6   p6a  p7a
+line l7   p7a  p8a
+
+line l8   p1a  p1b
+line l9   p2a  p2b
+line l10  p3a  p3b
+line l11  p4a  p4b
+line l12  p5a  p5b
+line l13  p6a  p6b
+line l14  p7a  p7b
+line l15  p8a  p8b
+
+line l16  p1b  p2b
+line l17  p2b  p3b
+line l18  p3b  p4b
+line l19  p4b  p5b
+line l20  p5b  p6b
+line l21  p6b  p7b
+line l22  p7b  p8b
+
+line l23  p1b  p1c
+line l24  p2b  p2c
+line l25  p3b  p3c
+line l26  p4b  p4c
+line l27  p5b  p5c
+line l28  p6b  p6c
+line l29  p7b  p7c
+line l30  p8b  p8c
+
+line l31  p1c  p2c
+line l32  p2c  p3c
+line l33  p3c  p4c
+line l34  p4c  p5c
+line l35  p5c  p6c
+line l36  p6c  p7c
+line l37  p7c  p8c
+
+line l38  p1c  p1d
+line l39  p2c  p2d
+line l40  p3c  p3d
+line l41  p4c  p4d
+line l42  p5c  p5d
+line l43  p6c  p6d
+line l44  p7c  p7d
+line l45  p8c  p8d
+
+line l46  p1d  p2d
+line l47  p2d  p3d
+line l48  p3d  p4d
+line l49  p4d  p5d
+line l50  p5d  p6d
+line l51  p6d  p7d
+line l52  p7d  p8d
+
+line l53  p1d  p1e
+line l54  p2d  p2e
+line l55  p3d  p3e
+line l56  p4d  p4e
+line l57  p5d  p5e
+line l58  p6d  p6e
+line l59  p7d  p7e
+line l60  p8d  p8e
+
+line l61  p1e  p2e
+line l62  p2e  p3e
+line l63  p3e  p4e
+line l64  p4e  p5e
+line l65  p5e  p6e
+line l66  p6e  p7e
+line l67  p7e  p8e
+
+line l68  p1e  p1f
+line l69  p2e  p2f
+line l70  p3e  p3f
+line l71  p4e  p4f
+line l72  p5e  p5f
+line l73  p6e  p6f
+line l74  p7e  p7f
+line l75  p8e  p8f
+
+line l76  p1f  p2f
+line l77  p2f  p3f
+line l78  p3f  p4f
+line l79  p4f  p5f
+line l80  p5f  p6f
+line l81  p6f  p7f
+line l82  p7f  p8f
+
+line l83  p1f  p1g
+line l84  p2f  p2g
+line l85  p3f  p3g
+line l86  p4f  p4g
+line l87  p5f  p5g
+line l88  p6f  p6g
+line l89  p7f  p7g
+line l90  p8f  p8g
+
+line l91  p1g  p2g
+line l92  p2g  p3g
+line l93  p3g  p4g
+line l94  p4g  p5g
+line l95  p5g  p6g
+line l96  p6g  p7g
+line l97  p7g  p8g
+
+line l98  p1g  p1h
+line l99  p2g  p2h
+line l100 p3g  p3h
+line l101 p4g  p4h
+line l102 p5g  p5h
+line l103 p6g  p6h
+line l104 p7g  p7h
+line l105 p8g  p8h
+
+line l106 p1h  p2h
+line l107 p2h  p3h
+line l108 p3h  p4h
+line l109 p4h  p5h
+line l110 p5h  p6h
+line l111 p6h  p7h
+line l112 p7h  p8h
+
+@
+@ - divide lines into intervals
+@
+
+@ - divide x
+
+divide 2 l1 l16 l31 l46 l61 l76 l91 l106
+
+divide 4 l2 l17 l32 l47 l62 l77 l92 l107
+
+divide 8 l3 l18 l33 l48 l63 l78 l93 l108
+
+divide 4 l4 l19 l34 l49 l64 l79 l94 l109
+
+divide 4 l5 l20 l35 l50 l65 l80 l95 l110
+
+divide 4 l6 l21 l36 l51 l66 l81 l96 l111
+
+divide 4 l7 l22 l37 l52 l67 l82 l97 l112
+
+@ - divide y
+
+divide 2 l8  l9  l10 l11 l12 l13 l14 l15
+
+divide 4 l23 l24 l25 l26 l27 l28 l29 l30
+
+divide 8 l38 l39 l40 l41 l42 l43 l44 l45
+
+divide 4 l53 l54 l55 l56 l57 l58 l59 l60
+
+divide 4 l68 l69 l70 l71 l72 l73 l74 l75
+
+divide 4 l83 l84 l85 l86 l87 l88 l89 l90
+
+divide 4 l98 l99 l100 l101 l102 l103 l104 l105
+
+@
+@ - define regions
+@
+
+region r1   l1  l9   l16  l8
+region r2   l2  l10  l17  l9
+region r3   l3  l11  l18  l10
+region r4   l4  l12  l19  l11
+region r5   l5  l13  l20  l12
+region r6   l6  l14  l21  l13
+region r7   l7  l15  l22  l14
+
+region r8   l16 l24  l31  l23
+region r9   l17 l25  l32  l24
+region r10  l18 l26  l33  l25
+region r11  l19 l27  l34  l26
+region r12  l20 l28  l35  l27
+region r13  l21 l29  l36  l28
+region r14  l22 l30  l37  l29
+
+region r15  l31 l39  l46  l38
+region r16  l32 l40  l47  l39
+region r17  l33 l41  l48  l40
+region r18  l34 l42  l49  l41
+region r19  l35 l43  l50  l42
+region r20  l36 l44  l51  l43
+region r21  l37 l45  l52  l44
+
+region r22  l46 l54  l61  l53
+region r23  l47 l55  l62  l54
+region r24  l48 l56  l63  l55
+region r25  l49 l57  l64  l56
+region r26  l50 l58  l65  l57
+region r27  l51 l59  l66  l58
+region r28  l52 l60  l67  l59
+
+region r29  l61 l69  l76  l68
+region r30  l62 l70  l77  l69
+region r31  l63 l71  l78  l70
+region r32  l64 l72  l79  l71
+region r33  l65 l73  l80  l72
+region r34  l66 l74  l81  l73
+region r35  l67 l75  l82  l74
+
+region r36  l76 l84  l91  l83
+region r37  l77 l85  l92  l84
+region r38  l78 l86  l93  l85
+region r39  l79 l87  l94  l86
+region r40  l80 l88  l95  l87
+region r41  l81 l89  l96  l88
+region r42  l82 l90  l97  l89
+
+region r43  l91 l99  l106 l98
+region r44  l92 l100 l107 l99
+region r45  l93 l101 l108 l100
+region r46  l94 l102 l109 l101
+region r47  l95 l103 l110 l102
+region r48  l96 l104 l111 l103
+region r49  l97 l105 l112 l104
+
+@
+@ - define sources
+@
+
+@source s1 0.0148083
+
+@
+@ - define materials
+@
+
+material fuel      0.151461 0.062158 0.05 0.089303
+material moderator 0.148934 0.049591 0.0  0.099343
+material cr        1.5      1.5      0.0  0.0 
+
+spectrum 1.0 
+
+@
+@ - define boundary conditions
+@
+
+boundary bare        l15  l30  l45  l60  l75  l90  l105 ^
+                     l106 l107 l108 l109 l110 l111 l112
+boundary reflection  l1   l2   l3   l4   l5   l6   l7   ^
+                     l8   l23  l38  l53  l68  l83  l98
+
+@
+@ - assign material properties and sources to each region 
+@
+
+property r1  cr
+property r2  fuel
+property r3  moderator
+property r4  fuel
+property r5  cr
+property r6  fuel
+property r7  moderator
+
+property r8  fuel
+property r9  fuel
+property r10 moderator
+property r11 fuel
+property r12 fuel
+property r13 fuel
+property r14 moderator
+
+property r15 moderator
+property r16 moderator
+property r17 moderator
+property r18 moderator
+property r19 moderator
+property r20 moderator
+property r21 moderator
+
+property r22 fuel
+property r23 fuel
+property r24 moderator
+property r25 fuel
+property r26 fuel
+property r27 fuel
+property r28 moderator
+
+property r29 cr 
+property r30 fuel
+property r31 moderator
+property r32 fuel
+property r33 fuel
+property r34 fuel
+property r35 moderator
+
+property r36 fuel
+property r37 fuel
+property r38 moderator
+property r39 fuel
+property r40 fuel
+property r41 fuel
+property r42 moderator
+
+property r43 moderator
+property r44 moderator
+property r45 moderator
+property r46 moderator
+property r47 moderator
+property r48 moderator
+property r49 moderator
+
+@
+@ - define mesh type
+@
+
+mesh r1   skew? blend
+mesh r2   skew? blend
+mesh r3   skew? blend
+mesh r4   skew? blend
+mesh r5   skew? blend
+mesh r6   skew? blend
+mesh r7   skew? blend
+
+mesh r8   skew? blend
+mesh r9   skew? blend
+mesh r10  skew? blend
+mesh r11  skew? blend
+mesh r12  skew? blend
+mesh r13  skew? blend
+mesh r14  skew? blend
+
+mesh r15  skew? blend
+mesh r16  skew? blend
+mesh r17  skew? blend
+mesh r18  skew? blend
+mesh r19  skew? blend
+mesh r20  skew? blend
+mesh r21  skew? blend
+
+mesh r22  skew? blend
+mesh r23  skew? blend
+mesh r24  skew? blend
+mesh r25  skew? blend
+mesh r26  skew? blend
+mesh r27  skew? blend
+mesh r28  skew? blend
+
+mesh r29  skew? blend
+mesh r30  skew? blend
+mesh r31  skew? blend
+mesh r32  skew? blend
+mesh r33  skew? blend
+mesh r34  skew? blend
+mesh r35  skew? blend
+
+mesh r36  skew? blend
+mesh r37  skew? blend
+mesh r38  skew? blend
+mesh r39  skew? blend
+mesh r40  skew? blend
+mesh r41  skew? blend
+mesh r42  skew? blend
+
+mesh r43  skew? blend
+mesh r44  skew? blend
+mesh r45  skew? blend
+mesh r46  skew? blend
+mesh r47  skew? blend
+mesh r48  skew? blend
+mesh r49  skew? blend
+
+@
+@ - define averaging regions
+@
+
+average 1 r1 r5 r29
+
+average 2 r2  r4  r6  r8  r9  r11 r12 r13 ^
+          r22 r23 r25 r26 r27 r30 r32 r33 ^ 
+          r34 r36 r37 r39 r40 r41
+ 
+average 3 r3  r7  r10 r14 r15 r16 r17 r18 ^
+          r19 r20 r21 r24 r28 r31 r35 r43 ^
+          r38 r42 r44 r45 r46 r47 r48 r49
+
+sensor scalar  pd1
+sensor scalar  pd2
+sensor scalar  pd3
+
+@
+@ - generate mesh
+@
+
+fill
+
+@
+@ - dump out vtu file for viewing via paraview
+@
+
+dumpvtu
+
+@
+@ - output data to default file
+@
+
+data
+
+@
+@ - stop the gem run
+@
+
+stop

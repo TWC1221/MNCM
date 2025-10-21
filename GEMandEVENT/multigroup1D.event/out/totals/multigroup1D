@@ -1,0 +1,4 @@
+  1D multi-group Benchmark                                                                                                                                                                                                                                      
+ Group       Average flux           Capture         Leakage
+    1       4.3307362E-01       8.6614724E-01       1.3385276E-01
+ Total                          8.6614724E-01       1.3385276E-01

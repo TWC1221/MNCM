@@ -1,0 +1,583 @@
+ EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+ EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+
+   EEEEEE VVV   VVV EEEEEE NNN    NNN TTTTTTTTT     Program EVENT            Revision:
+   EEEEEE VVV   VVV EEEEEE NNNN   NNN TTTTTTTTT
+   EEE    VVV   VVV EEE    NNNNN  NNN    TTT        Multi-dimensional multigroup even-parity neutron transport equation
+   EEEEE  VVV   VVV EEEEE  NNNNNN NNN    TTT        solved by a variational finite element approximation
+   EEEEE  VVV   VVV EEEEE  NNN NNNNNN    TTT
+   EEE     VVV VVV  EEE    NNN  NNNNN    TTT        Thu Mar 17 14:49:27 2022      
+   EEEEEE   VVVVV   EEEEEE NNN   NNNN    TTT
+   EEEEEE    VVV    EEEEEE NNN    NNN    TTT          Test Problem for Slab Geometry for surface source and albedo                
+
+ EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+ EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+
+
+
+                         ******     I/O Control Parameters     ******
+
+
+                   8     AUXMSH     Mesh data input channel ( default is AUXIN = STDIN )
+
+                   9     AUXMAT     Material data Input CHANNEL ( default is AUXIN = STDIN )
+
+           600000000     MAXINT      EVENT integer array length
+
+           600000000     MAXRL       EVENT real array length
+
+           600000000     MAXIMEM     FLUIDITY integer array length
+
+           600000000     MAXRMEM     FLUIDITY real array length
+
+
+                         ******     Problem Control Parameters     ******
+
+
+                  10     PROB       0 or 10 = radiation /  110 = rad.+fluid / 210 = fluid+rad. / 310 rad.+mini_fluid/ 610 = mini_fluid+rad. 
+
+                   1     CASE       0 = no run / 1 = Eigenvalue run / 2 = Fixed-Source run / 3 = Time-dependent run
+
+                   1     NGEOM      Geometry   1 = Slab / 2 = Spherical / 3 = Cylindrical / 4 = X-Y / 5 = R-Z / 6 = X-Y-Z 
+
+                   0     NADJ       Adjoint flux calculation   0 = no / 1 = both fluxes / 2 = adjoint only 
+
+                   4     SOLTYP     Solution type   
+
+
+                         ******     Iteration Control Parameters     ******
+
+                 100     MAXITS     Max. no. of outer iterations
+
+                 100     MAXPCG     Max. no. of PCG iterations
+
+       9.9999997E-06     MAXTOL     Global convergence criterion ( eigenvalue, balance )
+
+       9.9999997E-06     VECTOL     Local convergence criterion ( eigenvector )
+
+       5.0000001E-08     MINTOL     PCG local convergence criterion ( eigenvector )
+
+                FFFF     MONITR     Monitor convergence 
+
+
+                         ******     Angular Approx. Parameters     ******
+
+
+                   1     NSCTR      Order of the  PN expansion ( 1 is the diffusion approx. ) 
+
+                   1     NFREE      No. of freedoms or moments per node
+
+                   0     LSCTR      Order of the truncated PN expansion for the scattering kernel 
+
+                   0     KSCTR      Order of the truncated PN expansion for the source            
+
+                   1     ANGTYP     Angular discretisation 1 = PN / 2 = SPN 
+
+                   1     MXFREE     Initial PN expansion
+
+
+                         ******     Energy Approx. Parameters     ******
+
+
+                   2     NGRPS      No. of energy groups (>=1)
+
+                   0     NBGRPS     No. of broad energy groups ( no collapsing if NBGRPS = 0 ) 
+
+                   0     LUMP       Multigroup source  0 = exact / 1 = exact even contribution only / 2 = element-averaged 
+
+
+          >>>>>>>>>>     Mesh data file slab_1d_volum  (formatted   ) opened for reading     <<<<<<<<<<
+
+
+                         ******     Mesh Parameters     ******
+
+
+                  10     NREG       No. of integration regions or surfaces (>=0)
+
+                   1     NMAT       No. of materials (>=1)
+
+                   2     NSOR       No. of sources (>=0)
+
+                 200     NELM       No. of elements (>=1)
+
+                 201     NNOD       No. of nodes (>=1)
+
+                   2     NCON       No. of constraints (>=0)
+
+                   2     NALB       No. of albedos (>=0)
+
+                   0     OPT        0 = no bandwidth reduction / 1 = D.G. method
+
+                   4     NPLAN      No. of planes (>=0)
+
+
+          >>>>>>>>>>     Material data file slab_1d_volum  (formatted   ) opened for reading     <<<<<<<<<<
+
+
+                         ******     Material Data Parameters     ******
+
+
+                   1     MCR        Number of materials from card input
+
+                   0     MTPS       Number of materials from library
+
+                   0     NMIX       Number of mixing instructions
+
+                   3     IHT        Row of total cross section
+
+                   4     IHS        Row of self-scatter cross section
+
+                   5     IHM        Length of cross section table
+
+                   0     DATFMT     Material data format  0 = EVENT / 1 = LASL  / 2 = FIDO
+
+                   0     NDEN       No. of elem. dependent densities 
+
+                   0     NBEAMS     Number of beam sources 
+
+                   6     NDETEC     Number of detectors 
+
+                   0     NSRCS      Number of local sources 
+
+                   0     NRESP      Number of detector responses 
+
+
+
+                     '*** EVENT data file created on Thu Mar 17 14:49:26 2022 by GEM   ***'                                                             
+
+
+                  **********************************************
+                  * Stage 1 : Data Input                       *
+                  *                                            *
+                  * No. of Integer words available : 600000000 *
+                  * No. of Integer words required  : 600000000 *
+                  * No. of Real words    available : 600000000 *
+                  * No. of Real words    required  :      1083 *
+                  **********************************************
+
+
+                    Material data for the problem
+                    ------------------------------
+ outputing the material data from function SETXSL2
+
+                    Material    1
+
+                    Group   1   Total x/s        Absorption x/s     Nu*fission x/s
+
+                               1.2000000E+00      1.0000000E+00      5.0000000E-01
+
+                    Group-to-group scattering x/s 
+
+                    l =  0     2.0000000E-01      0.0000000E+00
+ outputing the material data from function SETXSL2
+
+                    Material    1
+
+                    Group   2   Total x/s        Absorption x/s     Nu*fission x/s
+
+                               1.5000000E+00      1.0000000E+00      5.0000000E-01
+
+                    Group-to-group scattering x/s 
+
+                    l =  0     2.0000000E-01      3.0000001E-01
+
+
+                    Source strength(s)
+                    ------------------
+
+                    Strength     1
+
+                    t1       2.0000000E+00      0.0000000E+00
+
+                    Strength     2
+
+                    t2       0.0000000E+00      0.0000000E+00
+
+                    Albedo(s)
+                    ---------
+
+                    Albedo     1
+                    a1       0.0000000E+00      0.0000000E+00
+
+                    Albedo     2
+                    a2       5.0000000E-01      0.0000000E+00
+
+                    Fission spectrum
+
+                    Spctrm     5.0000000E-01      5.0000000E-01
+
+
+                    Detector(s)
+                    -----------
+
+                    Detector     1
+
+                    Type     :    2     Radius :  0.0000000E+00     Intervals : 4096
+
+                    Position :    0.0000000E+00  0.0000000E+00  0.0000000E+00
+
+                    Angles   :    0.0000000E+00  0.0000000E+00
+
+                    Detector     2
+
+                    Type     :    2     Radius :  0.0000000E+00     Intervals : 4096
+
+                    Position :    2.0000000E-01  0.0000000E+00  0.0000000E+00
+
+                    Angles   :    0.0000000E+00  0.0000000E+00
+
+                    Detector     3
+
+                    Type     :    2     Radius :  0.0000000E+00     Intervals : 4096
+
+                    Position :    4.0000001E-01  0.0000000E+00  0.0000000E+00
+
+                    Angles   :    0.0000000E+00  0.0000000E+00
+
+                    Detector     4
+
+                    Type     :    2     Radius :  0.0000000E+00     Intervals : 4096
+
+                    Position :    6.0000002E-01  0.0000000E+00  0.0000000E+00
+
+                    Angles   :    0.0000000E+00  0.0000000E+00
+
+                    Detector     5
+
+                    Type     :    2     Radius :  0.0000000E+00     Intervals : 4096
+
+                    Position :    8.0000001E-01  0.0000000E+00  0.0000000E+00
+
+                    Angles   :    0.0000000E+00  0.0000000E+00
+
+                    Detector     6
+
+                    Type     :    2     Radius :  0.0000000E+00     Intervals : 4096
+
+                    Position :    1.0000000E+00  0.0000000E+00  0.0000000E+00
+
+                    Angles   :    0.0000000E+00  0.0000000E+00
+
+
+                    Planes(s)
+                    -----------
+
+                    Plane     1
+
+                    Type     :    1     No. Points :    4
+
+                    Normal   :    0.0000000E+00 -1.0000000E+00  0.0000000E+00
+
+                    Point    :    0.0000000E+00 -1.0000000E+10 -1.0000000E+10
+
+                    Point    :    2.0000000E+00 -1.0000000E+10 -1.0000000E+10
+
+                    Point    :    2.0000000E+00 -1.0000000E+10  1.0000000E+10
+
+                    Point    :    0.0000000E+00 -1.0000000E+10  1.0000000E+10
+
+                    Plane     2
+
+                    Type     :    1     No. Points :    4
+
+                    Normal   :    1.0000000E+00  0.0000000E+00  0.0000000E+00
+
+                    Point    :    2.0000000E+00 -1.0000000E+10 -1.0000000E+10
+
+                    Point    :    2.0000000E+00  1.0000000E+10 -1.0000000E+10
+
+                    Point    :    2.0000000E+00  1.0000000E+10  1.0000000E+10
+
+                    Point    :    2.0000000E+00 -1.0000000E+10  1.0000000E+10
+
+                    Plane     3
+
+                    Type     :    1     No. Points :    4
+
+                    Normal   :    0.0000000E+00  1.0000000E+00  0.0000000E+00
+
+                    Point    :    2.0000000E+00  1.0000000E+10 -1.0000000E+10
+
+                    Point    :    0.0000000E+00  1.0000000E+10 -1.0000000E+10
+
+                    Point    :    0.0000000E+00  1.0000000E+10  1.0000000E+10
+
+                    Point    :    2.0000000E+00  1.0000000E+10  1.0000000E+10
+
+                    Plane     4
+
+                    Type     :    1     No. Points :    4
+
+                    Normal   :   -1.0000000E+00  0.0000000E+00  0.0000000E+00
+
+                    Point    :    0.0000000E+00  1.0000000E+10 -1.0000000E+10
+
+                    Point    :    0.0000000E+00 -1.0000000E+10 -1.0000000E+10
+
+                    Point    :    0.0000000E+00 -1.0000000E+10  1.0000000E+10
+
+                    Point    :    0.0000000E+00  1.0000000E+10  1.0000000E+10
+
+
+                  **********************************************
+                  * Stage 2 : Pointers                         *
+                  *                                            *
+                  * No. of Integer words available : 600000000 *
+                  * No. of Integer words required  : 600000000 *
+                  * No. of Real words    available : 600000000 *
+                  * No. of Real words    required  :      1083 *
+                  **********************************************
+
+
+                    Final half-bandwidth (coeffs)               2
+
+
+                    In-core conjugate-gradients solution :
+
+                    Global matrix size (coeffs/group)         402
+
+                    Approx. time for each iteration    0.0000E+00
+
+
+                  **********************************************
+                  * Stage 3 : Table of Integrals               *
+                  *                                            *
+                  * No. of Integer words available : 600000000 *
+                  * No. of Integer words required  :      4588 *
+                  * No. of Real words    available : 600000000 *
+                  * No. of Real words    required  :      1364 *
+                  **********************************************
+
+
+                    Angular Basis and Plane of Symmetry Constraints
+                    ---------------------------------------------------
+
+                    MUSET  :     1 Term(s) of Associated Legendre Polynomials
+
+                    PSISET :    1 Term(s) of Trigonometric Functions
+
+                    MU  Selection        :-    1
+
+                    PSI Selection        :-    1
+
+                    Fully Suppressed     :-    1
+
+
+                  **********************************************
+                  * Stage 5 : Eigenvalue Run                   *
+                  *                                            *
+                  * No. of Integer words available : 600000000 *
+                  * No. of Integer words required  :      6205 *
+                  * No. of Real words    available : 600000000 *
+                  * No. of Real words    required  :     11106 *
+                  **********************************************
+
+          Number of angular moments set to  1
+
+
+
+                  **********************************************
+                  * Stage 8 : Results                          *
+                  *                                            *
+                  * No. of Integer words available : 600000000 *
+                  * No. of Integer words required  :      6205 *
+                  * No. of Real words    available : 600000000 *
+                  * No. of Real words    required  :     12148 *
+                  **********************************************
+
+
+
+                          ----------------------------------------------------------------------------------------------
+                         I                                                                                              I
+                         I                                                                                              I
+                         I                                        Eigenvalue                                            I
+                         I                                        ----------                                            I
+                         I                                                                                              I
+                         I                                                                                              I
+                         I                      K-eff =    5.00000002083E-01     after   3  iterations                  I
+                         I                                                                                              I
+                         I                      with iteration error estimate =   0.000E+00                             I
+                         I                                                                                              I
+                         I                                                                                              I
+                          ----------------------------------------------------------------------------------------------
+
+
+
+                          ----------------------------------------------------------------------------------------------
+                         I                                                                                              I
+                         I                                                                                              I
+                         I                    Neutron balance                             Variational Functionals       I
+                         I                   -----------------                           -------------------------      I
+                         I                                                                                              I
+                         I                                                                                              I
+    ---------------      I          Source Input     =   5.8333333E-01                    N plus =   0.0000000E+00      I
+   I               I     I                                                                                              I
+   I   Group   1   I     I          Removal rate     =   5.8333333E-01                    K Plus =   0.0000000E+00      I
+   I               I     I                                                                                              I
+    ---------------      I          Incoming current =   0.0000000E+00                    N - K  =   0.0000000E+00      I
+                         I                                                                                              I
+                         I          Outgoing current =   0.0000000E+00                                                  I
+                         I                                                                                              I
+                         I          Excess inflow    =  -1.0269563E-13                                                  I
+                         I                                                                                              I
+                         I                                                                                              I
+                          ----------------------------------------------------------------------------------------------
+
+
+                       Region        No. of          Length             Mean flux          Absorption            Source
+                                    elements                                                  rate               input
+
+                           1            100       1.0000000E+00       2.9166667E-01       2.9166667E-01       2.9166667E-01
+
+                           2            100       1.0000000E+00       2.9166667E-01       2.9166667E-01       2.9166667E-01
+
+
+
+                          ----------------------------------------------------------------------------------------------
+                         I                                                                                              I
+                         I                                                                                              I
+                         I                    Neutron balance                             Variational Functionals       I
+                         I                   -----------------                           -------------------------      I
+                         I                                                                                              I
+                         I                                                                                              I
+    ---------------      I          Source Input     =   5.0000000E-01                    N plus =   0.0000000E+00      I
+   I               I     I                                                                                              I
+   I   Group   2   I     I          Removal rate     =   5.0000000E-01                    K Plus =   0.0000000E+00      I
+   I               I     I                                                                                              I
+    ---------------      I          Incoming current =   0.0000000E+00                    N - K  =   0.0000000E+00      I
+                         I                                                                                              I
+                         I          Outgoing current =   0.0000000E+00                                                  I
+                         I                                                                                              I
+                         I          Excess inflow    =  -4.6074256E-14                                                  I
+                         I                                                                                              I
+                         I                                                                                              I
+                          ----------------------------------------------------------------------------------------------
+
+
+                       Region        No. of          Length             Mean flux          Absorption            Source
+                                    elements                                                  rate               input
+
+                           1            100       1.0000000E+00       2.0833334E-01       2.0833334E-01       2.5000000E-01
+
+                           2            100       1.0000000E+00       2.0833334E-01       2.0833334E-01       2.5000000E-01
+
+
+                     *** Totals per region ***
+
+                     Region        Absorption          Flux    
+
+                         1       0.5000000E+00       0.5000000E+00
+
+                         2       0.5000000E+00       0.5000000E+00
+
+
+                     Total absorption in the system :  1.0000000E+00
+
+
+                     Total leakage    in the system :  0.0000000E+00
+
+
+                     *** Response results ***
+
+                     Position :  0.0000000E+00
+
+                         1            2.9166667E-01
+
+                         2            2.0833334E-01
+
+                     Total            5.0000000E-01
+
+                     Position :  2.0000000E-01
+
+                         1            2.9166667E-01
+
+                         2            2.0833334E-01
+
+                     Total            5.0000000E-01
+
+                     Position :  4.0000001E-01
+
+                         1            2.9166667E-01
+
+                         2            2.0833334E-01
+
+                     Total            5.0000000E-01
+
+                     Position :  6.0000002E-01
+
+                         1            2.9166667E-01
+
+                         2            2.0833334E-01
+
+                     Total            5.0000000E-01
+
+                     Position :  8.0000001E-01
+
+                         1            2.9166667E-01
+
+                         2            2.0833334E-01
+
+                     Total            5.0000000E-01
+
+                     Position :  1.0000000E+00
+
+                         1            2.9166667E-01
+
+                         2            2.0833334E-01
+
+                     Total            5.0000000E-01
+
+
+                     Stage                 Passes        Total        Percent
+                                                        CPU time      CPU time
+                    -------------------------------------------------------------
+
+                       1   Total Run           1         0.0000       100.0000
+
+                       2   Data input          1         0.0000         0.0000
+
+                       3   Node numb.          1         0.0000         0.0000
+
+                       4   Ang. tables         1         0.0000         0.0000
+
+                       5   Spat. tables        1         0.0000         0.0000
+
+                       6   Assembly            2         0.0000         0.0000
+
+                       8   Solution           10         0.0000         0.0000
+
+                       9   Results             1         0.0000         0.0000
+
+                      10   Fiss. source        4         0.0000         0.0000
+
+                      11   Power loop          1         0.0000         0.0000
+
+                      14   Surelm              1         0.0000         0.0000
+
+                      18   Constraints         8         0.0000         0.0000
+
+                      21   Group source       10         0.0000         0.0000
+
+                      26   Pointer             1         0.0000         0.0000
+
+                      28   Ext. F/B G-S        8         0.0000         0.0000
+
+                      29     Mat.Sweep         8         0.0000         0.0000
+
+                      30     Elm.Loop          8         0.0000         0.0000
+
+                      33     Internal          8         0.0000         0.0000
+
+                      52                       6         0.0000         0.0000
+
+                      54   Detectors           1         0.0000         0.0000
+
+                      60   Ray Tracing         2         0.0000         0.0000
+
+                      61      Rayini           2         0.0000         0.0000
+
+                      64                      10         0.0000         0.0000
+
+                    -------------------------------------------------------------
+     FETCH run finished OK                                                             
+

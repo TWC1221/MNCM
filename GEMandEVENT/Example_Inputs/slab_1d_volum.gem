@@ -1,0 +1,181 @@
+Title: Test Problem for Slab Geometry for surface source and albedo
+
+@
+@ - This is an example GEM file for EVENT that demonstrates the surface source on
+@ - on the left hand side (LHS) and an albedo (or partially reflective) on the
+@ - right hand side (RHS) of the boundary of the slab. It also has a volumetric source
+@ - throughout the domain that is currently set to unit 1.0 cm^-2.s^-1.
+@
+
+problem radiation  @ Radiation transport problem
+mode direct        @ solution mode [direct,adjoint or both]
+case eigenvalue         @ Fixed (extraneous) source problem
+geometry slab      @ One-dimensional slab geometry problem
+angle 1            @ Order of the spherical harmonic (PN expansion) - can take values 1, 3, 5, 7 etc (odd number)
+scatter 0          @ Order of scattering anisotropy (legendre expansion - can take values 0, 1, 2 etc (0 is isotropic)
+@print fluxes      @ Print the scalar fluxes at each of the finite element nodes to the screen
+groups 2           @ Number of energy groups (this is a one group or speed approximation)
+upscatter yes       @ no upscatter from lower energy groups to higher energy groups (one speed approximation)
+
+@iter  500 500 5.0e-04 5.0e-04 500 1.0e-07 500  @ iteration parameters for the pre-conditioned conjugate gradient (PCG) algorithm/solver
+
+sizeil 600000000
+sizerl 600000000
+SIZEIM 600000000
+SIZERM 600000000
+
+@
+@ - Define points that make up the line segments of the slab geometry.
+@
+
+pnt p1 0.0
+pnt p2 1.0
+pnt p3 2.0 
+
+@
+@ - Define detector points in the domain (points at which scalar flux and current detectors are placed).
+@
+
+pnt pd1 0.0
+pnt pd2 0.2
+pnt pd3 0.4
+pnt pd4 0.6
+pnt pd5 0.8
+pnt pd6 1.0
+
+
+@
+@ - Define line segments using the previously defined points.
+@
+
+line l1 p1 p2
+line l2 p2 p3
+
+@
+@ - Divide lines into smaller line segments (i.e. define number of divisions per line segment).
+@
+
+divide 100 l1
+divide 100 l2
+
+@
+@ - Define regions using these line segments.
+@
+
+region r1 l1
+region r2 l2
+
+@
+@ - Define material nuclear x/s properties.
+@
+@ - These are macroscopic nuclear x/s data are defined as follows:
+@
+@ - Total x/s (Sigma_t), absorption x/s (Sigma_a), nu*fission x/s (nu*sigma_f) and scattering x/s (Sigma_s).
+@
+
+material ma1  1.2 1.0 0.5 0.2 0.0 ^
+              1.5 1.0 0.5 0.2 0.3 
+
+
+spectrum 0.5 0.5
+
+@
+@ - Define a surface source (note these are usually done groupwise but this is one speed so only one value)
+@ - In this case the surface source is isotropic with magnitude of unity (or 1 cm^-2.s^-1).
+@
+
+surface t1 2.0
+surface t2 0.0
+
+@
+@ - Define an albedo or reflection coefficient (note these are usually done groupwise but this is one speed so only one value)
+@ - In this case the albedo has a magnitude of 1.0. If it had less than 1.0 then you would have some transmission and some reflection.
+@
+
+albedo  a1 0.0
+albedo  a2 0.5
+
+@
+@ - define a volumetric source
+@
+
+@source s1 2.0
+
+@
+@ - Assign material properties and sources to regions.
+@
+
+property r1 ma1
+property r2 ma1
+
+@
+@ - assign boundary conditions. The LHS is a surface source and the RHS is an albedo#
+@ - boundary conditions can be: "zero", "reflect", "vacuum or bare", periodic, "ablbedo value"(a1 or a2 defined above), "surface source value" (t1 or t2 defined above)
+@
+
+@boundary t2 l1
+@boundary a2 l2
+
+@boundary zero l1 l2
+
+boundary reflect l1
+boundary reflect l2
+
+@
+@ - Define degree of polynomial basis functions for the finite elements (1 is linear, 2 is quadratic and 3 is cubic etc).
+@
+
+degree 1
+
+@
+@ - Define averaging regions over which we calculate the numbers of elements, average flux, average capture, total source rate emission.
+@
+
+average 1 r1
+average 2 r2
+
+@
+@ - Define detectors (scalar or current)
+@
+@ - The scalar currents use the detector positions defined previously i.e. pd1, pd2, pd3 etc.
+@ - The current detectors need a position they are placed as well as a vector direction.
+@ - Now for 1-D slab geometry this would be the vector (1,0,0) for the positive x-direction
+@ - and (-1,0,0) for the negative x-direction. In 3D you would specify the vector (x,y,z)
+@ - as the direction vector as appropriate.
+@
+
+sensor scalar  pd1
+sensor scalar  pd2
+sensor scalar  pd3
+sensor scalar  pd4
+sensor scalar  pd5
+sensor scalar  pd6
+
+
+
+@sensor current pd1 1.0 0.0 0.0
+@sensor current pd2 1.0 0.0 0.0
+@sensor current pd3 1.0 0.0 0.0
+
+@
+@ - fill up lines with nodes and elements
+@
+
+fill
+
+@
+@ - graphical output device
+@
+
+dumpvtu
+
+@
+@ - output mesh file to default file
+@
+
+data
+
+@
+@ - stop gem run
+@
+stop

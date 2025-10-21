@@ -1,0 +1,211 @@
+Title: checker
+
+problem radiation
+mode forward
+case eigenvalue
+geometry rz 
+angle 1
+scatter 0
+groups 2 
+upscatter yes 
+monitor pcgin pcgout
+
+@
+@ - pre-allocate real and integer memory for event 
+@
+
+sizeil 200000000
+sizerl 200000000
+SIZEIM 200000000
+SIZERM 200000000
+
+@ 
+@ -Define points 
+@
+
+pnt p1a 0.0 0.0 0.0
+pnt p2a 0.3333333 0.0 0.0
+pnt p3a 0.6666666 0.0 0.0
+pnt p4a 1.0 0.0 0.0
+
+pnt p1b 0.0 0.3333333 0.0
+pnt p2b 0.3333333 0.3333333 0.0
+pnt p3b 0.6666666 0.3333333 0.0
+pnt p4b 1.0 0.3333333 0.0
+
+pnt p1c 0.0 0.6666666 0.0
+pnt p2c 0.3333333 0.6666666 0.0
+pnt p3c 0.6666666 0.6666666 0.0
+pnt p4c 1.0 0.6666666 0.0
+
+pnt p1d 0.0 1.0 0.0
+pnt p2d 0.3333333 1.0 0.0
+pnt p3d 0.6666666 1.0 0.0
+pnt p4d 1.0 1.0 0.0
+
+@ 
+@ -Define lines from the points 
+@
+
+line l1a2 p1a p2a
+line l2a3 p2a p3a
+line l3a4 p3a p4a
+
+line l1b2 p1b p2b
+line l2b3 p2b p3b
+line l3b4 p3b p4b
+
+line l1c2 p1c p2c
+line l2c3 p2c p3c
+line l3c4 p3c p4c
+
+line l1d2 p1d p2d
+line l2d3 p2d p3d
+line l3d4 p3d p4d
+
+
+line la1b p1a p1b
+line lb1c p1b p1c
+line lc1d p1c p1d
+
+line la2b p2a p2b
+line lb2c p2b p2c
+line lc2d p2c p2d
+
+line la3b p3a p3b
+line lb3c p3b p3c
+line lc3d p3c p3d
+
+line la4b p4a p4b
+line lb4c p4b p4c
+line lc4d p4c p4d
+
+@
+@ - Divide the lines 
+@
+
+divide 10 l1a2 l2a3 l3a4 
+divide 10 l1b2 l2b3 l3b4 
+divide 10 l1c2 l2c3 l3c4 
+divide 10 l1d2 l2d3 l3d4 
+
+divide 10 la1b lb1c lc1d
+divide 10 la2b lb2c lc2d
+divide 10 la3b lb3c lc3d
+divide 10 la4b lb4c lc4d
+
+@
+@ 
+@ - Define materials 
+@ 
+@ 
+
+@ -       sig_t sig_a nu*sig_f sig_s
+material fuel 2.23775E-01 8.52709E-03 9.09319E-03 ^
+              1.92423E-01 2.28253E-02 ^
+              1.038640000 1.58196E-01 2.90183E-01 ^
+              0.000000000 8.80439E-01
+
+material mod1 2.50367E-01 4.16391E-04 0.000000000 ^
+              1.93446E-01 5.65042E-02 ^
+              1.644820000 2.02999E-02 0.000000000 ^
+              0.000000000 1.624520000 
+
+material mod2 2.23775E-01 8.52709E-03 9.09319E-03 ^
+              1.92423E-01 2.28253E-02 ^
+              1.038640000 1.58196E-01 2.90183E-01 ^
+              0.000000000 8.80439E-01
+
+@ - fission spectrum
+spectrum 1.0 0.0
+
+@
+@ -sources
+@
+source s1 0.0 0.0
+
+@
+@ - Define Regions
+@
+
+region sqr1a l1a2 la2b l1b2 la1b
+region sqr2a l2a3 la3b l2b3 la2b
+region sqr3a l3a4 la4b l3b4 la3b
+
+region sqr1b l1b2 lb2c l1c2 lb1c
+region sqr2b l2b3 lb3c l2c3 lb2c
+region sqr3b l3b4 lb4c l3c4 lb3c
+
+region sqr1c l1c2 lc2d l1d2 lc1d
+region sqr2c l2c3 lc3d l2d3 lc2d
+region sqr3c l3c4 lc4d l3d4 lc3d
+
+@ 
+@ - Assign materials to the regions 
+@
+
+properties sqr1a mod1
+properties sqr2a mod2
+properties sqr3a mod1
+
+properties sqr1b mod2
+properties sqr2b fuel
+properties sqr3b mod2
+
+properties sqr1c mod1
+properties sqr2c mod2
+properties sqr3c mod1
+
+@
+@ - define boundary conditions 
+@
+
+boundary reflect l1a2
+boundary reflect l2a3
+boundary reflect l3a4
+
+boundary reflect l1d2
+boundary reflect l2d3
+boundary reflect l3d4
+
+boundary reflect la1b
+boundary reflect lb1c
+boundary reflect lc1d
+
+boundary vacuum la4b
+boundary vacuum lb4c
+boundary vacuum lc4d
+
+@
+@ - averages over the regions 
+@
+
+average 1 sqr1a
+average 2 sqr2a
+average 3 sqr3a
+average 4 sqr1b
+average 5 sqr2b
+average 6 sqr3b
+average 7 sqr1c
+average 8 sqr2c
+average 9 sqr3c
+
+@
+@ - fill up the lines with nodes and elements 
+@
+
+fill 
+
+@
+@ want to use paraview 
+@
+
+dumpvtu
+
+@
+@ output data to default file 
+@
+
+data
+
+stop 

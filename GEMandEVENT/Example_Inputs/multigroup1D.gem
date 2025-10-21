@@ -1,0 +1,209 @@
+Title: 1D multi-group Benchmark
+
+@
+@ - This is a 3 group one dimensional benchmark template 
+@
+
+@
+@ - define the main problem parameters 
+@
+
+problem radiation  @ Radiation transport problem
+mode direct        @ solution mode [direct,adjoint or both]
+case fixed    @ Fixed (extraneous) source problem or 'eigenvalue' fission source
+geometry slab      @ One-dimensional slab geometry problem
+angle 1            @ Order of the spherical harmonic (PN expansion) - can take values 1, 3, 5, 7 etc (odd number)
+scatter 0          @ Order of scattering anisotropy (legendre expansion - can take values 0, 1, 2 etc (0 is isotropic)
+@print fluxes      @ Print the scalar fluxes at each of the finite element nodes to the screen
+groups 1           @ Number of energy groups (this is a one group or speed approximation)
+upscatter yes       @ no upscatter from lower energy groups to higher energy groups (one speed approximation)
+@iter  500 500 5.0e-04 5.0e-04 500 1.0e-07 500  @ iteration parameters for the pre-conditioned conjugate gradient (PCG) algorithm/solver
+
+@
+@ - allocate memory for real and integer arrays of event 
+@
+
+SIZEIL 90000000
+SIZERL 90000000
+
+SIZEIM 90000000
+SIZERM 90000000
+
+@
+@ - Defie points that make up the line segaments 
+@
+
+pnt p1 0.0 0.0
+pnt p2 0.25 0.0
+pnt p3 0.75 0.0
+pnt p4 1.0 0.0
+
+@
+@ - Define detector points in the domain 
+@
+
+pnt pd1 0.0
+pnt pd2 0.1
+pnt pd3 0.2
+pnt pd4 0.3
+pnt pd5 0.4
+pnt pd6 0.5
+pnt pd7 0.6
+pnt pd8 0.7
+pnt pd9 0.8
+pnt pd10 0.9
+pnt pd11 1.0
+
+@
+@ - Define line segments using the defined points 
+@
+
+line l1 p1 p2
+line l2 p2 p3
+line l3 p3 p4 
+
+@
+@ - Define lines into smaller line segents 
+@
+
+divide 500 l1
+divide 500 l2
+divide 500 l3
+
+@
+@ - Define regionns using the line segments 
+@
+
+region r1 l1
+region r2 l2
+region r3 l3
+
+@
+@ - Define material nuclear x/s properties
+@
+@ - There are the macroscopic x/s data defined as follows 
+@
+@ - sigma_t1, sigma_a1, nu*sigma_f1, sigma_s1-->1, sigma_s1-->2, sigma_s1-->3
+@ - sigma_t2, sigma_a2, nu*sigma_f2, sigma_s2-->1, sigma_s2-->2, sigma_s2-->3 
+@ - etc, etc, etc
+@
+
+material ma1 2.0 2.0 0.0 0.0 @0.6 ^
+             @2.0 1.0 1.0 0.2 0.8 
+  
+@material ma2 2.3 1.0 0.2 0.3 1.0 ^
+@             2.7 2.0 1.5 0.5 0.2
+
+@material ma3 2.415 1.05 0.190 0.315 1.05 ^
+@             2.565 1.90 1.575 0.475 0.19
+
+@
+@ - Define prompt the fission spectrum (chi_prompt) must sum to 1.0
+@
+
+@spectrum 0.75 0.25
+
+@
+@ - Define a surface source listed from group 1-3 
+@
+
+@surface t1 2.0 1.0 0.0
+@surface t2 1.0 0.0 0.0
+
+@
+@ Define an albedo listed from group 1-3
+@
+
+@albedo a1 0.0 0.5 1.0
+@albedo a2 1.0 0.5 0.0
+
+@
+@ - define a volumectric source listed from group 1-3 
+@
+
+@source s1 0.0 0.0
+source s2 1.0
+
+@
+@ - Assign material properties and sources to regions 
+@
+
+
+property r1 ma1 s2 
+
+property r2 ma1 s2
+
+property r3 ma1 s2
+
+@
+@ - Assign boundary conditions to a line segment (zero, reflect, vacuum, bare, periodic, albedo, surface)
+@
+
+boundary reflect l1 
+boundary vacuum l3
+
+@
+@ - Define averaging regions 
+@
+
+average 1 r1 r2 r3
+@average 2 r2
+@average 3 r3
+
+@
+@ - Define detectors (scalar or current  
+@
+@ - The scalar currents use the detector positions defined previously i.e. pd1, pd2, pd3 etc.
+@ - The current detectors need a position they are placed as well as a vector direction.
+@ - Now for 1-D slab geometry this would be the vector (1,0,0) for the positive x-direction
+@ - and (-1,0,0) for the negative x-direction. In 3D you would specify the vector (x,y,z)
+@ - as the direction vector as appropriate.
+@
+
+sensor scalar pd1
+sensor scalar pd2
+sensor scalar pd3
+sensor scalar pd4
+sensor scalar pd5
+sensor scalar pd6
+sensor scalar pd7
+sensor scalar pd8
+sensor scalar pd9
+sensor scalar pd10
+sensor scalar pd11
+
+@sensor current pd1
+@sensor current pd2
+@sensor current pd3
+@sensor current pd4
+@sensor current pd5
+@sensor current pd6
+@sensor current pd7
+@sensor current pd8
+@sensor current pd9
+@sensor current pd10
+@sensor current pd11
+
+@
+@ - fill up lines with nodes and elements
+@
+
+fill
+
+@
+@ - graphical output device
+@
+
+dumpvtu
+
+@
+@ - output mesh file to default file 
+@
+
+data
+
+@
+@ - stop gem run 
+@
+
+stop

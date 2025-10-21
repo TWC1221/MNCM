@@ -1,0 +1,247 @@
+Title: MOX pincell calculation (Enrichment is 8.7%)
+
+@
+@ - This GEM file is for modelling a single MOX fuel 
+@ - pincell which consists of a cylinder of radius 
+@ - 0.54cm containing a homogenised mixture of fuel
+@ - and clad, the cylinder is surrounded by moderator
+@ - The fuel pin contains Plutonium of enrichment 8.7%.
+@ - The specification for this pincell came from the 
+@ - paper: A Multidimensional Neutron Transport Benchamrk 
+@ - Problem. The Authors of this paper were Prof E. E. Lewis
+@ - G. Palmiotti, T. A. Taiwo, R. N. Blomquist, M. A. Smith
+@ - and N. Tsoulfanidis. The actual benchmark consists of 
+@ - a MOX and UO2 supercall (see other GEM file). 
+@ - The cross-sections for the problem are as yet unhomogenised.
+@
+
+@
+@ - define the main problem parameters
+@
+
+problem radiation        @ radiation problem
+mode direct              @ solution mode [direct,adjoint or both]
+case fixed          @ Fixed source problem
+geometry xy              @ 2D xy geometry
+angle 27                 @ order of angular approximation
+spn
+scatter 0                @ linear anisotropic scatter
+groups 7                 @ 7 group problem
+upscatter yes            @ upscatter from lower groups
+monitor eigenvalue
+
+
+@
+@ - define geometry
+@
+
+@
+@ - define points
+@
+
+pnt p1  0.0           0.0 
+pnt p2  0.25   0.0
+pnt p3  0.5          0.0
+
+pnt p4  0.1767766953   0.1767766953
+pnt p5  0.5          0.5
+
+pnt pd1 0.1 0.0707106781
+pnt pd2 0.5 0.2828427125
+
+@
+@ - define lines
+@
+
+line l1  p1 p2
+line l2  p2 p3
+
+line l3 p2 p4 p1
+line l4 p3 p5
+
+line l5 p1 p4 
+line l6 p4 p5
+
+@
+@ - divide lines into intervals
+@
+
+divide 10 l3 l4
+divide 10 l1 l5
+divide 10 l2 l6
+
+@
+@ - define materials
+@ sigmaT sigmaA nusigmaF sigmaS
+
+
+material fuel 1.8304500E-01  9.4862003E-03  0.0 ^
+              1.3150400E-01  4.2045999E-02  8.6972004E-06  5.1938001E-09 ^
+              0.0000000E+00  0.0000000E+00  0.0000000E+00 ^
+              3.3670500E-01  4.6556001E-03  0.0 ^
+              0.0000000E+00  3.3040300E-01  1.6463000E-03  2.6006000E-09 ^
+              0.0000000E+00  0.0000000E+00  0.0000000E+00 ^
+              5.0050700E-01  3.6240000E-02  0.0 ^
+              0.0000000E+00  0.0000000E+00  4.6179199E-01  2.4749001E-03 ^
+              0.0000000E+00  0.0000000E+00  0.0000000E+00 ^
+              6.0617399E-01  1.3271999E-01  0.0 ^
+              0.0000000E+00  0.0000000E+00  0.0000000E+00  4.6802101E-01 ^
+              5.4330002E-03  0.0000000E+00  0.0000000E+00 ^
+              5.0275397E-01  2.0840000E-01  0.0 ^
+              0.0000000E+00  0.0000000E+00  0.0000000E+00  1.8597000E-04 ^
+              2.8577101E-01  8.3972998E-03  8.9279997E-09 ^
+              9.2102802E-01  6.5869999E-01  0.0 ^
+              0.0000000E+00  0.0000000E+00  0.0000000E+00  0.0000000E+00 ^
+              2.3916001E-03  2.4761400E-01  1.2322000E-02 ^
+              9.5523101E-01  6.9016999E-01  0.0 ^
+              0.0000000E+00  0.0000000E+00  0.0000000E+00  0.0000000E+00 ^
+              0.0000000E+00  8.9681000E-03  2.5609300E-01 ^
+
+
+material moderator 1.5920600E-01  6.0104998E-04  0.0000000E+00 ^
+                   4.4477701E-02  1.1340000E-01  7.2347000E-04  3.7499001E-06 ^
+                   5.3183999E-08  0.0000000E+00  0.0000000E+00 ^
+                   4.1297001E-01  1.5793001E-05  0.0000000E+00 ^
+                   0.0000000E+00  2.8233400E-01  1.2994000E-01  6.2339997E-04 ^
+                   4.8001999E-05  7.4486002E-06  1.0455000E-06 ^
+                   5.9030998E-01  3.3715999E-04  0.0000000E+00 ^
+                   0.0000000E+00  0.0000000E+00  3.4525600E-01  2.2457001E-01 ^
+                   1.6999001E-02  2.6443000E-03  5.0343998E-04 ^
+                   5.8434999E-01  1.9406000E-03  0.0000000E+00 ^
+                   0.0000000E+00  0.0000000E+00  0.0000000E+00  9.1028400E-02 ^
+                   4.1551000E-01  6.3731998E-02  1.2139000E-02 ^
+                   7.1799999E-01  5.7415999E-03  0.0000000E+00 ^
+                   0.0000000E+00  0.0000000E+00  0.0000000E+00  7.1437003E-05 ^
+                   1.3913800E-01  5.1182002E-01  6.1229002E-02 ^
+                   1.2544500E+00  1.5001000E-02  0.0000000E+00 ^
+                   0.0000000E+00  0.0000000E+00  0.0000000E+00  0.0000000E+00 ^
+                   2.2157000E-03  6.9991302E-01  5.3732002E-01 ^
+                   2.6503799E+00  3.7239000E-02  0.0000000E+00 ^
+                   0.0000000E+00  0.0000000E+00  0.0000000E+00  0.0000000E+00 ^
+                   0.0000000E+00  1.3244000E-01  2.4807000E+00 ^
+
+
+
+@material fuel 1.8304500E-01  9.4862003E-03  2.5186004E-02 ^
+@              1.3150400E-01  4.2045999E-02  8.6972004E-06  5.1938001E-09 ^
+@              0.0000000E+00  0.0000000E+00  0.0000000E+00 ^
+@              3.3670500E-01  4.6556001E-03  4.7395094E-03 ^
+@              0.0000000E+00  3.3040300E-01  1.6463000E-03  2.6006000E-09 ^
+@              0.0000000E+00  0.0000000E+00  0.0000000E+00 ^
+@              5.0050700E-01  3.6240000E-02  2.9478054E-02 ^
+@              0.0000000E+00  0.0000000E+00  4.6179199E-01  2.4749001E-03 ^
+@              0.0000000E+00  0.0000000E+00  0.0000000E+00 ^
+@              6.0617399E-01  1.3271999E-01  1.1225001E-01 ^
+@              0.0000000E+00  0.0000000E+00  0.0000000E+00  4.6802101E-01 ^
+@              5.4330002E-03  0.0000000E+00  0.0000000E+00 ^
+@              5.0275397E-01  2.0840000E-01  5.5303015E-02 ^
+@              0.0000000E+00  0.0000000E+00  0.0000000E+00  1.8597000E-04 ^
+@              2.8577101E-01  8.3972998E-03  8.9279997E-09 ^
+@              9.2102802E-01  6.5869999E-01  1.0749989E+00 ^
+@              0.0000000E+00  0.0000000E+00  0.0000000E+00  0.0000000E+00 ^
+@              2.3916001E-03  2.4761400E-01  1.2322000E-02 ^
+@              9.5523101E-01  6.9016999E-01  1.2392983E+00 ^
+@              0.0000000E+00  0.0000000E+00  0.0000000E+00  0.0000000E+00 ^
+@              0.0000000E+00  8.9681000E-03  2.5609300E-01 ^
+@
+@
+@material moderator 1.5920600E-01  6.0104998E-04  0.0000000E+00 ^
+@                   4.4477701E-02  1.1340000E-01  7.2347000E-04  3.7499001E-06 ^
+@                   5.3183999E-08  0.0000000E+00  0.0000000E+00 ^
+@                   4.1297001E-01  1.5793001E-05  0.0000000E+00 ^
+@                   0.0000000E+00  2.8233400E-01  1.2994000E-01  6.2339997E-04 ^
+@                   4.8001999E-05  7.4486002E-06  1.0455000E-06 ^
+@                   5.9030998E-01  3.3715999E-04  0.0000000E+00 ^
+@                   0.0000000E+00  0.0000000E+00  3.4525600E-01  2.2457001E-01 ^
+@                   1.6999001E-02  2.6443000E-03  5.0343998E-04 ^
+@                   5.8434999E-01  1.9406000E-03  0.0000000E+00 ^
+@                   0.0000000E+00  0.0000000E+00  0.0000000E+00  9.1028400E-02 ^
+@                   4.1551000E-01  6.3731998E-02  1.2139000E-02 ^
+@                   7.1799999E-01  5.7415999E-03  0.0000000E+00 ^
+@                   0.0000000E+00  0.0000000E+00  0.0000000E+00  7.1437003E-05 ^
+@                   1.3913800E-01  5.1182002E-01  6.1229002E-02 ^
+@                   1.2544500E+00  1.5001000E-02  0.0000000E+00 ^
+@                   0.0000000E+00  0.0000000E+00  0.0000000E+00  0.0000000E+00 ^
+@                   2.2157000E-03  6.9991302E-01  5.3732002E-01 ^
+@                   2.6503799E+00  3.7239000E-02  0.0000000E+00 ^
+@                   0.0000000E+00  0.0000000E+00  0.0000000E+00  0.0000000E+00 ^
+@                   0.0000000E+00  1.3244000E-01  2.4807000E+00 ^
+
+@
+@ - define regions
+@
+
+region r1 l1 l3 l5
+region r2 l2 l4 l6 l3
+
+
+@
+@ - assign material properties and sources to regions
+@
+
+source sour1 2.0 2.0 2.0 0.0 0.0 0.0 0.0 
+source sour2 0.0 0.0 0.0 0.0 0.0 0.0 0.0 
+
+properties r1 fuel sour1
+properties r2 moderator sour2
+
+@
+@ - regional averages
+@
+
+average 1 r1 
+average 2 r2
+
+
+@
+@ - define type of fill for regions
+@
+
+mesh r1 triang blend
+mesh r2 quad blend
+
+
+@
+@ - define boundary conditions
+@
+
+
+boundary reflect l1 l2 l5 l6 l4
+
+
+@
+@ - define fission spectrum
+@
+
+@spectrum  5.87910e-1 4.11760e-1 3.39060e-4 1.17610e-7 0.0 0.0 0.0
+
+@
+@ - fill up lines with nodes and elements
+@
+
+fill
+
+sensor scalar  pd1
+sensor scalar  pd2
+
+@
+@ - graphical output device
+@
+
+dumpvtu
+
+@
+@ - output mesh file to default file
+@
+
+data
+
+@collapse 2 2 2 1
+
+@
+@ - stop GEM run
+@
+
+stop
+
+

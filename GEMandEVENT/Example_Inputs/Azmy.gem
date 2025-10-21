@@ -1,0 +1,213 @@
+Title: Azmy deep penetration problem
+
+@
+@ - This problem is a fixed source deep penetration problem.
+@ - The original problem specification was given by Azmy in
+@ - ` The Weighted Diamond-difference Form of the Nodal Transport 
+@ - Methods ' Nucl. Sci. Eng., Vol 98, pp 29 (1998). This was 
+@ - subsequently used in the paper ` Simplified Spherical Harmonics in the 
+@ - in the Variational Nodal Method ' Nucl. Sci. Eng., Vol 126 pp 48-58
+@ - (1997). This will be used as a test of the simplified PN method in
+@ - EVENT.
+@
+
+@
+@ - below is a diagram of the problem geometry
+@
+
+@
+@       y (cm)
+@        ^
+@        |            VACUUM
+@        |         
+@     10 |--------------------------------
+@        |                                |
+@        |                                |
+@    R   |                                |  V
+@    E   |                  S = 0.0       |  A
+@    F   |                  SIGT = 2.0    |  C
+@    L   |                  SIGS = 0.1    |  U
+@    E   |                                |  U
+@    C   |                                |  M
+@    T 5 |-------------                   |
+@    I   |             |                  |  
+@    N   |  S = 1.0    |                  |
+@    G   |  SIGT = 1.0 |                  |
+@        |  SIGS = 0.5 |                  |
+@        |             |                  |
+@        |             |                  |
+@        ----------------------------------------------> x (cm)
+@      0               5                  10
+@                    REFLECTING
+@
+
+
+@
+@ - define the main problem parameters
+@
+
+problem radiation        @ radiation problem
+mode direct              @ solution mode [direct,adjoint or both]
+case fixed               @ Fixed source problem
+geometry xy              @ 2D xy geometry
+angle 1                  @ order of angular approximation
+@spn                      @ SPN expansion of angular flux 
+                         @ i.e (azimuthal symmetry of the angular flux)
+scatter 0                @ order of scattering anisotropy
+groups 1                 @ one group problem
+solution pcg5            @ solution scheme
+bounds off               @ remove bounding box
+@print fluxes            @ print out fluxes
+degree 1                 @ order of FE basis
+
+@
+@ - allocate memory for the real and integer arrays of EVENT
+@
+
+SIZEIL 30000000
+SIZERL 30000000
+
+SIZEIM 30000000
+SIZERM 30000000
+
+@
+@ - define geometry
+@
+
+@
+@ - define points
+@
+
+point p1a   0.0   0.0
+point p2a   5.0   0.0
+point p3a  10.0   0.0
+
+point p1b   0.0   5.0
+point p2b   5.0   5.0
+point p3b  10.0   5.0
+
+point p1c   0.0  10.0
+point p2c   5.0  10.0
+point p3c  10.0  10.0
+
+@
+@ - define lines
+@
+
+line l1   p1a   p2a
+line l2   p2a   p3a
+
+line l3   p1a   p1b
+line l4   p2a   p2b
+line l5   p3a   p3b
+
+line l6   p1b   p2b
+line l7   p2b   p3b
+
+line l8   p1b   p1c
+line l9   p2b   p2c
+line l10  p3b   p3c
+
+line l11  p1c   p2c
+line l12  p2c   p3c
+
+
+@
+@ - divide lines into intervals
+@
+
+divide 20 l1 l2 l3 l4  l5  l6  ^
+          l7 l8 l9 l10 l11 l12
+
+@
+@ - define regions
+@
+
+region r1 l1 l4  l6  l3
+region r2 l2 l5  l7  l4
+region r3 l6 l9  l11 l8
+region r4 l7 l10 l12 l9
+
+@
+@ - define sources 
+@
+
+source s1 1.0
+
+@
+@ - define material properties 
+@
+
+material ma1 1.0 0.5 0.0 0.5 
+ 
+material ma2 2.0 1.9 0.0 0.1
+
+@
+@ - define boundary conditions
+@
+
+boundary reflection  l1 l2  l3  l8
+boundary vacuum      l5 l10 l11 l12
+
+
+@
+@ - assign material properties and sources to each axial zone 
+@
+
+property r1 ma1 s1
+property r2 ma2
+property r3 ma2
+property r4 ma2
+
+mesh r1  skew? blend
+mesh r2  skew? blend
+mesh r3  skew? blend
+mesh r4  skew? blend
+
+@
+@ - define averaging regions
+@
+
+average 1 r1
+average 2 r2 r3 r4
+
+@
+@ - generate mesh
+@
+
+fill
+
+@
+@ - dump out vtu file for visualisation using paraview
+@
+
+dumpvtu
+
+@
+@ - output data to default file
+@
+
+data
+
+@
+@ - stop the gem run
+@
+
+stop
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

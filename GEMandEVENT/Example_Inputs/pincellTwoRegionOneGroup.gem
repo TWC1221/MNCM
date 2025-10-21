@@ -1,0 +1,180 @@
+Title: Simple two region pincell problem
+
+@
+@ - This is a simple two region pincell problem posed by AMEC Winfrith.
+@ - The purpose of this pincell problem is to determine the effects of
+@ - the use of the transport correction approximation to the use of the full
+@ - P1 scatter treatment approach. The pincell has a circular fuel pin of 
+@ - radius 0.4095cm surrounded by a square moderator region of pitch 
+@ - (diameter) 1.26cm. 
+@
+
+problem radiation         @ radiation problem
+geometry xy               @ 2D xy geometry
+case eigenvalue           @ Keff determination
+angle 27                   @ P25 angular flux expansion
+polynomial 1              @ order of spatial finite elements
+scatter 0                 @ order of scattering anisotropy
+groups 3                  @ one group problem
+upscatter yes              @ No upscattering from lower energy groups to higher
+solution pcg5             @ matrix solution algorithm
+monitor eigenvalue        @ monitor the Keff (fundamental eigenvalue)
+
+sizeil 60000000
+sizerl 60000000
+SIZEIM 60000000
+SIZERM 60000000
+
+@
+@ - define points
+@
+
+@ - the "theoretical pnt values are below"
+
+@pnt p1 0.0        0.0
+@pnt p2 0.4095     0.0 
+@pnt p3 0.63       0.0 
+
+@pnt p4 0.28956023 0.28956023
+@pnt p5 0.63       0.63
+
+@
+@ - the "modified points are below" which preserve fissile mass
+@ - Note I have used the programme radius.f90 to calculate the 
+@ - position of new points. Note also that the only points that
+@ - change are p2 and p4. Everything else remains the same. the 
+@ - points calculated below are for a division of 40 intervals for
+@ - line l5 (tha arc of the circle of the fuel pin). 
+@
+
+pnt p1 0.0          0.0
+pnt p2 0.409513146  0.0 
+pnt p3 0.63         0.0 
+
+pnt p4 0.28956952   0.28956952
+pnt p5 0.63         0.63
+
+@
+@ - define lines
+@
+
+line l1 p1 p2
+line l2 p2 p3
+
+line l3 p1 p4
+line l4 p4 p5
+
+line l5 p2 p4 p1
+line l6 p3 p5
+
+@
+@ - define material regions
+@
+
+region r1 l1 l5 l3 
+region r2 l2 l6 l4 l5
+
+@
+@ - divide lines into intervals NB: please ensure that the fuel region 
+@ - has same number of divisions for l1 l3 and l5 or the triang blend 
+@ - algorithm fails. Note that itv allows one to exponential "grade" the 
+@ - mesh. I have set this to -0.95 so as to acculumate meshing nearer the 
+@ - interface between the fuel and moderator. This will only work for
+@ - quad blend meshes (fill types) and not for triang blend fill types. 
+@
+
+divide 40 l1 l3
+itv l2 40 -0.95
+itv l4 40 -0.95
+divide 40 l5 l6   
+
+@
+@ - define mesh fill type (uniform triangles in the fuel and uniform 
+@ - quadrilaterals in the moderator)
+@
+
+mesh r1 triang blend
+mesh r2 quad   blend
+
+@
+@ - define material x/s data and x/s table format
+@
+
+@ xstab 5 6 6
+
+@
+@ - NB: That the x/s will be entered in according to the WIMS file 
+@ - format which is: sig_total, sigabs, nu*sigfiss, chi, sigfiss, sigscat 
+@
+
+
+material fuel    5.384975E-01 4.083237E-02 4.755626E-02 2.976651E-01 1e-1 1e-1 ^ 
+                 4.2e-1    2.0e-02  3.0e-2 0.0 3e-1 1e-1 ^ 
+                 3.2e-1    2.0e-02  3.0e-2 0.0 1e-1 2e-1
+
+material moderator 3.306763E-01 1.707503E-02 0.000000E+00 ^
+                 2.136013E-01 1e-1 0.0 ^ 
+                 0.32 2.0e-2 0.0 0.0 2e-1 1e-1 ^ 
+                 0.32 2.0e-2 0.0 0.0 2e-1 1e-1
+
+@material fuel    3.384975E-01 4.083237E-02 ^
+@                 4.755626E-02 1.000000E+00 ^
+@                 1.914712E-02 2.976651E-01
+@
+@material moderator 2.306763E-01 1.707503E-02 ^
+@                   0.000000E+00 0.000000E+00 ^
+@                   0.000000E+00 2.136013E-01
+
+spectrum 1.0 0.0 0.0
+
+@
+@ - define boundary conditions
+@
+
+boundary reflect l1 l2 l6 l4 l3
+
+@
+@ - assign material properties to regions
+@
+
+property r1 fuel
+property r2 moderator
+
+@
+@ - define volume averaging regions (in this case the fuel and moderator regions)
+@ - NB: That the volume averages given out by EVENT will be the volumes 
+@ - as defined even if symmetry is used. Symmetry is used in this GEM file so
+@ - all the averages in filename/event/out/integral should be divided by eight
+@ - because the volumes are eight times smaller than the full geometry due to
+@ - the exploitation of the symmetry in the pincell geometry.
+@
+
+average 1 r1
+average 2 r2
+
+@
+@ - generate mesh
+@
+
+fill 
+
+@
+@ - dump out a vtu file for viewing mesh
+@
+
+dumpvtu
+
+@
+@ - output parameter, mesh file and matxs file to default directory locations
+@
+
+data
+
+@
+@ - stop the gem run
+@
+
+stop
+
+
+

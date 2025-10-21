@@ -1,0 +1,65 @@
+ EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+ EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+
+   EEEEEE VVV   VVV EEEEEE NNN    NNN TTTTTTTTT     Program EVENT            Revision:
+   EEEEEE VVV   VVV EEEEEE NNNN   NNN TTTTTTTTT
+   EEE    VVV   VVV EEE    NNNNN  NNN    TTT        Multi-dimensional multigroup even-parity neutron transport equation
+   EEEEE  VVV   VVV EEEEE  NNNNNN NNN    TTT        solved by a variational finite element approximation
+   EEEEE  VVV   VVV EEEEE  NNN NNNNNN    TTT
+   EEE     VVV VVV  EEE    NNN  NNNNN    TTT        Tue Oct 21 13:32:02 2025      
+   EEEEEE   VVVVV   EEEEEE NNN   NNNN    TTT
+   EEEEEE    VVV    EEEEEE NNN    NNN    TTT          1D multi-group Benchmark - spherical                                        
+
+ EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+ EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+
+
+                     Stage                 Passes        Total        Percent
+                                                        CPU time      CPU time
+                    -------------------------------------------------------------
+
+                       1   Total Run           1         0.0112       100.0000
+
+                       2   Data input          1         0.0058        51.5598
+
+                       3   Node numb.          1         0.0001         0.7777
+
+                       4   Ang. tables         1         0.0000         0.3844
+
+                       5   Spat. tables        1         0.0004         3.2985
+
+                       6   Assembly            3         0.0004         3.2180
+
+                       8   Solution           12         0.0002         1.4839
+
+                       9   Results             1         0.0027        24.2513
+
+                      10   Fiss. source        5         0.0002         1.3766
+
+                      11   Power loop          1         0.0018        15.9471
+
+                      14   Surelm              1         0.0001         0.4827
+
+                      21   Group source       12         0.0005         4.1924
+
+                      26   Pointer             1         0.0000         0.3218
+
+                      28   Ext. F/B G-S       12         0.0006         5.2561
+
+                      29     Mat.Sweep        12         0.0001         0.6525
+
+                      30     Elm.Loop         12         0.0002         1.8951
+
+                      33     Internal         12         0.0002         1.7073
+
+                      52                      21         0.0001         0.5810
+
+                      54   Detectors           1         0.0007         6.2841
+
+                      60   Ray Tracing         2         0.0000         0.3307
+
+                      61      Rayini           2         0.0000         0.3039
+
+                      64                      12         0.0000         0.1073
+
+                    -------------------------------------------------------------

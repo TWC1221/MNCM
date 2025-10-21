@@ -1,0 +1,96 @@
+Title: Mike Williams critical bare sphere
+
+@
+@ - This is a problem for Mike Williams
+@ - based on the paper: A solution of 
+@ - of the neutron diffusion equation
+@ - for a hemisphere with Mixed 
+@ - boundary conditions.
+@
+
+problem radiation        @ radiation problem
+case eigenvalue          @ Eigenvalue problem
+geometry rz              @ 2D rz geometry
+angle 15                 @ order of angular approximation
+scatter 0                @ order of scattering anisotropy
+groups 1                 @ one group problem
+monitor eigenvalue
+
+@
+@ - define points
+@
+
+pnt p1  0.0          0.0
+pnt p2  8.040205002  0.0
+pnt p3  0.0          8.040205002
+
+default itv 100
+
+@
+@ - define lines
+@
+
+line l1 p1 p2
+line l2 p1 p3
+line l3 p2 p3 p1
+
+@
+@ - define regions
+@
+
+region r1 l1 l3 l2
+
+@
+@ - define fill type
+@
+
+mesh r1 triang blend
+
+@
+@ - define material 
+@
+
+material ma1 0.3560144 0.073134 0.15454314 0.2848402
+
+@
+@ - define boundary conditions
+@
+
+boundary reflect l1 l2 
+boundary vacuum l3
+
+@
+@ - assign material properties to regions
+@
+
+property r1 ma1
+
+@
+@ - define averaging region
+@
+
+average 1 r1
+
+@
+@ - fill regions with elements
+@
+
+fill
+
+@
+@ - Output graphics file is vtu for paraview
+@
+
+dumpvtu
+
+@
+@ - data
+@
+
+data
+
+@
+@ - stop gem run
+@
+
+stop
