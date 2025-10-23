@@ -20,6 +20,10 @@ FILE(REMOVE
   "M_MULTIGROUP_1D_DIFFUSION.mod"
   "CMakeFiles/src.dir/m_multigroup_1d_diffusion.mod.stamp"
 
+  "m_sparse_mm.mod"
+  "M_SPARSE_MM.mod"
+  "CMakeFiles/src.dir/m_sparse_mm.mod.stamp"
+
   "m_thomas_algorithm.mod"
   "M_THOMAS_ALGORITHM.mod"
   "CMakeFiles/src.dir/m_thomas_algorithm.mod.stamp"

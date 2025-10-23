@@ -1,7 +1,8 @@
 program main
     use m_driver
+    use m_sparse_mm
     implicit none
-    call multigroup_diffusion_iter() !iterative_power_driver() !heterogeneous_driver_m2() !MMS_driver() !vacuum_BC_driver()
+    call CG_solver !CSR_rebuild !sparse_matrix_multiplication !multigroup_diffusion_iter() !iterative_power_driver() !heterogeneous_driver_m2() !MMS_driver() !vacuum_BC_driver()
 end program main
 
 !rm -rf build

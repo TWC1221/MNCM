@@ -1,7 +1,0 @@
- Keff :  8.6440094E-01   iter :     6   error estimate :   8.9607754E-08
-  1D multi-group Benchmark - spherical                                                                                                                                                                                                                          
- Group       Average flux           Capture         Leakage
-    1       7.3518553E-01       1.1027783E-01       4.2212952E-01
-    2       2.9064219E-01       1.1625687E-01       1.4788634E-01
-    3       1.2192047E-01       1.4630457E-01       5.7144990E-02
- Total                          3.7283927E-01       6.2716085E-01

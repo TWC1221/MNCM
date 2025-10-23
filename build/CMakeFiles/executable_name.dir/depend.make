@@ -3,3 +3,4 @@
 
 # Note that incremental build could trigger a call to cmake_copy_f90_mod on each re-build
 CMakeFiles/executable_name.dir/main.f90.o: CMakeFiles/src.dir/m_driver.mod.stamp
+CMakeFiles/executable_name.dir/main.f90.o: CMakeFiles/src.dir/m_sparse_mm.mod.stamp

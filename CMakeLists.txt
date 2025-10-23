@@ -61,6 +61,7 @@ add_library(src
     src/m_driver.f90
     src/m_vacuum_BC_solver.f90
     src/m_thomas_algorithm
+    src/m_sparse_mm
     )
 add_executable(executable_name main.f90)
 

@@ -238,26 +238,28 @@ module m_driver
         call system("gnuplot -persist plot_flux.gp")
     end subroutine iterative_power_driver
 
-!-----------------------------------------------------------------------------!
-!  Purpose:                                                                  -!
-!  Contains inner/outer iteration on multigroup diffusion eigenvalue problem -!
-!           no-upscatter fixed fission source solver                         -!
-!-----------------------------------------------------------------------------!
-!  Record of revisions:                                                      -!
-!   Date       Programmer     Description of change                          -!
-!   ====       ==========     =====================                          -!
-! 20/10/2025    T. Charlton      Original code                               -!
-!-----------------------------------------------------------------------------! 
+!--------------------------------------------------------------------------------------------!
+!  Purpose:                                                                                 -!
+!  Contains inner/outer iteration on multigroup diffusion eigenvalue problem                -!
+!           no-upscatter fixed fission source solver                                        -! 
+!--------------------------------------------------------------------------------------------!
+!  Record of revisions:                                                                     -!
+!   Date       Programmer     Description of change                                         -!
+!   ====       ==========     =====================                                         -!
+! 20/10/2025    T. W Charlton     Original code                                             -!
+! 21/10/2025    T. W Charlton     Added Fixed Source & Upscatter Capabilities               -!
+! 22/10/2025    T. W Charlton     Refined & Implemented Upscatter Fission Eigenvalue Solver -!
+!--------------------------------------------------------------------------------------------! 
 
     subroutine multigroup_diffusion_iter()
         implicit none
-        integer :: N = 1000, G = 3, gg, jj 
+        integer :: N = 10, G = 3, gg, jj, ii
         real(8) :: alpha = 0.0, R_domain = 10
         real(8), allocatable :: phi(:,:), phi_prime(:,:), phi_ptr(:), Dif(:), Sigma_t(:), Sigma_a(:), nu_Sigma_f(:), Sigma_s(:,:), Sigma_sr(:,:), S_f(:), S_f_iter(:), K_eff(:), x(:), dx(:), dx_V(:), chi(:)
-        real(8), allocatable :: Sigma_s_upscatter(:,:), Sigma_s_L(:,:), Sigma_s_U(:,:)
+        real(8), allocatable :: Sigma_s_upscatter(:,:), Sigma_s_L(:,:), Sigma_s_U(:,:), Sigma_s_L_sum(:,:), Sigma_s_U_sum(:,:) ! Experimental
 
         allocate(phi(G,N), phi_prime(G,N), phi_ptr(N), Dif(G), Sigma_t(G), Sigma_a(G), nu_Sigma_f(G), Sigma_s(G,G), Sigma_sr(G,G), S_f(N), S_f_iter(N), K_eff(1000), x(N), dx(N-1), dx_V(N), chi(G))
-        allocate(Sigma_s_upscatter(1:G,1:G), Sigma_s_L(1:G,1:G), Sigma_s_U(1:G,1:G))
+        allocate(Sigma_s_upscatter(1:G,1:G), Sigma_s_L(1:G,1:G), Sigma_s_L_sum(1:G,1:N), Sigma_s_U(1:G,1:G), Sigma_s_U_sum(1:G,1:N))
         call system("pkill gnuplot")
 
         dx(1:N-1) = R_domain / real(N-1, 8) 
@@ -266,56 +268,16 @@ module m_driver
         chi = [0.9, 0.1, 0.0]
         Sigma_a = [0.015, 0.04, 0.12]
         nu_Sigma_f = [0.02, 0.1, 0.35] !0.35]
-        Sigma_s = reshape([0.20d0, 0.00d0, 0.00d0, 0.05d0, 0.25d0, 0.00d0, 0.0d0, 0.07d0, 0.3d0], shape=[3,3])
-
-        do gg = 1,G
-            Sigma_sr(gg,1:G) = Sigma_s(gg,1:G); Sigma_sr(gg,gg) = 0.0d0
-            Sigma_t(gg) = Sigma_a(gg) + sum(Sigma_s(gg,1:G))
-            Dif(gg) = 1.0d0/(3.0d0*Sigma_t(gg))
-        end do
 
         S_f = 1 ; K_eff(1) = 1; 
 
-        ! FIXED SOURCE UP-SCATTER ITERATION
-        Sigma_s_upscatter = reshape([0.20d0, 0.10d0, 0.10d0, 0.05d0, 0.25d0, 0.10d0, 0.10d0, 0.07d0, 0.3d0], shape=[3,3])
-        Sigma_s_L(:,:) = 0 ; Sigma_s_L(2:3,1:2) = Sigma_s_upscatter(2:3,1:2) ; Sigma_s_L(2,2) = 0; Sigma_s_L = transpose(Sigma_s_L)
-        Sigma_s_U(:,:) = 0 ; Sigma_s_U(1:2,2:3) = Sigma_s_upscatter(1:2,2:3) ; Sigma_s_U(2,2) = 0; Sigma_S_U = transpose(Sigma_S_U)
-        
-            
-        print *, "Up Scatter Matrix (3x3 format):"
-        do jj = 1, G
-            write(*,'(3F10.5)') Sigma_s_U(jj, 1), Sigma_s_U(jj, 2), Sigma_s_U(jj, 3)
-        end do
-
-        print *, "Scatter Matrix (3x3 format):"
-        do jj = 1, G
-            write(*,'(3F10.5)') Sigma_s_upscatter(jj, 1), Sigma_s_upscatter(jj, 2), Sigma_s_upscatter(jj, 3)
-        end do
-
-        phi_prime(2:3,1:N) = 1.0;
-        do 
-            S_f_iter(1:N) = chi(1) * S_f(1:N) + Sigma_s_upscatter(2,1) * phi_prime(2,1:N) + Sigma_s_upscatter(3,1) * phi_prime(3,1:N) 
-            phi_ptr = phi(1,1:N)
-            call build_matrix_multigroup(N, alpha, G, phi_ptr, dx, Dif(1), Sigma_s_upscatter(1:G,1:G), S_f_iter(1:N), 1, Sigma_a(1))
-            phi(1,1:N) = phi_ptr
-
-            S_f_iter(1:N) = chi(2) * S_f(1:N) + Sigma_s_upscatter(1,2) * phi(1,1:N) + Sigma_s_upscatter(3,2) * phi_prime(3,1:N) 
-            phi_ptr = phi(2,1:N)
-            call build_matrix_multigroup(N, alpha, G, phi_ptr, dx, Dif(2), Sigma_s_upscatter(1:G,1:G), S_f_iter(1:N), 2, Sigma_a(2))
-            phi(2,1:N) = phi_ptr
-
-            S_f_iter(1:N) = Sigma_s_upscatter(1,3)*phi(1,1:N) + Sigma_s_upscatter(2,3)*phi(2,1:N)
-            phi_ptr = phi(3,1:N)
-            call build_matrix_multigroup(N, alpha, G, phi_ptr, dx, Dif(3), Sigma_s_upscatter(1:G,1:G), S_f_iter(1:N), 3, Sigma_a(2))
-            phi(3,1:N) = phi_ptr
-
-            if (maxval(abs(phi(3,1:N) - phi_prime(3,1:N))) < 1.0d-10 .and. maxval(abs(phi(2,1:N) - phi_prime(2,1:N))) < 1.0d-8) exit
-            phi_prime(3,1:N) = phi(3,1:N)
-            phi_prime(2,1:N) = phi(2,1:N) 
-            ! print*,phi(2,1),phi(3,1)
-        end do
-
         ! FIXED SOURCE NO-UPSCATTER
+        ! Sigma_s = reshape([0.20d0, 0.00d0, 0.00d0, 0.05d0, 0.25d0, 0.00d0, 0.0d0, 0.07d0, 0.3d0], shape=[3,3])
+        ! do gg = 1,G
+        !     Sigma_sr(gg,1:G) = Sigma_s(gg,1:G); Sigma_sr(gg,gg) = 0.0d0
+        !     Sigma_t(gg) = Sigma_a(gg) + sum(Sigma_s(gg,1:G))
+        !     Dif(gg) = 1.0d0/(3.0d0*Sigma_t(gg))
+        ! end do
         ! do gg = 1,3
         !     S_f_iter(1:N) = chi(gg) * S_f(1:N) + Sigma_sr(1,gg)*phi(1,1:N) + Sigma_sr(2,gg)*phi(2,1:N)
         !     phi_ptr = phi(gg,1:N)
@@ -323,7 +285,47 @@ module m_driver
         !     phi(gg,1:N) = phi_ptr
         ! end do
 
+        ! FIXED SOURCE UP-SCATTER ITERATION
+        ! Sigma_s_upscatter = reshape([0.20d0, 0.10d0, 0.17d0, 0.05d0, 0.25d0, 0.10d0, 0.10d0, 0.07d0, 0.3d0], shape=[3,3])
+        ! Sigma_s_L(:,:) = 0 ; Sigma_s_L(2:3,1:2) = Sigma_s_upscatter(2:3,1:2) ; Sigma_s_L(2,2) = 0 ;
+        ! Sigma_s_U(:,:) = 0 ; Sigma_s_U(1:2,2:3) = Sigma_s_upscatter(1:2,2:3) ; Sigma_s_U(2,2) = 0 ;
+
+        ! do gg = 1,G
+        !     Sigma_t(gg) = Sigma_a(gg) + sum(Sigma_s_upscatter(gg,1:G))
+        !     Dif(gg) = 1.0d0/(3.0d0*Sigma_t(gg))
+        ! end do
+
+        ! do 
+        !     do gg = 1,3
+        !         do jj = 1,3
+        !             Sigma_s_L_sum(jj,1:N) = Sigma_s_L(jj,gg) * phi_prime(jj,1:N)
+        !             Sigma_s_U_sum(jj,1:N) = Sigma_s_U(jj,gg) * phi(jj,1:N)
+        !         end do
+
+        !         S_f_iter(1:N) = chi(gg) * S_f(1:N) + sum(Sigma_s_L_sum,dim=1) + sum(Sigma_s_U_sum,dim=1)
+
+        !         phi_ptr = phi(gg,1:N)
+        !         call build_matrix_multigroup(N, alpha, G, phi_ptr, dx, Dif(gg), Sigma_s_upscatter(1:G,1:G), S_f_iter(1:N), gg, Sigma_a(gg))
+        !         phi(gg,1:N) = phi_ptr
+        !     end do
+
+        !     print'(10F10.5)',phi(1,N/2),phi(2,N/2),phi(3,N/2)
+
+        !     if (maxval(abs(phi(3,1:N) - phi_prime(3,1:N))) < 1.0d-10 .and. maxval(abs(phi(2,1:N) - phi_prime(2,1:N))) < 1.0d-10) exit
+
+        !     phi_prime(3,1:N) = phi(3,1:N)
+        !     phi_prime(2,1:N) = phi(2,1:N) 
+        ! end do
+
         ! MULTIGROUP ITERATIVE FISSION SOLVER
+
+        ! Sigma_s = reshape([0.20d0, 0.00d0, 0.00d0, 0.05d0, 0.25d0, 0.00d0, 0.0d0, 0.07d0, 0.3d0], shape=[3,3])
+        ! do gg = 1,G
+        !     Sigma_sr(gg,1:G) = Sigma_s(gg,1:G); Sigma_sr(gg,gg) = 0.0d0
+        !     Sigma_t(gg) = Sigma_a(gg) + sum(Sigma_s(gg,1:G))
+        !     Dif(gg) = 1.0d0/(3.0d0*Sigma_t(gg))
+        ! end do
+
         ! do jj = 2,10
         !     S_f_iter = S_f
         !     do gg = 1,3
@@ -340,7 +342,50 @@ module m_driver
         !     if (maxval(abs(S_f - S_f_iter)) < 1.0d-8) exit
         ! end do
         
-        ! print*,"Iteration =", jj-1, "Keff =", K_eff(jj-1)
+        !print*,"Iteration =", jj-1, "Keff =", K_eff(jj-1)
+
+        ! MULTIGROUP ITERATIVE FISSION SOLVER with Up-Scatter Iteration
+
+        Sigma_s_upscatter = reshape([0.20d0, 0.10d0, 0.17d0, 0.05d0, 0.25d0, 0.10d0, 0.10d0, 0.07d0, 0.3d0], shape=[3,3]) ! TEST DATA (UNREALISTIC UPSCATTER)
+        !Sigma_s_upscatter = reshape([0.30d0, 0.20d0, 0.085d0,0.02d0, 0.25d0, 0.09d0, 0.001d0, 0.009d0, 0.17d0], shape=[3,3]) ! REALISTIC DATA
+
+        Sigma_s_L(:,:) = 0 ; Sigma_s_L(2:3,1:2) = Sigma_s_upscatter(2:3,1:2) ; Sigma_s_L(2,2) = 0 ;
+        Sigma_s_U(:,:) = 0 ; Sigma_s_U(1:2,2:3) = Sigma_s_upscatter(1:2,2:3) ; Sigma_s_U(2,2) = 0 ;
+
+        do gg = 1,G
+            Sigma_t(gg) = Sigma_a(gg) + sum(Sigma_s_upscatter(gg,1:G))
+            Dif(gg) = 1.0d0/(3.0d0*Sigma_t(gg))
+        end do
+
+        do ii = 2,100
+            S_f_iter(1:N) = S_f(1:N)
+            do 
+                do gg = 1,3
+                    do jj = 1,3
+                        Sigma_s_L_sum(jj,1:N) = Sigma_s_L(jj,gg) * phi_prime(jj,1:N)
+                        Sigma_s_U_sum(jj,1:N) = Sigma_s_U(jj,gg) * phi(jj,1:N)
+                    end do
+
+                    S_f(1:N) = chi(gg)/K_eff(ii-1) * S_f_iter(1:N) + sum(Sigma_s_L_sum,dim=1) + sum(Sigma_s_U_sum,dim=1)
+
+                    phi_ptr = phi(gg,1:N)
+                    call build_matrix_multigroup(N, alpha, G, phi_ptr, dx, Dif(gg), Sigma_s_upscatter(1:G,1:G), S_f(1:N), gg, Sigma_a(gg))
+                    phi(gg,1:N) = phi_ptr
+                end do
+
+                if (maxval(abs(phi(3,1:N) - phi_prime(3,1:N))) < 1.0d-16 .and. maxval(abs(phi(2,1:N) - phi_prime(2,1:N))) < 1.0d-16) exit
+
+                phi_prime(3,1:N) = phi(3,1:N)
+                phi_prime(2,1:N) = phi(2,1:N) 
+            end do
+
+            S_f(1:N) = matmul(transpose(phi),nu_Sigma_f)
+            K_eff(ii) = K_eff(ii-1)*sum(S_f*dx_V)/sum(S_f_iter*dx_V)
+   
+            if (abs((K_eff(ii) - K_eff(ii-1)) / K_eff(ii-1)) < 1.0d-12 .and. maxval(abs(S_f - S_f_iter)) < 1.0d-12) exit
+        end do
+        
+        print*,"Iteration =", ii-1, "Keff =", K_eff(ii-1)
 
         x(1) = 0.0d0
         do jj = 2, N

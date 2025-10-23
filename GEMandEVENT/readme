@@ -1,4 +1,0 @@
-$ sudo gedit ~/.bashrc
-Put the following aliases in your .bashrc
-alias gem='/home/<YOUR NAME HERE>/<YOUR FILEPATH TO GEM>/gem'
-alias event='/home/<YOUR NAME HERE>/<YOUR FILEPATH TO EVENT>/event'

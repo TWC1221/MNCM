@@ -43,6 +43,12 @@ CMakeFiles/src.dir/m_multigroup_1d_diffusion.mod.stamp: CMakeFiles/src.dir/src/m
 CMakeFiles/src.dir/src/m_multigroup_1D_diffusion.f90.o.provides.build:
 	$(CMAKE_COMMAND) -E touch CMakeFiles/src.dir/src/m_multigroup_1D_diffusion.f90.o.provides.build
 CMakeFiles/src.dir/build: CMakeFiles/src.dir/src/m_multigroup_1D_diffusion.f90.o.provides.build
+CMakeFiles/src.dir/src/m_sparse_mm.f90.o.provides.build: CMakeFiles/src.dir/m_sparse_mm.mod.stamp
+CMakeFiles/src.dir/m_sparse_mm.mod.stamp: CMakeFiles/src.dir/src/m_sparse_mm.f90.o
+	$(CMAKE_COMMAND) -E cmake_copy_f90_mod m_sparse_mm.mod CMakeFiles/src.dir/m_sparse_mm.mod.stamp GNU
+CMakeFiles/src.dir/src/m_sparse_mm.f90.o.provides.build:
+	$(CMAKE_COMMAND) -E touch CMakeFiles/src.dir/src/m_sparse_mm.f90.o.provides.build
+CMakeFiles/src.dir/build: CMakeFiles/src.dir/src/m_sparse_mm.f90.o.provides.build
 CMakeFiles/src.dir/src/m_thomas_algorithm.f90.o.provides.build: CMakeFiles/src.dir/m_thomas_algorithm.mod.stamp
 CMakeFiles/src.dir/m_thomas_algorithm.mod.stamp: CMakeFiles/src.dir/src/m_thomas_algorithm.f90.o
 	$(CMAKE_COMMAND) -E cmake_copy_f90_mod m_thomas_algorithm.mod CMakeFiles/src.dir/m_thomas_algorithm.mod.stamp GNU

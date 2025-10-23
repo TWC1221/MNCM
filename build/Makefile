@@ -286,6 +286,30 @@ src/m_multigroup_1D_diffusion.f90.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_multigroup_1D_diffusion.f90.s
 .PHONY : src/m_multigroup_1D_diffusion.f90.s
 
+src/m_sparse_mm.o: src/m_sparse_mm.f90.o
+.PHONY : src/m_sparse_mm.o
+
+# target to build an object file
+src/m_sparse_mm.f90.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_sparse_mm.f90.o
+.PHONY : src/m_sparse_mm.f90.o
+
+src/m_sparse_mm.i: src/m_sparse_mm.f90.i
+.PHONY : src/m_sparse_mm.i
+
+# target to preprocess a source file
+src/m_sparse_mm.f90.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_sparse_mm.f90.i
+.PHONY : src/m_sparse_mm.f90.i
+
+src/m_sparse_mm.s: src/m_sparse_mm.f90.s
+.PHONY : src/m_sparse_mm.s
+
+# target to generate assembly for a file
+src/m_sparse_mm.f90.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_sparse_mm.f90.s
+.PHONY : src/m_sparse_mm.f90.s
+
 src/m_thomas_algorithm.o: src/m_thomas_algorithm.f90.o
 .PHONY : src/m_thomas_algorithm.o
 
@@ -362,6 +386,9 @@ help:
 	@echo "... src/m_multigroup_1D_diffusion.o"
 	@echo "... src/m_multigroup_1D_diffusion.i"
 	@echo "... src/m_multigroup_1D_diffusion.s"
+	@echo "... src/m_sparse_mm.o"
+	@echo "... src/m_sparse_mm.i"
+	@echo "... src/m_sparse_mm.s"
 	@echo "... src/m_thomas_algorithm.o"
 	@echo "... src/m_thomas_algorithm.i"
 	@echo "... src/m_thomas_algorithm.s"

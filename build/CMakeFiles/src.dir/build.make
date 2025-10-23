@@ -160,6 +160,19 @@ CMakeFiles/src.dir/src/m_thomas_algorithm.f90.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/src.dir/src/m_thomas_algorithm.f90.s"
 	/usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/tom/Documents/Repo/MNCM/src/m_thomas_algorithm.f90 -o CMakeFiles/src.dir/src/m_thomas_algorithm.f90.s
 
+CMakeFiles/src.dir/src/m_sparse_mm.f90.o: CMakeFiles/src.dir/flags.make
+CMakeFiles/src.dir/src/m_sparse_mm.f90.o: ../src/m_sparse_mm.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building Fortran object CMakeFiles/src.dir/src/m_sparse_mm.f90.o"
+	/usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/tom/Documents/Repo/MNCM/src/m_sparse_mm.f90 -o CMakeFiles/src.dir/src/m_sparse_mm.f90.o
+
+CMakeFiles/src.dir/src/m_sparse_mm.f90.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing Fortran source to CMakeFiles/src.dir/src/m_sparse_mm.f90.i"
+	/usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/tom/Documents/Repo/MNCM/src/m_sparse_mm.f90 > CMakeFiles/src.dir/src/m_sparse_mm.f90.i
+
+CMakeFiles/src.dir/src/m_sparse_mm.f90.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/src.dir/src/m_sparse_mm.f90.s"
+	/usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/tom/Documents/Repo/MNCM/src/m_sparse_mm.f90 -o CMakeFiles/src.dir/src/m_sparse_mm.f90.s
+
 # Object files for target src
 src_OBJECTS = \
 "CMakeFiles/src.dir/src/m_iterative_power_solver.f90.o" \
@@ -168,7 +181,8 @@ src_OBJECTS = \
 "CMakeFiles/src.dir/src/m_constants.f90.o" \
 "CMakeFiles/src.dir/src/m_driver.f90.o" \
 "CMakeFiles/src.dir/src/m_vacuum_BC_solver.f90.o" \
-"CMakeFiles/src.dir/src/m_thomas_algorithm.f90.o"
+"CMakeFiles/src.dir/src/m_thomas_algorithm.f90.o" \
+"CMakeFiles/src.dir/src/m_sparse_mm.f90.o"
 
 # External object files for target src
 src_EXTERNAL_OBJECTS =
@@ -180,9 +194,10 @@ libsrc.a: CMakeFiles/src.dir/src/m_constants.f90.o
 libsrc.a: CMakeFiles/src.dir/src/m_driver.f90.o
 libsrc.a: CMakeFiles/src.dir/src/m_vacuum_BC_solver.f90.o
 libsrc.a: CMakeFiles/src.dir/src/m_thomas_algorithm.f90.o
+libsrc.a: CMakeFiles/src.dir/src/m_sparse_mm.f90.o
 libsrc.a: CMakeFiles/src.dir/build.make
 libsrc.a: CMakeFiles/src.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Linking Fortran static library libsrc.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Linking Fortran static library libsrc.a"
 	$(CMAKE_COMMAND) -P CMakeFiles/src.dir/cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/src.dir/link.txt --verbose=$(VERBOSE)
 
