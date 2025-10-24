@@ -369,7 +369,7 @@ module m_driver
                     S_f(1:N) = chi(gg)/K_eff(ii-1) * S_f_iter(1:N) + sum(Sigma_s_L_sum,dim=1) + sum(Sigma_s_U_sum,dim=1)
 
                     phi_ptr = phi(gg,1:N)
-                    call build_matrix_multigroup(N, alpha, G, phi_ptr, dx, Dif(gg), Sigma_s_upscatter(1:G,1:G), S_f(1:N), gg, Sigma_a(gg))
+                    call b N, alpha, G, phi_ptr, dx, Dif(gg), Sigma_s_upscatter(1:G,1:G), S_f(1:N), gg, Sigma_a(gg))
                     phi(gg,1:N) = phi_ptr
                 end do
 
