@@ -253,7 +253,7 @@ module m_driver
 
     subroutine multigroup_diffusion_iter()
         implicit none
-        integer :: N = 10, G = 3, gg, jj, ii
+        integer :: N = 1000, G = 3, gg, jj, ii
         real(8) :: alpha = 0.0, R_domain = 10
         real(8), allocatable :: phi(:,:), phi_prime(:,:), phi_ptr(:), Dif(:), Sigma_t(:), Sigma_a(:), nu_Sigma_f(:), Sigma_s(:,:), Sigma_sr(:,:), S_f(:), S_f_iter(:), K_eff(:), x(:), dx(:), dx_V(:), chi(:)
         real(8), allocatable :: Sigma_s_upscatter(:,:), Sigma_s_L(:,:), Sigma_s_U(:,:), Sigma_s_L_sum(:,:), Sigma_s_U_sum(:,:) ! Experimental
@@ -369,7 +369,7 @@ module m_driver
                     S_f(1:N) = chi(gg)/K_eff(ii-1) * S_f_iter(1:N) + sum(Sigma_s_L_sum,dim=1) + sum(Sigma_s_U_sum,dim=1)
 
                     phi_ptr = phi(gg,1:N)
-                    call b N, alpha, G, phi_ptr, dx, Dif(gg), Sigma_s_upscatter(1:G,1:G), S_f(1:N), gg, Sigma_a(gg))
+                    call build_matrix_multigroup(N, alpha, G, phi_ptr, dx, Dif(gg), Sigma_s_upscatter(1:G,1:G), S_f(1:N), gg, Sigma_a(gg))
                     phi(gg,1:N) = phi_ptr
                 end do
 

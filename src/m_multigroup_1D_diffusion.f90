@@ -20,19 +20,19 @@ contains
         do ii = 1, N
             if (ii == 1) then
                 a(ii) = 0.0d0
-                b(ii) = ((Dif+Dif))/(dx(ii)*dx(ii)) + 1/dx(ii)*(1-alpha)/(1+alpha) + sum(A_scatter(gg,1:G)) - A_scatter(gg,gg) + Sigma_a
-                c(ii) = -(Dif+Dif)/(dx(ii)*(dx(ii)))
+                b(ii) = (2*Dif)/(dx(ii)**2) + 1/dx(ii)*(1-alpha)/(1+alpha) + sum(A_scatter(gg,1:G)) - A_scatter(gg,gg) + Sigma_a !+ VLARGE_NUMBER
+                c(ii) = -(2*Dif)/(dx(ii)**2)
                 d(ii) = S0(ii)
 
             elseif (ii == N) then
-                a(ii) = -(Dif+Dif)/(dx(ii-1)*dx(ii-1))
-                b(ii) = ((Dif+Dif)/dx(ii-1))/(dx(ii-1)) + 1/dx(ii-1)*(1-alpha)/(1+alpha) + sum(A_scatter(gg,1:G)) - A_scatter(gg,gg) + Sigma_a
+                a(ii) = -(2*Dif)/(dx(ii-1)**2)
+                b(ii) = (2*Dif)/(dx(ii-1)**2) + 1/dx(ii-1)*(1-alpha)/(1+alpha) + sum(A_scatter(gg,1:G)) - A_scatter(gg,gg) + Sigma_a !+ VLARGE_NUMBER
                 c(ii) = 0.0d0
                 d(ii) = S0(ii)
             else
-                a(ii) = -(Dif+Dif)/(dx(ii-1)*(dx(ii)+dx(ii-1)))
-                b(ii) = ((Dif+Dif)/dx(ii-1)+(Dif+Dif)/dx(ii))/(dx(ii)+dx(ii-1)) + sum(A_scatter(gg,1:G)) - A_scatter(gg,gg) + Sigma_a
-                c(ii) = -(Dif+Dif)/(dx(ii)*(dx(ii)+dx(ii-1)))
+                a(ii) = -(2*Dif)/(dx(ii-1)*(dx(ii)+dx(ii-1)))
+                b(ii) = ((2*Dif)/dx(ii-1)+(2*Dif)/dx(ii))/(dx(ii)+dx(ii-1)) + sum(A_scatter(gg,1:G)) - A_scatter(gg,gg) + Sigma_a
+                c(ii) = -(2*Dif)/(dx(ii)*(dx(ii)+dx(ii-1)))
                 d(ii) = S0(ii)
             end if
         end do

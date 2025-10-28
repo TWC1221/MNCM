@@ -56,7 +56,7 @@ contains
     subroutine CSR_rebuild(AA,JA,IA)
         real(8), intent(in) :: AA(:)
         integer, intent(in) :: JA(:), IA(:)
-        real(8) :: A(SIZE(IA)-1,SIZE(IA)-1)
+        real(8) :: A(SIZE(IA)-1,SIZE(IA)-1), L(SIZE(IA)-1,SIZE(IA)-1)
         integer :: ii, jj, k1, k2
 
         do ii = 1, SIZE(IA)-1
@@ -66,8 +66,11 @@ contains
                 A(ii,JA(jj)) = (AA(jj))
             end do
         end do
+
+        L = transpose(A)*A
+
         do ii = 1, 5
-            print '(5F10.5)', (A(ii, jj), jj = 1, 5)
+            print '(5F10.5)', (L(ii, jj), jj = 1, 5)
         end do
     end subroutine CSR_rebuild
 
@@ -106,6 +109,160 @@ contains
         y0 = forward_solver(L,r0)
         d0 = backward_solver(L,y0)
     end function
+
+    function Incomplete_Cholesky_CSR_2(AA,JA,IA,r0) result(d0)
+        real(8), intent(in) :: AA(:), r0(:)
+        integer, intent(in) :: JA(:), IA(:)
+        real(8), allocatable ::  L_AA(:), d0(:), y0(:)
+        real(8) :: s
+        integer(4), allocatable:: L_JA(:), L_IA(:)
+        integer :: ii, jj, kk, k1, k2, nnz, jcol, kcol, kk1, kk2
+        
+        nnz = 0
+
+        do ii = 1, size(IA)-1
+            k1 = IA(ii)
+            k2 = IA(ii+1)-1
+            do jj = k1,k2
+                if (JA(jj) <= ii) nnz = nnz + 1
+            end do
+        end do
+
+        allocate(L_AA(nnz))
+        allocate(L_JA(nnz))
+        allocate(L_IA(size(IA)))
+        allocate(d0(size(IA)-1))
+
+        kk = 0
+
+        do ii = 1, SIZE(IA)-1
+            L_IA(ii) = kk + 1
+            k1 = IA(ii)
+            k2 = IA(ii+1) - 1
+            do jj = k1,k2
+                if (JA(jj) <= ii) then
+                    kk = kk + 1
+                    L_AA(kk) = AA(jj)
+                    L_JA(kk) = JA(jj)
+                end if
+            end do
+        end do
+        L_IA(SIZE(IA)) = nnz + 1  ! last element points past the end
+
+        do ii = 1, size(L_IA)-1
+            k1 = L_IA(ii)
+            k2 = L_IA(ii+1)-1
+            do jj = k1, k2
+                jcol = L_JA(jj)
+                s = L_AA(jj)
+                do kk1 = k1, jj-1
+                    kcol = L_JA(kk1)
+                    do kk2 = L_IA(kcol), L_IA(kcol+1)-1
+                        if (L_JA(kk2) == jcol) then
+                            s = s - L_AA(kk1)*L_AA(kk2)
+                        end if
+                    end do
+
+                end do
+                if (ii == jcol) then
+                    ! diagonal
+                    d0(ii) = sqrt(s)
+                    L_AA(jj) = d0(ii)
+                else
+                    ! off-diagonal
+                    L_AA(jj) = s / d0(jcol)
+                end if
+            end do
+        end do
+
+        ! ! Print real array L_AA
+        ! print '(13F5.2)', L_AA
+
+        ! ! Print integer arrays L_JA and L_IA
+        ! print '(13I5)', L_JA
+        ! print '(6I5)', L_IA
+
+        !call CSR_rebuild(L_AA,L_JA,L_IA)
+
+        y0 = forward_solver_CSR(L_AA,L_JA,L_IA,r0)
+        d0 = backward_solver_CSR(L_AA,L_JA,L_IA,y0)
+        print*,d0
+    end function
+
+    function forward_solver_CSR(L_AA,L_JA,L_IA,r0) result(y0)
+        implicit none
+        real(8), intent(in) :: L_AA(:), r0(:)
+        integer, intent(in) :: L_JA(:), L_IA(:)
+        real(8) :: y0(SIZE(L_IA) - 1)
+        real(8) :: Ldiag
+        integer :: ii, k1, k2
+
+        y0(1) = r0(1) / L_AA(1)
+
+        do ii = 2, (size(L_IA) - 1)
+            k1 = L_IA(ii)
+            k2 = L_IA(ii+1) - 1
+            Ldiag = L_AA(k2)
+            y0(ii) = (r0(ii) - dot_product(L_AA(k1:k2-1), y0(L_JA(k1:k2-1))))/Ldiag
+        end do
+        return
+    end function
+
+    function backward_solver_CSR(L_AA,L_JA,L_IA,y0) result(d0)
+        implicit none
+        real(8), intent(in) :: L_AA(:), y0(:)
+        integer(4), intent(in) :: L_JA(:), L_IA(:)
+        real(8) :: Ldiag
+        real(8) :: d0(size(L_IA)-1)
+        integer :: ii, k1, k2, n
+
+        n = SIZE((L_IA))-1
+        d0(n) = y0(n)/L_AA(n)
+
+        do ii = n-1, 1, -1
+            k1 = L_IA(ii)
+            k2 = L_IA(ii+1) - 1
+            Ldiag = L_AA(k1)
+            d0(ii) = (y0(ii) - dot_product(L_AA(k1+1:k2),d0(L_JA(k1+1:k2)))) / Ldiag
+        end do
+        return
+    end function
+
+    subroutine PCG_solver
+        real(8) :: AA(13), b(5), alpha, beta, d(5), r(5), x(5), d0(5), r0(5), x0(5)
+        integer :: JA(13), IA(6), ii
+
+        AA = (/4.0d0, 1.0d0, 1.0d0, 4.0d0, 1.0d0, 1.0d0, 4.0d0, 1.0d0, 1.0d0, 4.0d0, 1.0d0, 1.0d0, 4.0d0/)
+        JA = (/1, 2, 1, 2, 3, 2, 3, 4, 3, 4, 5, 4, 5/)
+        IA = (/1, 3, 6, 9, 12, 14/)
+
+        b = (/1.0d0, 2.0d0, 3.0d0, 4.0d0, 5.0d0/)
+        x0 = ([3,6,9,12,15])
+
+        r0 = b - CSR_dot_product(AA,JA,IA,x0)
+        d0 = Incomplete_Cholesky_CSR_2(AA,JA,IA, r0) !ILU(AA,JA,IA, r0) Jacobi_CRS(AA,JA,IA,r0)
+        
+        do ii = 1,5
+            
+            alpha = dot_product(r0,Incomplete_Cholesky_CSR_2(AA,JA,IA, r0))/dot_product(d0, CSR_dot_product(AA,JA,IA,d0))
+        
+            x = x0 + alpha*d0
+
+            r = r0 - alpha*CSR_dot_product(AA,JA,IA,d0)
+
+            beta = dot_product(r,Incomplete_Cholesky_CSR_2(AA,JA,IA, r))/dot_product(r0,Incomplete_Cholesky_CSR_2(AA,JA,IA, r0))
+            
+            d = r + beta*d0     
+
+            r0 = r      
+            d0 = d
+            x0 = x
+        
+            print*, CSR_dot_product(AA,JA,IA,x)
+        end do
+
+    end subroutine PCG_solver
+
 
     function ILU(AA,JA,IA, r0) result(d0)
         real(8), intent(in) :: AA(:), r0(:)
@@ -163,7 +320,6 @@ contains
         deallocate(L,U,y0)
     end function
 
-
     function Jacobi_CRS(AA,JA,IA, r0) result(d0)
         real(8), intent(in) :: AA(:), r0(:)
         integer, intent(in) :: JA(:), IA(:)
@@ -217,49 +373,9 @@ contains
             x0 = x
         end do
 
-        print '(5F10.5)', "Ax =", CSR_dot_product(AA, JA, IA, x)
-        print '(5F10.5)', "x =", x
+        print '(A, 5F10.5)', "Ax =", CSR_dot_product(AA, JA, IA, x)
 
 
     end subroutine CG_solver
-
-    subroutine PCG_solver
-        real(8) :: AA(13), b(5), alpha, beta, d(5), r(5), x(5), d0(5), r0(5), x0(5)
-        integer :: JA(13), IA(6), ii
-
-        AA = (/4.0d0, 1.0d0, 1.0d0, 4.0d0, 1.0d0, 1.0d0, 4.0d0, 1.0d0, 1.0d0, 4.0d0, 1.0d0, 1.0d0, 4.0d0/)
-        JA = (/1, 2, 1, 2, 3, 2, 3, 4, 3, 4, 5, 4, 5/)
-        IA = (/1, 3, 6, 9, 12, 14/)
-
-        b = (/1.0d0, 2.0d0, 3.0d0, 4.0d0, 5.0d0/)
-        x0 = ([3,6,9,12,15])
-
-        r0 = b - CSR_dot_product(AA,JA,IA,x0)
-        d0 = Jacobi_CRS(AA,JA,IA,r0) !Incomplete_Cholesky_CRS(AA,JA,IA, r0) !ILU(AA,JA,IA, r0)
-        
-        do ii = 1,5
-
-            alpha = dot_product(r0,d0)/dot_product(d0, CSR_dot_product(AA,JA,IA,d0))
-        
-            x = x0 + alpha*d0
-
-            r = r0 - alpha * CSR_dot_product(AA,JA,IA,d0)
-
-            beta = dot_product(r,d)/dot_product(r0,d0)
-
-            !d = ILU(AA,JA,IA, r) + beta*d0
-            
-            !d = Jacobi_CRS(AA,JA,IA, r) + beta*d0
-
-            !d = Incomplete_Cholesky_CRS(AA,JA,IA, r) + beta*d0          
-
-            r0 = r      
-            d0 = d
-            x0 = x
-        end do
-
-        print*,CSR_dot_product(AA,JA,IA,x)
-
-    end subroutine PCG_solver
 
 end module m_sparse_mm
