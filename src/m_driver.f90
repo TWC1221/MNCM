@@ -14,6 +14,7 @@ module m_driver
     use m_vacuum_BC_solver
     use m_iterative_power_solver
     use m_multigroup_1D_diffusion
+    use m_Sparse_mm
     contains
     subroutine MMS_driver()
         implicit none
@@ -253,7 +254,7 @@ module m_driver
 
     subroutine multigroup_diffusion_iter()
         implicit none
-        integer :: N = 1000, G = 3, gg, jj, ii
+        integer :: N = 500, G = 3, gg, jj, ii
         real(8) :: alpha = 0.0, R_domain = 10
         real(8), allocatable :: phi(:,:), phi_prime(:,:), phi_ptr(:), Dif(:), Sigma_t(:), Sigma_a(:), nu_Sigma_f(:), Sigma_s(:,:), Sigma_sr(:,:), S_f(:), S_f_iter(:), K_eff(:), x(:), dx(:), dx_V(:), chi(:)
         real(8), allocatable :: Sigma_s_upscatter(:,:), Sigma_s_L(:,:), Sigma_s_U(:,:), Sigma_s_L_sum(:,:), Sigma_s_U_sum(:,:) ! Experimental
@@ -369,11 +370,13 @@ module m_driver
                     S_f(1:N) = chi(gg)/K_eff(ii-1) * S_f_iter(1:N) + sum(Sigma_s_L_sum,dim=1) + sum(Sigma_s_U_sum,dim=1)
 
                     phi_ptr = phi(gg,1:N)
-                    call build_matrix_multigroup(N, alpha, G, phi_ptr, dx, Dif(gg), Sigma_s_upscatter(1:G,1:G), S_f(1:N), gg, Sigma_a(gg))
+                    call build_CSR_matrix_multigroup(N, alpha, G, phi_ptr, dx, Dif(gg), Sigma_s_upscatter(1:G,1:G), S_f(1:N), gg, Sigma_a(gg)) 
+                    !build_matrix_multigroup(N, alpha, G, phi_ptr, dx, Dif(gg), Sigma_s_upscatter(1:G,1:G), S_f(1:N), gg, Sigma_a(gg))
                     phi(gg,1:N) = phi_ptr
                 end do
+                print'(10F10.5)',phi(1,N/2),phi(2,N/2),phi(3,N/2)
 
-                if (maxval(abs(phi(3,1:N) - phi_prime(3,1:N))) < 1.0d-16 .and. maxval(abs(phi(2,1:N) - phi_prime(2,1:N))) < 1.0d-16) exit
+                if (maxval(abs(phi(3,1:N) - phi_prime(3,1:N))) < 1.0d-6 .and. maxval(abs(phi(2,1:N) - phi_prime(2,1:N))) < 1.0d-6) exit
 
                 phi_prime(3,1:N) = phi(3,1:N)
                 phi_prime(2,1:N) = phi(2,1:N) 
@@ -381,8 +384,8 @@ module m_driver
 
             S_f(1:N) = matmul(transpose(phi),nu_Sigma_f)
             K_eff(ii) = K_eff(ii-1)*sum(S_f*dx_V)/sum(S_f_iter*dx_V)
-   
-            if (abs((K_eff(ii) - K_eff(ii-1)) / K_eff(ii-1)) < 1.0d-12 .and. maxval(abs(S_f - S_f_iter)) < 1.0d-12) exit
+
+            if (abs((K_eff(ii) - K_eff(ii-1)) / K_eff(ii-1)) < 1.0d-6 .and. maxval(abs(S_f - S_f_iter)) < 1.0d-6) exit
         end do
         
         print*,"Iteration =", ii-1, "Keff =", K_eff(ii-1)

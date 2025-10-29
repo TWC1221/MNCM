@@ -1,11 +1,16 @@
 !------------------------------------------------------------------------!
 !! Purpose:                                                             -!
-!  Carry out sparse matrix multiplicatiom                               -!
+!  Carry out sparse matrix multiplication                               -!  
+!  Carry out Conjugate Gradient method for solving linear systems       -!  
+!  Generate Preconditioning matrices M for use in Preconditioned CG     -!  
+!  using Incomplete Cholesky factorization (IC(0)) in CSR format        -!
 !------------------------------------------------------------------------!
 !! Record of revisions:                                                 -!
 !   Date       Programmer     Description of change                     -!
 !   ====       ==========     =====================                     -!
-! 22/10/2025    T. Charlton      Original code                          -!
+! 24/10/2025    T. Charlton      Original code                          -!      
+! 28/10/2025    T. Charlton      Added true CSR Cholesky preconditioner -!
+! 29/10/2025    T. Charlton      Integrated CG with 1D multigroup solver-!
 !------------------------------------------------------------------------! 
 
 module m_Sparse_mm
@@ -26,37 +31,20 @@ contains
         return
     end function
 
-    subroutine CSR_rebuild(AA,JA,IA)
+  !-------------------------
+  ! Incomplete Cholesky (lower, CSR) Decomposition of CSR matrix A
+  ! AA, JA, IA define original A in CSR. 
+  ! L_AA, L_JA, L_IA define the lower triangular L. L transformation into Cholesky preconditioning matrix M done in place
+  ! Returns L_AA, L_JA, L_IA. The CSR format of ICD(0) matrix M
+  !-------------------------
+    subroutine Cholesky_CSR(AA, JA, IA, L_AA, L_JA, L_IA)
         real(8), intent(in) :: AA(:)
         integer, intent(in) :: JA(:), IA(:)
-        real(8) :: A(SIZE(IA)-1,SIZE(IA)-1), L(SIZE(IA)-1,SIZE(IA)-1)
-        integer :: ii, jj, k1, k2
 
-        do ii = 1, SIZE(IA)-1
-            k1 = IA(ii) !Start column index of ith row
-            k2 = IA(ii+1) - 1 !End column index of ith row
-            do jj = k1,k2
-                A(ii,JA(jj)) = (AA(jj))
-            end do
-        end do
+        real(8), allocatable, intent(out) :: L_AA(:)
+        integer, allocatable, intent(out) :: L_JA(:), L_IA(:)
 
-        L = transpose(A)*A
-        do ii = 1, 5
-            print '(5F10.5)', (L(ii, jj), jj = 1, 5)
-        end do
-    end subroutine CSR_rebuild
-
-  !-------------------------
-  ! Incomplete Cholesky (lower, CSR) where each row's diagonal stored last
-  ! AA,JA,IA define original A in CSR.
-  ! Returns d0 = (L^T \ (L \ r0)) i.e. apply preconditioner to r0 (M^{-1} r0).
-  !-------------------------
-    function Incomplete_Cholesky_CSR_2(AA,JA,IA,r0) result(d0)
-        real(8), intent(in) :: AA(:), r0(:)
-        integer, intent(in) :: JA(:), IA(:)
-
-        real(8), allocatable :: L_AA(:), d0(:), y0(:)
-        integer, allocatable :: L_JA(:), L_IA(:), L_D0(:)
+        real(8), allocatable :: L_D0(:)
         real(8) :: s
         integer :: ii, jj, kk, k1, k2, nnz, jcol, kcol, kk1, kk2, n
         
@@ -109,29 +97,57 @@ contains
 
                 if (ii == jcol) then
                     ! diagonal
+                    s = max(s, 1.0d-20)
                     L_D0(ii) = sqrt(s)
-                    L_AA(jj) = L_d0(ii)
+                    L_AA(jj) = L_D0(ii)
                 else
                     ! off-diagonal
                     L_AA(jj) = s / L_D0(jcol)
                 end if
             end do
         end do
+    end subroutine
 
-        ! ! Print real array L_AA
-        ! print '(13F5.2)', L_AA
+    subroutine Jacobi_CSR(AA, JA, IA, diag)
+        implicit none
+        ! Inputs
+        real(8), intent(in) :: AA(:)
+        integer, intent(in) :: JA(:), IA(:)
+        ! Output
+        real(8), intent(out), allocatable :: diag(:)
 
-        ! ! Print integer arrays L_JA and L_IA
-        ! print '(13I5)', L_JA
-        ! print '(6I5)', L_IA
+        integer :: n, ii, jj
 
-        !call CSR_rebuild(L_AA,L_JA,L_IA)
-        allocate(y0(n))
-        call forward_solver_CSR(L_AA,L_JA,L_IA,r0,y0)
-        
-        allocate(d0(n))
-        call backward_solver_CSR(L_AA,L_JA,L_IA,y0,d0)
-        print*,d0
+        n = size(IA) - 1
+        allocate(diag(n))
+
+        do ii = 1, n
+            ! Loop over row ii
+            do jj = IA(ii), IA(ii+1)-1
+                if (JA(jj) == ii) then
+                    diag(ii) = AA(jj)
+                    exit
+                end if
+            end do
+        end do
+    end subroutine
+
+  !-------------------------
+  ! Function to compute d = M^-1 r using preconditioning matrix M from IC(0) factorization
+  ! L_AA, L_JA, L_IA (CSR format) define preconditioning matrix M computed by Cholesky Decomposition
+  ! Returns search vector d
+  !-------------------------
+    function PCG_CSR(L_AA, L_JA, L_IA, r) result(d)
+        real(8), intent(in) :: L_AA(:), r(:)
+        integer, intent(in) :: L_JA(:), L_IA(:)
+        real(8), allocatable :: d(:), y(:)
+
+        allocate(y(size(L_IA)-1))
+        call forward_solver_CSR(L_AA,L_JA,L_IA,r,y)
+
+        allocate(d(size(L_IA)-1))
+        call backward_solver_CSR(L_AA,L_JA,L_IA,y,d)
+
     end function
 
     !-------------------------
@@ -152,12 +168,15 @@ contains
         return
     end subroutine
 
+    !-------------------------
+    ! Backward solve: L^T d = y  (L stored in CSR; diagonal is last element per row)
+    !-------------------------
     subroutine backward_solver_CSR(L_AA,L_JA,L_IA,y0,d0)
         implicit none
         real(8), intent(in) :: L_AA(:), y0(:)
         integer, intent(in) :: L_JA(:), L_IA(:)
 
-        real(8) :: d0(size(L_IA)-1)
+        real(8),intent(out) :: d0(size(L_IA)-1)
 
         integer :: ii, jj, k1, k2, n
         real(8) :: L_D0
@@ -187,151 +206,103 @@ contains
         return
     end subroutine
 
-    subroutine PCG_solver
-        real(8) :: AA(13), b(5), alpha, beta, x(5), r(5), d(5), z(5), q(5)
-        integer :: JA(13), IA(6), ii, max_iter
+    subroutine build_CSR_matrix_multigroup(N, alpha, G, phi_ptr, dx, Dif, A_scatter, S0, gg, Sigma_a)
+        integer, intent(in) :: N, G, gg
+        real(8), intent(in) :: Dif, dx(:), alpha, A_scatter(:,:), Sigma_a, S0(:)
+        
+        real(8), intent(out) :: phi_ptr(:)
+        real(8), allocatable :: AA(:), b(:)
+        integer, allocatable :: JA(:), IA(:)
+        integer :: ii, nnz
 
-        AA = (/4.0d0, 1.0d0, 1.0d0, 4.0d0, 1.0d0, 1.0d0, 4.0d0, 1.0d0, 1.0d0, 4.0d0, 1.0d0, 1.0d0, 4.0d0/)
-        JA = (/1, 2, 1, 2, 3, 2, 3, 4, 3, 4, 5, 4, 5/)
-        IA = (/1, 3, 6, 9, 12, 14/)
+        allocate(AA(3*N-2), JA(3*N-2), IA(N+1))
 
-            ! RHS and initial guess
-        b = (/1.0d0,2.0d0,3.0d0,4.0d0,5.0d0/)
-        x = 0.0d0
+        do ii = 1,N
+            if (ii == 1) then
+                AA(1:2) = [((2*Dif)/(dx(ii)**2) + 1/dx(ii)*(1-alpha)/(1+alpha) + sum(A_scatter(gg,1:G)) - A_scatter(gg,gg) + Sigma_a), (-(2*Dif)/(dx(ii)**2))]
+                JA(1:2) = [1, 2]
+                IA(1) = 1
+                nnz = 2
+            elseif (ii == N) then
+                AA(nnz+1:nnz+2) = [(-(2*Dif)/(dx(ii-1)**2)), ((2*Dif)/(dx(ii-1)**2) + 1/dx(ii-1)*(1-alpha)/(1+alpha) + sum(A_scatter(gg,1:G)) - A_scatter(gg,gg) + Sigma_a)]
+                JA(nnz+1:nnz+2) = [N-1, N]
+                IA(N) = nnz + 1
+                nnz = nnz + 2
+            else
+                AA(nnz+1:nnz+3) = [(-(2*Dif)/(dx(ii-1)*(dx(ii)+dx(ii-1)))), ((2*Dif)/dx(ii-1)+(2*Dif)/dx(ii))/(dx(ii)+dx(ii-1)) + sum(A_scatter(gg,1:G)) - A_scatter(gg,gg) + Sigma_a, (-(2*Dif)/(dx(ii)*(dx(ii)+dx(ii-1))))]
+                JA(nnz+1:nnz+3) = [ii-1, ii, ii+1]
+                IA(ii) = nnz + 1
+                nnz = nnz + 3
+            end if
+        end do
+        IA(N+1) = nnz + 1 
 
-        ! Initial residual and preconditioned residual
+        b = S0
+
+        call PCG_algorithm(AA, JA, IA, phi_ptr, b)
+
+    end subroutine build_CSR_matrix_multigroup
+
+    subroutine PCG_algorithm(AA, JA, IA, x, b)
+        implicit none
+        real(8), intent(in) :: AA(:), b(:)
+        integer, intent(in) :: JA(:), IA(:)
+        real(8), intent(out) :: x(:)
+        real(8) :: alpha, beta
+        integer :: ii, max_iter
+        real(8), allocatable :: L_AA(:), diag(:), r(:), d(:), z(:), q(:)
+        integer, allocatable :: L_IA(:), L_JA(:)
+
+        call Cholesky_CSR(AA, JA, IA, L_AA, L_JA, L_IA)
+        !call Jacobi_CSR(AA, JA, IA, diag)
+        
         r = b - CSR_dot_product(AA, JA, IA, x)
-        z = Incomplete_Cholesky_CSR_2(AA, JA, IA, r)
+        z = PCG_CSR(L_AA, L_JA, L_IA, r)! r/diag !
         d = z
 
-        max_iter = 5
+        max_iter = 100
         do ii = 1, max_iter
             q = CSR_dot_product(AA, JA, IA, d)
             alpha = dot_product(r, z)/dot_product(d, q)
             x = x + alpha*d
             r = r - alpha*q
-            z = Incomplete_Cholesky_CSR_2(AA, JA, IA, r)
+            z = PCG_CSR(L_AA, L_JA, L_IA, r) !r/diag 
             beta = dot_product(r, z)/dot_product(r - alpha*q, z - alpha*d) ! optional check
             d = z + beta*d
         end do
 
-        print*, "Solution:", x
-        print*, "aX = ", CSR_dot_product(AA, JA, IA, x)
+        !print*, "Solution:", x
+        !print*, "aX = ", CSR_dot_product(AA, JA, IA, x)
 
-    end subroutine PCG_solver
+    end subroutine
 
-    ! function ILU(AA,JA,IA, r0) result(d0)
-    !     real(8), intent(in) :: AA(:), r0(:)
-    !     integer, intent(in) :: JA(:), IA(:)
-    !     integer :: n, ii, jj, kk, k1, k2, jj_pos
-    !     real(8), allocatable :: L(:,:), U(:,:), y0(:), s, d0(:)
+    subroutine PCG_solver_test
+        implicit none
 
-    !     n = SIZE(IA)-1
-    !     allocate(L(n,n))
-    !     allocate(U(n,n))
-    !     allocate(y0(n))
+        integer :: n, ii
+        real(8), allocatable :: AA(:), b(:), x(:)
+        integer, allocatable :: JA(:), IA(:)
 
-    !     ! Initialize L and U
-    !     L = 0.0d0
-    !     U = 0.0d0
+        n = 4
+        allocate(AA(10), JA(10), IA(n+1), b(n), x(n))
 
-    !     ! Construct ILU(0)
-    !     do ii = 1,n
-    !         k1 = IA(ii)
-    !         k2 = IA(ii+1) - 1
+        ! CSR representation of 4x4 SPD matrix
+        AA = [4.0d0, -1.0d0, -1.0d0, 4.0d0, -1.0d0, -1.0d0, 4.0d0, -1.0d0, -1.0d0, 3.0d0]
+        JA = [1,2,1,2,3,2,3,4,3,4]
+        IA = [1,3,6,9,11]
 
-    !         do jj = k1,k2
-    !             jj_pos = JA(jj)
-    !             s = AA(jj)
+        ! Right-hand side and initial guess
+        b = [1.0d0, 2.0d0, 2.0d0, 1.0d0]
+        x = 0.0d0
 
-    !             ! Subtract previous contributions
-    !             do kk = 1, jj_pos-1
-    !                 s = s - L(ii,kk) * U(kk,jj_pos)
-    !             end do
+        ! Solve
+        call PCG_algorithm(AA, JA, IA, x, b)
 
-    !             if (jj_pos < ii) then
-    !                 ! Lower triangle
-    !                 if (U(jj_pos,jj_pos) == 0.0d0) then
-    !                     print *, "Zero pivot at row ", jj_pos
-    !                     stop
-    !                 end if
-    !                 L(ii,jj_pos) = s / U(jj_pos,jj_pos)
-    !             else
-    !                 ! Upper triangle (including diagonal)
-    !                 U(ii,jj_pos) = s
-    !             end if
-    !         end do
-
-    !         ! Set unit diagonal for L
-    !         L(ii,ii) = 1.0d0
-    !     end do
-
-    !     ! Solve Ly = r0 (forward substitution)
-    !     y0 = forward_solver(L, r0)
-
-    !     ! Solve Ux = y0 (backward substitution)
-    !     d0 = backward_solver(U, y0)
-
-    !     ! Deallocate temporary arrays
-    !     deallocate(L,U,y0)
-    ! end function
-
-    ! function Jacobi_CRS(AA,JA,IA, r0) result(d0)
-    !     real(8), intent(in) :: AA(:), r0(:)
-    !     integer, intent(in) :: JA(:), IA(:)
-    !     real(8) :: J(SIZE(IA)-1), d0(SIZE(IA)-1),M_minus(SIZE(IA)-1)
-    !     integer :: ii, jj, k1, k2
-
-    !     do ii = 1, SIZE(IA)-1
-    !         k1 = IA(ii) !Start column index of ith row
-    !         k2 = IA(ii+1) - 1 !End column index of ith row
-    !         do jj = k1,k2
-    !             if (JA(jj) == ii) then !Enforce Lower Triangular Matrix Formulation
-    !                 J(ii) = (AA(jj))
-    !             end if
-    !         end do
-    !     end do
-
-    !     do jj = 1,SIZE(IA)-1
-    !         M_minus(jj) = 1/J(jj)
-    !     end do
-    !     d0 = M_minus*r0
-    ! end function
-
-    ! subroutine CG_solver
-    !     real(8) :: AA(13), b(5), alpha, beta, p(5), r(5), x(5), p0(5), r0(5), x0(5)
-    !     integer :: JA(13), IA(6), ii
-
-    !     AA = (/4.0d0, 1.0d0, 1.0d0, 4.0d0, 1.0d0, 1.0d0, 4.0d0, 1.0d0, 1.0d0, 4.0d0, 1.0d0, 1.0d0, 4.0d0/)
-    !     JA = (/1, 2, 1, 2, 3, 2, 3, 4, 3, 4, 5, 4, 5/)
-    !     IA = (/1, 3, 6, 9, 12, 14/)
-
-    !     b = (/1.0d0, 2.0d0, 3.0d0, 4.0d0, 5.0d0/)
-    !     x0 = ([3,6,9,12,15])
-
-    !     r0 = b - CSR_dot_product(AA,JA,IA,x0)
-    !     p0 = r0
-        
-    !     do ii = 1,5
-
-    !         alpha = dot_product(r0,r0)/dot_product(p0, CSR_dot_product(AA,JA,IA,p0))
-        
-    !         x = x0 + alpha*p0
-
-    !         r = r0 - alpha * CSR_dot_product(AA,JA,IA,p0)
-
-    !         beta = dot_product(r,r)/dot_product(r0,r0)
-
-    !         p = r + beta*p0
-
-    !         r0 = r      
-    !         p0 = p
-    !         x0 = x
-    !     end do
-
-    !     print '(A, 5F10.5)', "Ax =", CSR_dot_product(AA, JA, IA, x)
-
-
-    ! end subroutine CG_solver
+        ! Print solution
+        print*, "PCG Solution:"
+        do ii = 1, n
+            print*, x(ii)
+        end do
+    end subroutine
 
 end module m_sparse_mm
