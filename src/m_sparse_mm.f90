@@ -108,6 +108,10 @@ contains
         end do
     end subroutine
 
+  !-------------------------
+  ! Function to compute diagonal on input CSR matrix A
+  ! Returns diag, the diagonal elements of A
+  !-------------------------
     subroutine Jacobi_CSR(AA, JA, IA, diag)
         implicit none
         ! Inputs
@@ -206,6 +210,9 @@ contains
         return
     end subroutine
 
+    !-------------------------
+    ! Subroutine integrated with multigroup 1D diffusion solver to build CSR matrix and solve using PCG
+    !-------------------------
     subroutine build_CSR_matrix_multigroup(N, alpha, G, phi_ptr, dx, Dif, A_scatter, S0, gg, Sigma_a)
         integer, intent(in) :: N, G, gg
         real(8), intent(in) :: Dif, dx(:), alpha, A_scatter(:,:), Sigma_a, S0(:)
@@ -241,8 +248,11 @@ contains
 
         call PCG_algorithm(AA, JA, IA, phi_ptr, b)
 
-    end subroutine build_CSR_matrix_multigroup
+    end subroutine
 
+    !-------------------------
+    ! Principle Conjugation Gradient (PCG) Algorithm driver, solving Ax=b
+    !-------------------------
     subroutine PCG_algorithm(AA, JA, IA, x, b)
         implicit none
         real(8), intent(in) :: AA(:), b(:)
