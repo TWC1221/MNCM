@@ -108,6 +108,123 @@ contains
         end do
     end subroutine
 
+    !-----------------------------------------------------------------
+    ! Performs ILU(0) factorization of sparse matrix A in CSR format:
+    ! A ≈ L * U   with unit diagonal in L
+    ! Pattern of L and U follows pattern of A
+    !-----------------------------------------------------------------
+    subroutine ILU0_CSR(AA, JA, IA, L_AA, L_JA, L_IA, U_AA, U_JA, U_IA)
+        implicit none
+        real(8), intent(in) :: AA(:)
+        integer, intent(in) :: JA(:), IA(:)
+
+        real(8), allocatable, intent(out) :: L_AA(:), U_AA(:)
+        integer, allocatable, intent(out) :: L_JA(:), L_IA(:), U_JA(:), U_IA(:)
+
+        integer :: n, nnzL, nnzU
+        integer :: ii, jj, k1, k2, kk
+        integer :: col
+        real(8) :: s
+
+        n = size(IA) - 1
+
+        !--------------------------------------------------
+        ! Count number of nonzeros for L and U
+        ! L: lower-triangular + diagonal
+        ! U: upper-triangular (including diagonal)
+        !--------------------------------------------------
+        nnzL = 0
+        nnzU = 0
+        do ii = 1, n
+            do jj = IA(ii), IA(ii+1)-1
+                if (JA(jj) <= ii) then
+                    nnzL = nnzL + 1
+                end if
+                if (JA(jj) >= ii) then
+                    nnzU = nnzU + 1
+                end if
+            end do
+        end do
+
+        allocate(L_AA(nnzL), L_JA(nnzL), L_IA(n+1))
+        allocate(U_AA(nnzU), U_JA(nnzU), U_IA(n+1))
+
+        kk = 0
+        do ii = 1, n
+            L_IA(ii) = kk + 1
+            do jj = IA(ii), IA(ii+1)-1
+                if (JA(jj) <= ii) then
+                    kk = kk + 1
+                    L_JA(kk) = JA(jj)
+                    L_AA(kk) = AA(jj)
+                end if
+            end do
+        end do
+        L_IA(n+1) = kk + 1
+
+        kk = 0
+        do ii = 1, n
+            U_IA(ii) = kk + 1
+            do jj = IA(ii), IA(ii+1)-1
+                if (JA(jj) >= ii) then
+                    kk = kk + 1
+                    U_JA(kk) = JA(jj)
+                    U_AA(kk) = AA(jj)
+                end if
+            end do
+        end do
+        U_IA(n+1) = kk + 1
+
+        do ii = 1, n
+            ! Process L row
+            do jj = L_IA(ii), L_IA(ii+1)-1
+                col = L_JA(jj)
+                s = L_AA(jj)
+                ! Subtract previous contributions
+                do k1 = L_IA(ii), jj-1
+                    if (L_JA(k1) < col) cycle
+                    ! Find matching U element
+                    do k2 = U_IA(L_JA(k1)), U_IA(L_JA(k1)+1)-1
+                        if (U_JA(k2) == col) then
+                            s = s - L_AA(k1)*U_AA(k2)
+                            exit
+                        end if
+                    end do
+                end do
+                ! Divide by diagonal of U
+                if (col /= ii) then
+                    ! Find U diagonal
+                    do k2 = U_IA(col), U_IA(col+1)-1
+                        if (U_JA(k2) == col) then
+                            L_AA(jj) = s / U_AA(k2)
+                            exit
+                        end if
+                    end do
+                else
+                    L_AA(jj) = s
+                end if
+            end do
+
+            ! Process U row
+            do jj = U_IA(ii), U_IA(ii+1)-1
+                col = U_JA(jj)
+                s = U_AA(jj)
+                do k1 = L_IA(ii), L_IA(ii+1)-1
+                    if (L_JA(k1) < ii) then
+                        do k2 = U_IA(L_JA(k1)), U_IA(L_JA(k1)+1)-1
+                            if (U_JA(k2) == col) then
+                                s = s - L_AA(k1)*U_AA(k2)
+                                exit
+                            end if
+                        end do
+                    end if
+                end do
+                if (col == ii) s = max(s, 1.0d-20)
+                U_AA(jj) = s
+            end do
+        end do
+    end subroutine
+
   !-------------------------
   ! Function to compute diagonal on input CSR matrix A
   ! Returns diag, the diagonal elements of A
@@ -141,20 +258,36 @@ contains
   ! L_AA, L_JA, L_IA (CSR format) define preconditioning matrix M computed by Cholesky Decomposition
   ! Returns search vector d
   !-------------------------
-    function PCG_CSR(L_AA, L_JA, L_IA, r) result(d)
+    function PCG_Cholesky_CSR(L_AA, L_JA, L_IA, r) result(d)
         real(8), intent(in) :: L_AA(:), r(:)
         integer, intent(in) :: L_JA(:), L_IA(:)
         real(8), allocatable :: d(:), y(:)
 
+        !Incomplete  Cholesky preconditioning: solve M d = r  with M = L*L^T
         allocate(y(size(L_IA)-1))
         call forward_solver_CSR(L_AA,L_JA,L_IA,r,y)
-
         allocate(d(size(L_IA)-1))
         call backward_solver_CSR(L_AA,L_JA,L_IA,y,d)
+    end function
+
+      !-------------------------
+
+  ! Returns search vector d
+  !-------------------------
+    function PCG_ILU_CSR(L_AA, L_JA, L_IA, U_AA, U_JA, U_IA, r) result(d)
+        real(8), intent(in) :: L_AA(:), U_AA(:), r(:)
+        integer, intent(in) :: L_JA(:), L_IA(:), U_JA(:), U_IA(:)
+        real(8), allocatable :: d(:), y(:)
+        
+        !Incomplete LU preconditioning: solve M d = r  with M = L*U
+        allocate(y(size(L_IA)-1))
+        call forward_solver_CSR(L_AA,L_JA,L_IA,r,y)
+        allocate(d(size(L_IA)-1))
+        call backward_solver_CSR(U_AA,U_JA,U_IA,y,d)
 
     end function
 
-    !-------------------------
+     !-------------------------
     ! Forward solve: L y = r  (L stored in CSR; diagonal is last element per row)
     !-------------------------
     subroutine forward_solver_CSR(L_AA, L_JA, L_IA, r0, y0)
@@ -171,8 +304,8 @@ contains
         end do
         return
     end subroutine
-
     !-------------------------
+
     ! Backward solve: L^T d = y  (L stored in CSR; diagonal is last element per row)
     !-------------------------
     subroutine backward_solver_CSR(L_AA,L_JA,L_IA,y0,d0)
@@ -260,27 +393,26 @@ contains
         real(8), intent(out) :: x(:)
         real(8) :: alpha, beta
         integer :: ii, max_iter
-        real(8), allocatable :: L_AA(:), diag(:), r(:), d(:), z(:), q(:)
-        integer, allocatable :: L_IA(:), L_JA(:)
+        real(8), allocatable :: L_AA(:), U_AA(:), diag(:), r(:), d(:), z(:), q(:)
+        integer, allocatable :: L_IA(:), L_JA(:), U_IA(:), U_JA(:)
 
         call Cholesky_CSR(AA, JA, IA, L_AA, L_JA, L_IA)
+        !call ILU0_CSR(AA, JA, IA, L_AA, L_JA, L_IA, U_AA, U_JA, U_IA)
         !call Jacobi_CSR(AA, JA, IA, diag)
-        
-        r = b - CSR_dot_product(AA, JA, IA, x)
-        z = PCG_CSR(L_AA, L_JA, L_IA, r)! r/diag !
-        d = z
 
-        max_iter = 100
+        r = b - CSR_dot_product(AA, JA, IA, x)
+        z = PCG_Cholesky_CSR(L_AA, L_JA, L_IA, r) ! PCG_ILU_CSR(L_AA, L_JA, L_IA, U_AA, U_JA, U_IA, r) ! r/diag  !
+        d = z
+        max_iter = 50
         do ii = 1, max_iter
             q = CSR_dot_product(AA, JA, IA, d)
             alpha = dot_product(r, z)/dot_product(d, q)
             x = x + alpha*d
             r = r - alpha*q
-            z = PCG_CSR(L_AA, L_JA, L_IA, r) !r/diag 
+            z =  PCG_Cholesky_CSR(L_AA, L_JA, L_IA, r) ! PCG_ILU_CSR(L_AA, L_JA, L_IA, U_AA, U_JA, U_IA, r) !r/diag  ! 
             beta = dot_product(r, z)/dot_product(r - alpha*q, z - alpha*d) ! optional check
             d = z + beta*d
         end do
-
         !print*, "Solution:", x
         !print*, "aX = ", CSR_dot_product(AA, JA, IA, x)
 
@@ -293,8 +425,13 @@ contains
         real(8), allocatable :: AA(:), b(:), x(:)
         integer, allocatable :: JA(:), IA(:)
 
+        real(8), allocatable :: L_AA(:), U_AA(:)
+        integer, allocatable :: L_JA(:), L_IA(:), U_JA(:), U_IA(:)
+
         n = 4
         allocate(AA(10), JA(10), IA(n+1), b(n), x(n))
+        allocate(L_AA(10), U_AA(10))
+        allocate(L_JA(10), L_IA(n+1), U_JA(10), U_IA(n+1))
 
         ! CSR representation of 4x4 SPD matrix
         AA = [4.0d0, -1.0d0, -1.0d0, 4.0d0, -1.0d0, -1.0d0, 4.0d0, -1.0d0, -1.0d0, 3.0d0]
@@ -306,7 +443,8 @@ contains
         x = 0.0d0
 
         ! Solve
-        call PCG_algorithm(AA, JA, IA, x, b)
+        call ILU0_CSR(AA, JA, IA, L_AA, L_JA, L_IA, U_AA, U_JA, U_IA)
+        !call PCG_algorithm(AA, JA, IA, x, b)
 
         ! Print solution
         print*, "PCG Solution:"

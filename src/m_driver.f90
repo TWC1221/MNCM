@@ -376,7 +376,7 @@ module m_driver
                 end do
                 print'(10F10.5)',phi(1,N/2),phi(2,N/2),phi(3,N/2)
 
-                if (maxval(abs(phi(3,1:N) - phi_prime(3,1:N))) < 1.0d-6 .and. maxval(abs(phi(2,1:N) - phi_prime(2,1:N))) < 1.0d-6) exit
+                if (maxval(abs(phi(3,1:N) - phi_prime(3,1:N))) < 1.0d-8 .and. maxval(abs(phi(2,1:N) - phi_prime(2,1:N))) < 1.0d-8) exit
 
                 phi_prime(3,1:N) = phi(3,1:N)
                 phi_prime(2,1:N) = phi(2,1:N) 
@@ -385,7 +385,7 @@ module m_driver
             S_f(1:N) = matmul(transpose(phi),nu_Sigma_f)
             K_eff(ii) = K_eff(ii-1)*sum(S_f*dx_V)/sum(S_f_iter*dx_V)
 
-            if (abs((K_eff(ii) - K_eff(ii-1)) / K_eff(ii-1)) < 1.0d-6 .and. maxval(abs(S_f - S_f_iter)) < 1.0d-6) exit
+            if (abs((K_eff(ii) - K_eff(ii-1)) / K_eff(ii-1)) < 1.0d-8 .and. maxval(abs(S_f - S_f_iter)) < 1.0d-8) exit
         end do
         
         print*,"Iteration =", ii-1, "Keff =", K_eff(ii-1)
