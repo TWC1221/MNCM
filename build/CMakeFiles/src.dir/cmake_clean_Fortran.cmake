@@ -1,20 +1,20 @@
 # Remove fortran modules provided by this target.
 FILE(REMOVE
-  "csr_types.mod"
-  "CSR_TYPES.mod"
-  "CMakeFiles/src.dir/csr_types.mod.stamp"
-
-  "fv_nde_2d.mod"
-  "FV_NDE_2D.mod"
-  "CMakeFiles/src.dir/fv_nde_2d.mod.stamp"
-
   "m_constants.mod"
   "M_CONSTANTS.mod"
   "CMakeFiles/src.dir/m_constants.mod.stamp"
 
+  "m_diffusion_matrix.mod"
+  "M_DIFFUSION_MATRIX.mod"
+  "CMakeFiles/src.dir/m_diffusion_matrix.mod.stamp"
+
   "m_driver.mod"
   "M_DRIVER.mod"
   "CMakeFiles/src.dir/m_driver.mod.stamp"
+
+  "m_iter.mod"
+  "M_ITER.mod"
+  "CMakeFiles/src.dir/m_iter.mod.stamp"
 
   "m_iterative_power_solver.mod"
   "M_ITERATIVE_POWER_SOLVER.mod"
@@ -27,6 +27,10 @@ FILE(REMOVE
   "m_multigroup_1d_diffusion.mod"
   "M_MULTIGROUP_1D_DIFFUSION.mod"
   "CMakeFiles/src.dir/m_multigroup_1d_diffusion.mod.stamp"
+
+  "m_pcg_solver.mod"
+  "M_PCG_SOLVER.mod"
+  "CMakeFiles/src.dir/m_pcg_solver.mod.stamp"
 
   "m_sparse_mm.mod"
   "M_SPARSE_MM.mod"

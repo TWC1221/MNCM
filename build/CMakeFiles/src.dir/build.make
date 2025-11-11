@@ -69,165 +69,180 @@ include CMakeFiles/src.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/src.dir/flags.make
 
-CMakeFiles/src.dir/src/m_1D/m_iterative_power_solver.f90.o: CMakeFiles/src.dir/flags.make
-CMakeFiles/src.dir/src/m_1D/m_iterative_power_solver.f90.o: ../src/m_1D/m_iterative_power_solver.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building Fortran object CMakeFiles/src.dir/src/m_1D/m_iterative_power_solver.f90.o"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/tom/Documents/Repo/MNCM/src/m_1D/m_iterative_power_solver.f90 -o CMakeFiles/src.dir/src/m_1D/m_iterative_power_solver.f90.o
+CMakeFiles/src.dir/src/m_1D_NDE/m_iterative_power_solver.f90.o: CMakeFiles/src.dir/flags.make
+CMakeFiles/src.dir/src/m_1D_NDE/m_iterative_power_solver.f90.o: ../src/m_1D_NDE/m_iterative_power_solver.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building Fortran object CMakeFiles/src.dir/src/m_1D_NDE/m_iterative_power_solver.f90.o"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_iterative_power_solver.f90 -o CMakeFiles/src.dir/src/m_1D_NDE/m_iterative_power_solver.f90.o
 
-CMakeFiles/src.dir/src/m_1D/m_iterative_power_solver.f90.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing Fortran source to CMakeFiles/src.dir/src/m_1D/m_iterative_power_solver.f90.i"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/tom/Documents/Repo/MNCM/src/m_1D/m_iterative_power_solver.f90 > CMakeFiles/src.dir/src/m_1D/m_iterative_power_solver.f90.i
+CMakeFiles/src.dir/src/m_1D_NDE/m_iterative_power_solver.f90.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing Fortran source to CMakeFiles/src.dir/src/m_1D_NDE/m_iterative_power_solver.f90.i"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_iterative_power_solver.f90 > CMakeFiles/src.dir/src/m_1D_NDE/m_iterative_power_solver.f90.i
 
-CMakeFiles/src.dir/src/m_1D/m_iterative_power_solver.f90.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/src.dir/src/m_1D/m_iterative_power_solver.f90.s"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/tom/Documents/Repo/MNCM/src/m_1D/m_iterative_power_solver.f90 -o CMakeFiles/src.dir/src/m_1D/m_iterative_power_solver.f90.s
+CMakeFiles/src.dir/src/m_1D_NDE/m_iterative_power_solver.f90.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/src.dir/src/m_1D_NDE/m_iterative_power_solver.f90.s"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_iterative_power_solver.f90 -o CMakeFiles/src.dir/src/m_1D_NDE/m_iterative_power_solver.f90.s
 
-CMakeFiles/src.dir/src/m_1D/m_multigroup_1D_diffusion.f90.o: CMakeFiles/src.dir/flags.make
-CMakeFiles/src.dir/src/m_1D/m_multigroup_1D_diffusion.f90.o: ../src/m_1D/m_multigroup_1D_diffusion.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building Fortran object CMakeFiles/src.dir/src/m_1D/m_multigroup_1D_diffusion.f90.o"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/tom/Documents/Repo/MNCM/src/m_1D/m_multigroup_1D_diffusion.f90 -o CMakeFiles/src.dir/src/m_1D/m_multigroup_1D_diffusion.f90.o
+CMakeFiles/src.dir/src/m_1D_NDE/m_multigroup_1D_diffusion.f90.o: CMakeFiles/src.dir/flags.make
+CMakeFiles/src.dir/src/m_1D_NDE/m_multigroup_1D_diffusion.f90.o: ../src/m_1D_NDE/m_multigroup_1D_diffusion.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building Fortran object CMakeFiles/src.dir/src/m_1D_NDE/m_multigroup_1D_diffusion.f90.o"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_multigroup_1D_diffusion.f90 -o CMakeFiles/src.dir/src/m_1D_NDE/m_multigroup_1D_diffusion.f90.o
 
-CMakeFiles/src.dir/src/m_1D/m_multigroup_1D_diffusion.f90.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing Fortran source to CMakeFiles/src.dir/src/m_1D/m_multigroup_1D_diffusion.f90.i"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/tom/Documents/Repo/MNCM/src/m_1D/m_multigroup_1D_diffusion.f90 > CMakeFiles/src.dir/src/m_1D/m_multigroup_1D_diffusion.f90.i
+CMakeFiles/src.dir/src/m_1D_NDE/m_multigroup_1D_diffusion.f90.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing Fortran source to CMakeFiles/src.dir/src/m_1D_NDE/m_multigroup_1D_diffusion.f90.i"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_multigroup_1D_diffusion.f90 > CMakeFiles/src.dir/src/m_1D_NDE/m_multigroup_1D_diffusion.f90.i
 
-CMakeFiles/src.dir/src/m_1D/m_multigroup_1D_diffusion.f90.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/src.dir/src/m_1D/m_multigroup_1D_diffusion.f90.s"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/tom/Documents/Repo/MNCM/src/m_1D/m_multigroup_1D_diffusion.f90 -o CMakeFiles/src.dir/src/m_1D/m_multigroup_1D_diffusion.f90.s
+CMakeFiles/src.dir/src/m_1D_NDE/m_multigroup_1D_diffusion.f90.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/src.dir/src/m_1D_NDE/m_multigroup_1D_diffusion.f90.s"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_multigroup_1D_diffusion.f90 -o CMakeFiles/src.dir/src/m_1D_NDE/m_multigroup_1D_diffusion.f90.s
 
-CMakeFiles/src.dir/src/m_1D/m_MMS_solver.f90.o: CMakeFiles/src.dir/flags.make
-CMakeFiles/src.dir/src/m_1D/m_MMS_solver.f90.o: ../src/m_1D/m_MMS_solver.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building Fortran object CMakeFiles/src.dir/src/m_1D/m_MMS_solver.f90.o"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/tom/Documents/Repo/MNCM/src/m_1D/m_MMS_solver.f90 -o CMakeFiles/src.dir/src/m_1D/m_MMS_solver.f90.o
+CMakeFiles/src.dir/src/m_1D_NDE/m_MMS_solver.f90.o: CMakeFiles/src.dir/flags.make
+CMakeFiles/src.dir/src/m_1D_NDE/m_MMS_solver.f90.o: ../src/m_1D_NDE/m_MMS_solver.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building Fortran object CMakeFiles/src.dir/src/m_1D_NDE/m_MMS_solver.f90.o"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_MMS_solver.f90 -o CMakeFiles/src.dir/src/m_1D_NDE/m_MMS_solver.f90.o
 
-CMakeFiles/src.dir/src/m_1D/m_MMS_solver.f90.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing Fortran source to CMakeFiles/src.dir/src/m_1D/m_MMS_solver.f90.i"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/tom/Documents/Repo/MNCM/src/m_1D/m_MMS_solver.f90 > CMakeFiles/src.dir/src/m_1D/m_MMS_solver.f90.i
+CMakeFiles/src.dir/src/m_1D_NDE/m_MMS_solver.f90.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing Fortran source to CMakeFiles/src.dir/src/m_1D_NDE/m_MMS_solver.f90.i"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_MMS_solver.f90 > CMakeFiles/src.dir/src/m_1D_NDE/m_MMS_solver.f90.i
 
-CMakeFiles/src.dir/src/m_1D/m_MMS_solver.f90.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/src.dir/src/m_1D/m_MMS_solver.f90.s"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/tom/Documents/Repo/MNCM/src/m_1D/m_MMS_solver.f90 -o CMakeFiles/src.dir/src/m_1D/m_MMS_solver.f90.s
+CMakeFiles/src.dir/src/m_1D_NDE/m_MMS_solver.f90.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/src.dir/src/m_1D_NDE/m_MMS_solver.f90.s"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_MMS_solver.f90 -o CMakeFiles/src.dir/src/m_1D_NDE/m_MMS_solver.f90.s
 
-CMakeFiles/src.dir/src/m_1D/m_constants.f90.o: CMakeFiles/src.dir/flags.make
-CMakeFiles/src.dir/src/m_1D/m_constants.f90.o: ../src/m_1D/m_constants.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building Fortran object CMakeFiles/src.dir/src/m_1D/m_constants.f90.o"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/tom/Documents/Repo/MNCM/src/m_1D/m_constants.f90 -o CMakeFiles/src.dir/src/m_1D/m_constants.f90.o
+CMakeFiles/src.dir/src/m_1D_NDE/m_constants.f90.o: CMakeFiles/src.dir/flags.make
+CMakeFiles/src.dir/src/m_1D_NDE/m_constants.f90.o: ../src/m_1D_NDE/m_constants.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building Fortran object CMakeFiles/src.dir/src/m_1D_NDE/m_constants.f90.o"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_constants.f90 -o CMakeFiles/src.dir/src/m_1D_NDE/m_constants.f90.o
 
-CMakeFiles/src.dir/src/m_1D/m_constants.f90.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing Fortran source to CMakeFiles/src.dir/src/m_1D/m_constants.f90.i"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/tom/Documents/Repo/MNCM/src/m_1D/m_constants.f90 > CMakeFiles/src.dir/src/m_1D/m_constants.f90.i
+CMakeFiles/src.dir/src/m_1D_NDE/m_constants.f90.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing Fortran source to CMakeFiles/src.dir/src/m_1D_NDE/m_constants.f90.i"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_constants.f90 > CMakeFiles/src.dir/src/m_1D_NDE/m_constants.f90.i
 
-CMakeFiles/src.dir/src/m_1D/m_constants.f90.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/src.dir/src/m_1D/m_constants.f90.s"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/tom/Documents/Repo/MNCM/src/m_1D/m_constants.f90 -o CMakeFiles/src.dir/src/m_1D/m_constants.f90.s
+CMakeFiles/src.dir/src/m_1D_NDE/m_constants.f90.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/src.dir/src/m_1D_NDE/m_constants.f90.s"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_constants.f90 -o CMakeFiles/src.dir/src/m_1D_NDE/m_constants.f90.s
 
-CMakeFiles/src.dir/src/m_1D/m_driver.f90.o: CMakeFiles/src.dir/flags.make
-CMakeFiles/src.dir/src/m_1D/m_driver.f90.o: ../src/m_1D/m_driver.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building Fortran object CMakeFiles/src.dir/src/m_1D/m_driver.f90.o"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/tom/Documents/Repo/MNCM/src/m_1D/m_driver.f90 -o CMakeFiles/src.dir/src/m_1D/m_driver.f90.o
+CMakeFiles/src.dir/src/m_1D_NDE/m_driver.f90.o: CMakeFiles/src.dir/flags.make
+CMakeFiles/src.dir/src/m_1D_NDE/m_driver.f90.o: ../src/m_1D_NDE/m_driver.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building Fortran object CMakeFiles/src.dir/src/m_1D_NDE/m_driver.f90.o"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_driver.f90 -o CMakeFiles/src.dir/src/m_1D_NDE/m_driver.f90.o
 
-CMakeFiles/src.dir/src/m_1D/m_driver.f90.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing Fortran source to CMakeFiles/src.dir/src/m_1D/m_driver.f90.i"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/tom/Documents/Repo/MNCM/src/m_1D/m_driver.f90 > CMakeFiles/src.dir/src/m_1D/m_driver.f90.i
+CMakeFiles/src.dir/src/m_1D_NDE/m_driver.f90.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing Fortran source to CMakeFiles/src.dir/src/m_1D_NDE/m_driver.f90.i"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_driver.f90 > CMakeFiles/src.dir/src/m_1D_NDE/m_driver.f90.i
 
-CMakeFiles/src.dir/src/m_1D/m_driver.f90.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/src.dir/src/m_1D/m_driver.f90.s"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/tom/Documents/Repo/MNCM/src/m_1D/m_driver.f90 -o CMakeFiles/src.dir/src/m_1D/m_driver.f90.s
+CMakeFiles/src.dir/src/m_1D_NDE/m_driver.f90.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/src.dir/src/m_1D_NDE/m_driver.f90.s"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_driver.f90 -o CMakeFiles/src.dir/src/m_1D_NDE/m_driver.f90.s
 
-CMakeFiles/src.dir/src/m_1D/m_vacuum_BC_solver.f90.o: CMakeFiles/src.dir/flags.make
-CMakeFiles/src.dir/src/m_1D/m_vacuum_BC_solver.f90.o: ../src/m_1D/m_vacuum_BC_solver.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building Fortran object CMakeFiles/src.dir/src/m_1D/m_vacuum_BC_solver.f90.o"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/tom/Documents/Repo/MNCM/src/m_1D/m_vacuum_BC_solver.f90 -o CMakeFiles/src.dir/src/m_1D/m_vacuum_BC_solver.f90.o
+CMakeFiles/src.dir/src/m_1D_NDE/m_vacuum_BC_solver.f90.o: CMakeFiles/src.dir/flags.make
+CMakeFiles/src.dir/src/m_1D_NDE/m_vacuum_BC_solver.f90.o: ../src/m_1D_NDE/m_vacuum_BC_solver.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building Fortran object CMakeFiles/src.dir/src/m_1D_NDE/m_vacuum_BC_solver.f90.o"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_vacuum_BC_solver.f90 -o CMakeFiles/src.dir/src/m_1D_NDE/m_vacuum_BC_solver.f90.o
 
-CMakeFiles/src.dir/src/m_1D/m_vacuum_BC_solver.f90.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing Fortran source to CMakeFiles/src.dir/src/m_1D/m_vacuum_BC_solver.f90.i"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/tom/Documents/Repo/MNCM/src/m_1D/m_vacuum_BC_solver.f90 > CMakeFiles/src.dir/src/m_1D/m_vacuum_BC_solver.f90.i
+CMakeFiles/src.dir/src/m_1D_NDE/m_vacuum_BC_solver.f90.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing Fortran source to CMakeFiles/src.dir/src/m_1D_NDE/m_vacuum_BC_solver.f90.i"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_vacuum_BC_solver.f90 > CMakeFiles/src.dir/src/m_1D_NDE/m_vacuum_BC_solver.f90.i
 
-CMakeFiles/src.dir/src/m_1D/m_vacuum_BC_solver.f90.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/src.dir/src/m_1D/m_vacuum_BC_solver.f90.s"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/tom/Documents/Repo/MNCM/src/m_1D/m_vacuum_BC_solver.f90 -o CMakeFiles/src.dir/src/m_1D/m_vacuum_BC_solver.f90.s
+CMakeFiles/src.dir/src/m_1D_NDE/m_vacuum_BC_solver.f90.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/src.dir/src/m_1D_NDE/m_vacuum_BC_solver.f90.s"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_vacuum_BC_solver.f90 -o CMakeFiles/src.dir/src/m_1D_NDE/m_vacuum_BC_solver.f90.s
 
-CMakeFiles/src.dir/src/m_1D/m_thomas_algorithm.f90.o: CMakeFiles/src.dir/flags.make
-CMakeFiles/src.dir/src/m_1D/m_thomas_algorithm.f90.o: ../src/m_1D/m_thomas_algorithm.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building Fortran object CMakeFiles/src.dir/src/m_1D/m_thomas_algorithm.f90.o"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/tom/Documents/Repo/MNCM/src/m_1D/m_thomas_algorithm.f90 -o CMakeFiles/src.dir/src/m_1D/m_thomas_algorithm.f90.o
+CMakeFiles/src.dir/src/m_1D_NDE/m_thomas_algorithm.f90.o: CMakeFiles/src.dir/flags.make
+CMakeFiles/src.dir/src/m_1D_NDE/m_thomas_algorithm.f90.o: ../src/m_1D_NDE/m_thomas_algorithm.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building Fortran object CMakeFiles/src.dir/src/m_1D_NDE/m_thomas_algorithm.f90.o"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_thomas_algorithm.f90 -o CMakeFiles/src.dir/src/m_1D_NDE/m_thomas_algorithm.f90.o
 
-CMakeFiles/src.dir/src/m_1D/m_thomas_algorithm.f90.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing Fortran source to CMakeFiles/src.dir/src/m_1D/m_thomas_algorithm.f90.i"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/tom/Documents/Repo/MNCM/src/m_1D/m_thomas_algorithm.f90 > CMakeFiles/src.dir/src/m_1D/m_thomas_algorithm.f90.i
+CMakeFiles/src.dir/src/m_1D_NDE/m_thomas_algorithm.f90.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing Fortran source to CMakeFiles/src.dir/src/m_1D_NDE/m_thomas_algorithm.f90.i"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_thomas_algorithm.f90 > CMakeFiles/src.dir/src/m_1D_NDE/m_thomas_algorithm.f90.i
 
-CMakeFiles/src.dir/src/m_1D/m_thomas_algorithm.f90.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/src.dir/src/m_1D/m_thomas_algorithm.f90.s"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/tom/Documents/Repo/MNCM/src/m_1D/m_thomas_algorithm.f90 -o CMakeFiles/src.dir/src/m_1D/m_thomas_algorithm.f90.s
+CMakeFiles/src.dir/src/m_1D_NDE/m_thomas_algorithm.f90.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/src.dir/src/m_1D_NDE/m_thomas_algorithm.f90.s"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_thomas_algorithm.f90 -o CMakeFiles/src.dir/src/m_1D_NDE/m_thomas_algorithm.f90.s
 
-CMakeFiles/src.dir/src/m_1D/m_sparse_mm.f90.o: CMakeFiles/src.dir/flags.make
-CMakeFiles/src.dir/src/m_1D/m_sparse_mm.f90.o: ../src/m_1D/m_sparse_mm.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building Fortran object CMakeFiles/src.dir/src/m_1D/m_sparse_mm.f90.o"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/tom/Documents/Repo/MNCM/src/m_1D/m_sparse_mm.f90 -o CMakeFiles/src.dir/src/m_1D/m_sparse_mm.f90.o
+CMakeFiles/src.dir/src/m_1D_NDE/m_sparse_mm.f90.o: CMakeFiles/src.dir/flags.make
+CMakeFiles/src.dir/src/m_1D_NDE/m_sparse_mm.f90.o: ../src/m_1D_NDE/m_sparse_mm.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building Fortran object CMakeFiles/src.dir/src/m_1D_NDE/m_sparse_mm.f90.o"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_sparse_mm.f90 -o CMakeFiles/src.dir/src/m_1D_NDE/m_sparse_mm.f90.o
 
-CMakeFiles/src.dir/src/m_1D/m_sparse_mm.f90.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing Fortran source to CMakeFiles/src.dir/src/m_1D/m_sparse_mm.f90.i"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/tom/Documents/Repo/MNCM/src/m_1D/m_sparse_mm.f90 > CMakeFiles/src.dir/src/m_1D/m_sparse_mm.f90.i
+CMakeFiles/src.dir/src/m_1D_NDE/m_sparse_mm.f90.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing Fortran source to CMakeFiles/src.dir/src/m_1D_NDE/m_sparse_mm.f90.i"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_sparse_mm.f90 > CMakeFiles/src.dir/src/m_1D_NDE/m_sparse_mm.f90.i
 
-CMakeFiles/src.dir/src/m_1D/m_sparse_mm.f90.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/src.dir/src/m_1D/m_sparse_mm.f90.s"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/tom/Documents/Repo/MNCM/src/m_1D/m_sparse_mm.f90 -o CMakeFiles/src.dir/src/m_1D/m_sparse_mm.f90.s
+CMakeFiles/src.dir/src/m_1D_NDE/m_sparse_mm.f90.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/src.dir/src/m_1D_NDE/m_sparse_mm.f90.s"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_sparse_mm.f90 -o CMakeFiles/src.dir/src/m_1D_NDE/m_sparse_mm.f90.s
 
-CMakeFiles/src.dir/src/m_1D/m_CSR_types.f90.o: CMakeFiles/src.dir/flags.make
-CMakeFiles/src.dir/src/m_1D/m_CSR_types.f90.o: ../src/m_1D/m_CSR_types.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building Fortran object CMakeFiles/src.dir/src/m_1D/m_CSR_types.f90.o"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/tom/Documents/Repo/MNCM/src/m_1D/m_CSR_types.f90 -o CMakeFiles/src.dir/src/m_1D/m_CSR_types.f90.o
+CMakeFiles/src.dir/src/m_2D_NDE/m_assembly.f90.o: CMakeFiles/src.dir/flags.make
+CMakeFiles/src.dir/src/m_2D_NDE/m_assembly.f90.o: ../src/m_2D_NDE/m_assembly.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building Fortran object CMakeFiles/src.dir/src/m_2D_NDE/m_assembly.f90.o"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/tom/Documents/Repo/MNCM/src/m_2D_NDE/m_assembly.f90 -o CMakeFiles/src.dir/src/m_2D_NDE/m_assembly.f90.o
 
-CMakeFiles/src.dir/src/m_1D/m_CSR_types.f90.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing Fortran source to CMakeFiles/src.dir/src/m_1D/m_CSR_types.f90.i"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/tom/Documents/Repo/MNCM/src/m_1D/m_CSR_types.f90 > CMakeFiles/src.dir/src/m_1D/m_CSR_types.f90.i
+CMakeFiles/src.dir/src/m_2D_NDE/m_assembly.f90.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing Fortran source to CMakeFiles/src.dir/src/m_2D_NDE/m_assembly.f90.i"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/tom/Documents/Repo/MNCM/src/m_2D_NDE/m_assembly.f90 > CMakeFiles/src.dir/src/m_2D_NDE/m_assembly.f90.i
 
-CMakeFiles/src.dir/src/m_1D/m_CSR_types.f90.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/src.dir/src/m_1D/m_CSR_types.f90.s"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/tom/Documents/Repo/MNCM/src/m_1D/m_CSR_types.f90 -o CMakeFiles/src.dir/src/m_1D/m_CSR_types.f90.s
+CMakeFiles/src.dir/src/m_2D_NDE/m_assembly.f90.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/src.dir/src/m_2D_NDE/m_assembly.f90.s"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/tom/Documents/Repo/MNCM/src/m_2D_NDE/m_assembly.f90 -o CMakeFiles/src.dir/src/m_2D_NDE/m_assembly.f90.s
 
-CMakeFiles/src.dir/src/m_2D/m_FV_NDE_2D.f90.o: CMakeFiles/src.dir/flags.make
-CMakeFiles/src.dir/src/m_2D/m_FV_NDE_2D.f90.o: ../src/m_2D/m_FV_NDE_2D.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building Fortran object CMakeFiles/src.dir/src/m_2D/m_FV_NDE_2D.f90.o"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/tom/Documents/Repo/MNCM/src/m_2D/m_FV_NDE_2D.f90 -o CMakeFiles/src.dir/src/m_2D/m_FV_NDE_2D.f90.o
+CMakeFiles/src.dir/src/m_2D_NDE/m_iter.f90.o: CMakeFiles/src.dir/flags.make
+CMakeFiles/src.dir/src/m_2D_NDE/m_iter.f90.o: ../src/m_2D_NDE/m_iter.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building Fortran object CMakeFiles/src.dir/src/m_2D_NDE/m_iter.f90.o"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/tom/Documents/Repo/MNCM/src/m_2D_NDE/m_iter.f90 -o CMakeFiles/src.dir/src/m_2D_NDE/m_iter.f90.o
 
-CMakeFiles/src.dir/src/m_2D/m_FV_NDE_2D.f90.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing Fortran source to CMakeFiles/src.dir/src/m_2D/m_FV_NDE_2D.f90.i"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/tom/Documents/Repo/MNCM/src/m_2D/m_FV_NDE_2D.f90 > CMakeFiles/src.dir/src/m_2D/m_FV_NDE_2D.f90.i
+CMakeFiles/src.dir/src/m_2D_NDE/m_iter.f90.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing Fortran source to CMakeFiles/src.dir/src/m_2D_NDE/m_iter.f90.i"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/tom/Documents/Repo/MNCM/src/m_2D_NDE/m_iter.f90 > CMakeFiles/src.dir/src/m_2D_NDE/m_iter.f90.i
 
-CMakeFiles/src.dir/src/m_2D/m_FV_NDE_2D.f90.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/src.dir/src/m_2D/m_FV_NDE_2D.f90.s"
-	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/tom/Documents/Repo/MNCM/src/m_2D/m_FV_NDE_2D.f90 -o CMakeFiles/src.dir/src/m_2D/m_FV_NDE_2D.f90.s
+CMakeFiles/src.dir/src/m_2D_NDE/m_iter.f90.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/src.dir/src/m_2D_NDE/m_iter.f90.s"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/tom/Documents/Repo/MNCM/src/m_2D_NDE/m_iter.f90 -o CMakeFiles/src.dir/src/m_2D_NDE/m_iter.f90.s
+
+CMakeFiles/src.dir/src/m_2D_NDE/m_PCG_solver.f90.o: CMakeFiles/src.dir/flags.make
+CMakeFiles/src.dir/src/m_2D_NDE/m_PCG_solver.f90.o: ../src/m_2D_NDE/m_PCG_solver.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building Fortran object CMakeFiles/src.dir/src/m_2D_NDE/m_PCG_solver.f90.o"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/tom/Documents/Repo/MNCM/src/m_2D_NDE/m_PCG_solver.f90 -o CMakeFiles/src.dir/src/m_2D_NDE/m_PCG_solver.f90.o
+
+CMakeFiles/src.dir/src/m_2D_NDE/m_PCG_solver.f90.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing Fortran source to CMakeFiles/src.dir/src/m_2D_NDE/m_PCG_solver.f90.i"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/tom/Documents/Repo/MNCM/src/m_2D_NDE/m_PCG_solver.f90 > CMakeFiles/src.dir/src/m_2D_NDE/m_PCG_solver.f90.i
+
+CMakeFiles/src.dir/src/m_2D_NDE/m_PCG_solver.f90.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/src.dir/src/m_2D_NDE/m_PCG_solver.f90.s"
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/tom/Documents/Repo/MNCM/src/m_2D_NDE/m_PCG_solver.f90 -o CMakeFiles/src.dir/src/m_2D_NDE/m_PCG_solver.f90.s
 
 # Object files for target src
 src_OBJECTS = \
-"CMakeFiles/src.dir/src/m_1D/m_iterative_power_solver.f90.o" \
-"CMakeFiles/src.dir/src/m_1D/m_multigroup_1D_diffusion.f90.o" \
-"CMakeFiles/src.dir/src/m_1D/m_MMS_solver.f90.o" \
-"CMakeFiles/src.dir/src/m_1D/m_constants.f90.o" \
-"CMakeFiles/src.dir/src/m_1D/m_driver.f90.o" \
-"CMakeFiles/src.dir/src/m_1D/m_vacuum_BC_solver.f90.o" \
-"CMakeFiles/src.dir/src/m_1D/m_thomas_algorithm.f90.o" \
-"CMakeFiles/src.dir/src/m_1D/m_sparse_mm.f90.o" \
-"CMakeFiles/src.dir/src/m_1D/m_CSR_types.f90.o" \
-"CMakeFiles/src.dir/src/m_2D/m_FV_NDE_2D.f90.o"
+"CMakeFiles/src.dir/src/m_1D_NDE/m_iterative_power_solver.f90.o" \
+"CMakeFiles/src.dir/src/m_1D_NDE/m_multigroup_1D_diffusion.f90.o" \
+"CMakeFiles/src.dir/src/m_1D_NDE/m_MMS_solver.f90.o" \
+"CMakeFiles/src.dir/src/m_1D_NDE/m_constants.f90.o" \
+"CMakeFiles/src.dir/src/m_1D_NDE/m_driver.f90.o" \
+"CMakeFiles/src.dir/src/m_1D_NDE/m_vacuum_BC_solver.f90.o" \
+"CMakeFiles/src.dir/src/m_1D_NDE/m_thomas_algorithm.f90.o" \
+"CMakeFiles/src.dir/src/m_1D_NDE/m_sparse_mm.f90.o" \
+"CMakeFiles/src.dir/src/m_2D_NDE/m_assembly.f90.o" \
+"CMakeFiles/src.dir/src/m_2D_NDE/m_iter.f90.o" \
+"CMakeFiles/src.dir/src/m_2D_NDE/m_PCG_solver.f90.o"
 
 # External object files for target src
 src_EXTERNAL_OBJECTS =
 
-libsrc.a: CMakeFiles/src.dir/src/m_1D/m_iterative_power_solver.f90.o
-libsrc.a: CMakeFiles/src.dir/src/m_1D/m_multigroup_1D_diffusion.f90.o
-libsrc.a: CMakeFiles/src.dir/src/m_1D/m_MMS_solver.f90.o
-libsrc.a: CMakeFiles/src.dir/src/m_1D/m_constants.f90.o
-libsrc.a: CMakeFiles/src.dir/src/m_1D/m_driver.f90.o
-libsrc.a: CMakeFiles/src.dir/src/m_1D/m_vacuum_BC_solver.f90.o
-libsrc.a: CMakeFiles/src.dir/src/m_1D/m_thomas_algorithm.f90.o
-libsrc.a: CMakeFiles/src.dir/src/m_1D/m_sparse_mm.f90.o
-libsrc.a: CMakeFiles/src.dir/src/m_1D/m_CSR_types.f90.o
-libsrc.a: CMakeFiles/src.dir/src/m_2D/m_FV_NDE_2D.f90.o
+libsrc.a: CMakeFiles/src.dir/src/m_1D_NDE/m_iterative_power_solver.f90.o
+libsrc.a: CMakeFiles/src.dir/src/m_1D_NDE/m_multigroup_1D_diffusion.f90.o
+libsrc.a: CMakeFiles/src.dir/src/m_1D_NDE/m_MMS_solver.f90.o
+libsrc.a: CMakeFiles/src.dir/src/m_1D_NDE/m_constants.f90.o
+libsrc.a: CMakeFiles/src.dir/src/m_1D_NDE/m_driver.f90.o
+libsrc.a: CMakeFiles/src.dir/src/m_1D_NDE/m_vacuum_BC_solver.f90.o
+libsrc.a: CMakeFiles/src.dir/src/m_1D_NDE/m_thomas_algorithm.f90.o
+libsrc.a: CMakeFiles/src.dir/src/m_1D_NDE/m_sparse_mm.f90.o
+libsrc.a: CMakeFiles/src.dir/src/m_2D_NDE/m_assembly.f90.o
+libsrc.a: CMakeFiles/src.dir/src/m_2D_NDE/m_iter.f90.o
+libsrc.a: CMakeFiles/src.dir/src/m_2D_NDE/m_PCG_solver.f90.o
 libsrc.a: CMakeFiles/src.dir/build.make
 libsrc.a: CMakeFiles/src.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Linking Fortran static library libsrc.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Linking Fortran static library libsrc.a"
 	$(CMAKE_COMMAND) -P CMakeFiles/src.dir/cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/src.dir/link.txt --verbose=$(VERBOSE)
 

@@ -1,12 +1,13 @@
 # The fortran modules provided by this target.
 provides
- csr_types.mod
- fv_nde_2d.mod
  m_constants.mod
+ m_diffusion_matrix.mod
  m_driver.mod
+ m_iter.mod
  m_iterative_power_solver.mod
  m_mms_solver.mod
  m_multigroup_1d_diffusion.mod
+ m_pcg_solver.mod
  m_sparse_mm.mod
  m_thomas_algorithm.mod
  m_vacuum_bc_solver.mod

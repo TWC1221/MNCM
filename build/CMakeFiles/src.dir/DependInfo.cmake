@@ -8,16 +8,17 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_Fortran
-  "/home/tom/Documents/Repo/MNCM/src/m_1D/m_CSR_types.f90" "/home/tom/Documents/Repo/MNCM/build/CMakeFiles/src.dir/src/m_1D/m_CSR_types.f90.o"
-  "/home/tom/Documents/Repo/MNCM/src/m_1D/m_MMS_solver.f90" "/home/tom/Documents/Repo/MNCM/build/CMakeFiles/src.dir/src/m_1D/m_MMS_solver.f90.o"
-  "/home/tom/Documents/Repo/MNCM/src/m_1D/m_constants.f90" "/home/tom/Documents/Repo/MNCM/build/CMakeFiles/src.dir/src/m_1D/m_constants.f90.o"
-  "/home/tom/Documents/Repo/MNCM/src/m_1D/m_driver.f90" "/home/tom/Documents/Repo/MNCM/build/CMakeFiles/src.dir/src/m_1D/m_driver.f90.o"
-  "/home/tom/Documents/Repo/MNCM/src/m_1D/m_iterative_power_solver.f90" "/home/tom/Documents/Repo/MNCM/build/CMakeFiles/src.dir/src/m_1D/m_iterative_power_solver.f90.o"
-  "/home/tom/Documents/Repo/MNCM/src/m_1D/m_multigroup_1D_diffusion.f90" "/home/tom/Documents/Repo/MNCM/build/CMakeFiles/src.dir/src/m_1D/m_multigroup_1D_diffusion.f90.o"
-  "/home/tom/Documents/Repo/MNCM/src/m_1D/m_sparse_mm.f90" "/home/tom/Documents/Repo/MNCM/build/CMakeFiles/src.dir/src/m_1D/m_sparse_mm.f90.o"
-  "/home/tom/Documents/Repo/MNCM/src/m_1D/m_thomas_algorithm.f90" "/home/tom/Documents/Repo/MNCM/build/CMakeFiles/src.dir/src/m_1D/m_thomas_algorithm.f90.o"
-  "/home/tom/Documents/Repo/MNCM/src/m_1D/m_vacuum_BC_solver.f90" "/home/tom/Documents/Repo/MNCM/build/CMakeFiles/src.dir/src/m_1D/m_vacuum_BC_solver.f90.o"
-  "/home/tom/Documents/Repo/MNCM/src/m_2D/m_FV_NDE_2D.f90" "/home/tom/Documents/Repo/MNCM/build/CMakeFiles/src.dir/src/m_2D/m_FV_NDE_2D.f90.o"
+  "/home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_MMS_solver.f90" "/home/tom/Documents/Repo/MNCM/build/CMakeFiles/src.dir/src/m_1D_NDE/m_MMS_solver.f90.o"
+  "/home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_constants.f90" "/home/tom/Documents/Repo/MNCM/build/CMakeFiles/src.dir/src/m_1D_NDE/m_constants.f90.o"
+  "/home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_driver.f90" "/home/tom/Documents/Repo/MNCM/build/CMakeFiles/src.dir/src/m_1D_NDE/m_driver.f90.o"
+  "/home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_iterative_power_solver.f90" "/home/tom/Documents/Repo/MNCM/build/CMakeFiles/src.dir/src/m_1D_NDE/m_iterative_power_solver.f90.o"
+  "/home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_multigroup_1D_diffusion.f90" "/home/tom/Documents/Repo/MNCM/build/CMakeFiles/src.dir/src/m_1D_NDE/m_multigroup_1D_diffusion.f90.o"
+  "/home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_sparse_mm.f90" "/home/tom/Documents/Repo/MNCM/build/CMakeFiles/src.dir/src/m_1D_NDE/m_sparse_mm.f90.o"
+  "/home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_thomas_algorithm.f90" "/home/tom/Documents/Repo/MNCM/build/CMakeFiles/src.dir/src/m_1D_NDE/m_thomas_algorithm.f90.o"
+  "/home/tom/Documents/Repo/MNCM/src/m_1D_NDE/m_vacuum_BC_solver.f90" "/home/tom/Documents/Repo/MNCM/build/CMakeFiles/src.dir/src/m_1D_NDE/m_vacuum_BC_solver.f90.o"
+  "/home/tom/Documents/Repo/MNCM/src/m_2D_NDE/m_PCG_solver.f90" "/home/tom/Documents/Repo/MNCM/build/CMakeFiles/src.dir/src/m_2D_NDE/m_PCG_solver.f90.o"
+  "/home/tom/Documents/Repo/MNCM/src/m_2D_NDE/m_assembly.f90" "/home/tom/Documents/Repo/MNCM/build/CMakeFiles/src.dir/src/m_2D_NDE/m_assembly.f90.o"
+  "/home/tom/Documents/Repo/MNCM/src/m_2D_NDE/m_iter.f90" "/home/tom/Documents/Repo/MNCM/build/CMakeFiles/src.dir/src/m_2D_NDE/m_iter.f90.o"
   )
 set(CMAKE_Fortran_COMPILER_ID "GNU")
 set(CMAKE_Fortran_SUBMODULE_SEP "@")

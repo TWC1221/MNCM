@@ -6,5 +6,5 @@ Fortran_DEFINES =
 
 Fortran_INCLUDES = 
 
-Fortran_FLAGS =  -Wall -ffree-line-length-none  -O2 -DNDEBUG -fopenmp
+Fortran_FLAGS =  -Wall -ffree-line-length-none  -fcheck=all -pedantic -ffree-line-length-800 -O0 -g -Og -fdec -DDEBUG -pg -fopenmp
 
