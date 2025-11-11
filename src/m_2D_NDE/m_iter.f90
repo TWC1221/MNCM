@@ -1,0 +1,54 @@
+module m_iter
+    use m_diffusion_matrix
+    use m_PCG_solver
+    implicit none
+    contains
+    subroutine iter(PCG_mode, max_iter)
+        implicit none
+        integer, intent(in) :: PCG_mode, max_iter
+        integer, allocatable :: ia(:), ja(:)
+        real(8), allocatable :: aa(:), phi(:), phi1(:), phi_ptr(:), lambda(:), src(:), dx, dy
+        integer :: nx = 10, ny = 10, N, ii = 1
+        real(8) :: x_domain = 1.0, y_domain = 1.0, D = 0.001, Sigma_a = 0.3, nuSigma_f = 0.2, norm
+        call system("pkill gnuplot")
+
+        N = nx*ny
+        allocate(ia(ny+1), ja(N), aa(N), phi(N), phi1(N), phi_ptr(N), lambda(100), src(N))
+        
+        call assemble_2D_diffusion_matrix(nx, ny, x_domain, y_domain, D, Sigma_a, ia, ja, aa, dx, dy)
+
+        phi(1:N) = 1; lambda(1) = 1
+
+        do
+            ii = ii + 1
+            src = (nuSigma_f * phi) / lambda(ii-1)
+
+            phi_ptr = phi(1:N)
+            call PCG_algorithm(AA, ja, IA, phi_ptr, src, PCG_mode, max_iter)
+            phi1(1:N) = phi_ptr
+ 
+            lambda(ii) = lambda(ii-1) * sum(nuSigma_f*phi1*dx*dy)/sum(nuSigma_f*phi*dx*dy)
+
+            norm = (sum(phi1*nuSigma_f*dx*dy)/(lambda(ii)))
+            phi = phi1/norm
+
+            print*,"Iteration =", ii, "Keff =", lambda(ii), "norm_check =",sum(phi*nuSigma_f*dx*dy)/(lambda(ii))
+
+            if (abs((lambda(ii) - lambda(ii-1)) / lambda(ii-1)) < 1.0d-13) exit
+            if (maxval(abs(phi1 - phi)) < 1.0d-8) exit
+            !print*,phi1(5),phi(5),lambda(ii), lambda(ii-1)
+        end do
+
+        print'(10F6.2)',phi1
+
+        open(unit=995, file="plot_flux.gp", status="replace", action="write")
+        write(995,*) "set term wxt 1 title 'Flux vs x'"
+        write(995,*) "set title 'Flux vs x for different alpha'"
+        write(995,*) "set xlabel 'x'"
+        write(995,*) "set ylabel 'phi(x)'"
+        write(995,*) "plot 'flux.dat' using 1:2 with lines title 'numerical'"
+        close(995)
+        call system("gnuplot -persist plot_flux.gp")
+    end subroutine iter
+
+end module
