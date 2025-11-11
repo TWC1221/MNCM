@@ -166,197 +166,245 @@ main.f90.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/executable_name.dir/build.make CMakeFiles/executable_name.dir/main.f90.s
 .PHONY : main.f90.s
 
-src/m_MMS_solver.o: src/m_MMS_solver.f90.o
-.PHONY : src/m_MMS_solver.o
+src/m_1D/m_CSR_types.o: src/m_1D/m_CSR_types.f90.o
+.PHONY : src/m_1D/m_CSR_types.o
 
 # target to build an object file
-src/m_MMS_solver.f90.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_MMS_solver.f90.o
-.PHONY : src/m_MMS_solver.f90.o
+src/m_1D/m_CSR_types.f90.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_1D/m_CSR_types.f90.o
+.PHONY : src/m_1D/m_CSR_types.f90.o
 
-src/m_MMS_solver.i: src/m_MMS_solver.f90.i
-.PHONY : src/m_MMS_solver.i
+src/m_1D/m_CSR_types.i: src/m_1D/m_CSR_types.f90.i
+.PHONY : src/m_1D/m_CSR_types.i
 
 # target to preprocess a source file
-src/m_MMS_solver.f90.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_MMS_solver.f90.i
-.PHONY : src/m_MMS_solver.f90.i
+src/m_1D/m_CSR_types.f90.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_1D/m_CSR_types.f90.i
+.PHONY : src/m_1D/m_CSR_types.f90.i
 
-src/m_MMS_solver.s: src/m_MMS_solver.f90.s
-.PHONY : src/m_MMS_solver.s
+src/m_1D/m_CSR_types.s: src/m_1D/m_CSR_types.f90.s
+.PHONY : src/m_1D/m_CSR_types.s
 
 # target to generate assembly for a file
-src/m_MMS_solver.f90.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_MMS_solver.f90.s
-.PHONY : src/m_MMS_solver.f90.s
+src/m_1D/m_CSR_types.f90.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_1D/m_CSR_types.f90.s
+.PHONY : src/m_1D/m_CSR_types.f90.s
 
-src/m_constants.o: src/m_constants.f90.o
-.PHONY : src/m_constants.o
+src/m_1D/m_MMS_solver.o: src/m_1D/m_MMS_solver.f90.o
+.PHONY : src/m_1D/m_MMS_solver.o
 
 # target to build an object file
-src/m_constants.f90.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_constants.f90.o
-.PHONY : src/m_constants.f90.o
+src/m_1D/m_MMS_solver.f90.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_1D/m_MMS_solver.f90.o
+.PHONY : src/m_1D/m_MMS_solver.f90.o
 
-src/m_constants.i: src/m_constants.f90.i
-.PHONY : src/m_constants.i
+src/m_1D/m_MMS_solver.i: src/m_1D/m_MMS_solver.f90.i
+.PHONY : src/m_1D/m_MMS_solver.i
 
 # target to preprocess a source file
-src/m_constants.f90.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_constants.f90.i
-.PHONY : src/m_constants.f90.i
+src/m_1D/m_MMS_solver.f90.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_1D/m_MMS_solver.f90.i
+.PHONY : src/m_1D/m_MMS_solver.f90.i
 
-src/m_constants.s: src/m_constants.f90.s
-.PHONY : src/m_constants.s
+src/m_1D/m_MMS_solver.s: src/m_1D/m_MMS_solver.f90.s
+.PHONY : src/m_1D/m_MMS_solver.s
 
 # target to generate assembly for a file
-src/m_constants.f90.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_constants.f90.s
-.PHONY : src/m_constants.f90.s
+src/m_1D/m_MMS_solver.f90.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_1D/m_MMS_solver.f90.s
+.PHONY : src/m_1D/m_MMS_solver.f90.s
 
-src/m_driver.o: src/m_driver.f90.o
-.PHONY : src/m_driver.o
+src/m_1D/m_constants.o: src/m_1D/m_constants.f90.o
+.PHONY : src/m_1D/m_constants.o
 
 # target to build an object file
-src/m_driver.f90.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_driver.f90.o
-.PHONY : src/m_driver.f90.o
+src/m_1D/m_constants.f90.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_1D/m_constants.f90.o
+.PHONY : src/m_1D/m_constants.f90.o
 
-src/m_driver.i: src/m_driver.f90.i
-.PHONY : src/m_driver.i
+src/m_1D/m_constants.i: src/m_1D/m_constants.f90.i
+.PHONY : src/m_1D/m_constants.i
 
 # target to preprocess a source file
-src/m_driver.f90.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_driver.f90.i
-.PHONY : src/m_driver.f90.i
+src/m_1D/m_constants.f90.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_1D/m_constants.f90.i
+.PHONY : src/m_1D/m_constants.f90.i
 
-src/m_driver.s: src/m_driver.f90.s
-.PHONY : src/m_driver.s
+src/m_1D/m_constants.s: src/m_1D/m_constants.f90.s
+.PHONY : src/m_1D/m_constants.s
 
 # target to generate assembly for a file
-src/m_driver.f90.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_driver.f90.s
-.PHONY : src/m_driver.f90.s
+src/m_1D/m_constants.f90.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_1D/m_constants.f90.s
+.PHONY : src/m_1D/m_constants.f90.s
 
-src/m_iterative_power_solver.o: src/m_iterative_power_solver.f90.o
-.PHONY : src/m_iterative_power_solver.o
+src/m_1D/m_driver.o: src/m_1D/m_driver.f90.o
+.PHONY : src/m_1D/m_driver.o
 
 # target to build an object file
-src/m_iterative_power_solver.f90.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_iterative_power_solver.f90.o
-.PHONY : src/m_iterative_power_solver.f90.o
+src/m_1D/m_driver.f90.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_1D/m_driver.f90.o
+.PHONY : src/m_1D/m_driver.f90.o
 
-src/m_iterative_power_solver.i: src/m_iterative_power_solver.f90.i
-.PHONY : src/m_iterative_power_solver.i
+src/m_1D/m_driver.i: src/m_1D/m_driver.f90.i
+.PHONY : src/m_1D/m_driver.i
 
 # target to preprocess a source file
-src/m_iterative_power_solver.f90.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_iterative_power_solver.f90.i
-.PHONY : src/m_iterative_power_solver.f90.i
+src/m_1D/m_driver.f90.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_1D/m_driver.f90.i
+.PHONY : src/m_1D/m_driver.f90.i
 
-src/m_iterative_power_solver.s: src/m_iterative_power_solver.f90.s
-.PHONY : src/m_iterative_power_solver.s
+src/m_1D/m_driver.s: src/m_1D/m_driver.f90.s
+.PHONY : src/m_1D/m_driver.s
 
 # target to generate assembly for a file
-src/m_iterative_power_solver.f90.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_iterative_power_solver.f90.s
-.PHONY : src/m_iterative_power_solver.f90.s
+src/m_1D/m_driver.f90.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_1D/m_driver.f90.s
+.PHONY : src/m_1D/m_driver.f90.s
 
-src/m_multigroup_1D_diffusion.o: src/m_multigroup_1D_diffusion.f90.o
-.PHONY : src/m_multigroup_1D_diffusion.o
+src/m_1D/m_iterative_power_solver.o: src/m_1D/m_iterative_power_solver.f90.o
+.PHONY : src/m_1D/m_iterative_power_solver.o
 
 # target to build an object file
-src/m_multigroup_1D_diffusion.f90.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_multigroup_1D_diffusion.f90.o
-.PHONY : src/m_multigroup_1D_diffusion.f90.o
+src/m_1D/m_iterative_power_solver.f90.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_1D/m_iterative_power_solver.f90.o
+.PHONY : src/m_1D/m_iterative_power_solver.f90.o
 
-src/m_multigroup_1D_diffusion.i: src/m_multigroup_1D_diffusion.f90.i
-.PHONY : src/m_multigroup_1D_diffusion.i
+src/m_1D/m_iterative_power_solver.i: src/m_1D/m_iterative_power_solver.f90.i
+.PHONY : src/m_1D/m_iterative_power_solver.i
 
 # target to preprocess a source file
-src/m_multigroup_1D_diffusion.f90.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_multigroup_1D_diffusion.f90.i
-.PHONY : src/m_multigroup_1D_diffusion.f90.i
+src/m_1D/m_iterative_power_solver.f90.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_1D/m_iterative_power_solver.f90.i
+.PHONY : src/m_1D/m_iterative_power_solver.f90.i
 
-src/m_multigroup_1D_diffusion.s: src/m_multigroup_1D_diffusion.f90.s
-.PHONY : src/m_multigroup_1D_diffusion.s
+src/m_1D/m_iterative_power_solver.s: src/m_1D/m_iterative_power_solver.f90.s
+.PHONY : src/m_1D/m_iterative_power_solver.s
 
 # target to generate assembly for a file
-src/m_multigroup_1D_diffusion.f90.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_multigroup_1D_diffusion.f90.s
-.PHONY : src/m_multigroup_1D_diffusion.f90.s
+src/m_1D/m_iterative_power_solver.f90.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_1D/m_iterative_power_solver.f90.s
+.PHONY : src/m_1D/m_iterative_power_solver.f90.s
 
-src/m_sparse_mm.o: src/m_sparse_mm.f90.o
-.PHONY : src/m_sparse_mm.o
+src/m_1D/m_multigroup_1D_diffusion.o: src/m_1D/m_multigroup_1D_diffusion.f90.o
+.PHONY : src/m_1D/m_multigroup_1D_diffusion.o
 
 # target to build an object file
-src/m_sparse_mm.f90.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_sparse_mm.f90.o
-.PHONY : src/m_sparse_mm.f90.o
+src/m_1D/m_multigroup_1D_diffusion.f90.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_1D/m_multigroup_1D_diffusion.f90.o
+.PHONY : src/m_1D/m_multigroup_1D_diffusion.f90.o
 
-src/m_sparse_mm.i: src/m_sparse_mm.f90.i
-.PHONY : src/m_sparse_mm.i
+src/m_1D/m_multigroup_1D_diffusion.i: src/m_1D/m_multigroup_1D_diffusion.f90.i
+.PHONY : src/m_1D/m_multigroup_1D_diffusion.i
 
 # target to preprocess a source file
-src/m_sparse_mm.f90.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_sparse_mm.f90.i
-.PHONY : src/m_sparse_mm.f90.i
+src/m_1D/m_multigroup_1D_diffusion.f90.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_1D/m_multigroup_1D_diffusion.f90.i
+.PHONY : src/m_1D/m_multigroup_1D_diffusion.f90.i
 
-src/m_sparse_mm.s: src/m_sparse_mm.f90.s
-.PHONY : src/m_sparse_mm.s
+src/m_1D/m_multigroup_1D_diffusion.s: src/m_1D/m_multigroup_1D_diffusion.f90.s
+.PHONY : src/m_1D/m_multigroup_1D_diffusion.s
 
 # target to generate assembly for a file
-src/m_sparse_mm.f90.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_sparse_mm.f90.s
-.PHONY : src/m_sparse_mm.f90.s
+src/m_1D/m_multigroup_1D_diffusion.f90.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_1D/m_multigroup_1D_diffusion.f90.s
+.PHONY : src/m_1D/m_multigroup_1D_diffusion.f90.s
 
-src/m_thomas_algorithm.o: src/m_thomas_algorithm.f90.o
-.PHONY : src/m_thomas_algorithm.o
+src/m_1D/m_sparse_mm.o: src/m_1D/m_sparse_mm.f90.o
+.PHONY : src/m_1D/m_sparse_mm.o
 
 # target to build an object file
-src/m_thomas_algorithm.f90.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_thomas_algorithm.f90.o
-.PHONY : src/m_thomas_algorithm.f90.o
+src/m_1D/m_sparse_mm.f90.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_1D/m_sparse_mm.f90.o
+.PHONY : src/m_1D/m_sparse_mm.f90.o
 
-src/m_thomas_algorithm.i: src/m_thomas_algorithm.f90.i
-.PHONY : src/m_thomas_algorithm.i
+src/m_1D/m_sparse_mm.i: src/m_1D/m_sparse_mm.f90.i
+.PHONY : src/m_1D/m_sparse_mm.i
 
 # target to preprocess a source file
-src/m_thomas_algorithm.f90.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_thomas_algorithm.f90.i
-.PHONY : src/m_thomas_algorithm.f90.i
+src/m_1D/m_sparse_mm.f90.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_1D/m_sparse_mm.f90.i
+.PHONY : src/m_1D/m_sparse_mm.f90.i
 
-src/m_thomas_algorithm.s: src/m_thomas_algorithm.f90.s
-.PHONY : src/m_thomas_algorithm.s
+src/m_1D/m_sparse_mm.s: src/m_1D/m_sparse_mm.f90.s
+.PHONY : src/m_1D/m_sparse_mm.s
 
 # target to generate assembly for a file
-src/m_thomas_algorithm.f90.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_thomas_algorithm.f90.s
-.PHONY : src/m_thomas_algorithm.f90.s
+src/m_1D/m_sparse_mm.f90.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_1D/m_sparse_mm.f90.s
+.PHONY : src/m_1D/m_sparse_mm.f90.s
 
-src/m_vacuum_BC_solver.o: src/m_vacuum_BC_solver.f90.o
-.PHONY : src/m_vacuum_BC_solver.o
+src/m_1D/m_thomas_algorithm.o: src/m_1D/m_thomas_algorithm.f90.o
+.PHONY : src/m_1D/m_thomas_algorithm.o
 
 # target to build an object file
-src/m_vacuum_BC_solver.f90.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_vacuum_BC_solver.f90.o
-.PHONY : src/m_vacuum_BC_solver.f90.o
+src/m_1D/m_thomas_algorithm.f90.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_1D/m_thomas_algorithm.f90.o
+.PHONY : src/m_1D/m_thomas_algorithm.f90.o
 
-src/m_vacuum_BC_solver.i: src/m_vacuum_BC_solver.f90.i
-.PHONY : src/m_vacuum_BC_solver.i
+src/m_1D/m_thomas_algorithm.i: src/m_1D/m_thomas_algorithm.f90.i
+.PHONY : src/m_1D/m_thomas_algorithm.i
 
 # target to preprocess a source file
-src/m_vacuum_BC_solver.f90.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_vacuum_BC_solver.f90.i
-.PHONY : src/m_vacuum_BC_solver.f90.i
+src/m_1D/m_thomas_algorithm.f90.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_1D/m_thomas_algorithm.f90.i
+.PHONY : src/m_1D/m_thomas_algorithm.f90.i
 
-src/m_vacuum_BC_solver.s: src/m_vacuum_BC_solver.f90.s
-.PHONY : src/m_vacuum_BC_solver.s
+src/m_1D/m_thomas_algorithm.s: src/m_1D/m_thomas_algorithm.f90.s
+.PHONY : src/m_1D/m_thomas_algorithm.s
 
 # target to generate assembly for a file
-src/m_vacuum_BC_solver.f90.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_vacuum_BC_solver.f90.s
-.PHONY : src/m_vacuum_BC_solver.f90.s
+src/m_1D/m_thomas_algorithm.f90.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_1D/m_thomas_algorithm.f90.s
+.PHONY : src/m_1D/m_thomas_algorithm.f90.s
+
+src/m_1D/m_vacuum_BC_solver.o: src/m_1D/m_vacuum_BC_solver.f90.o
+.PHONY : src/m_1D/m_vacuum_BC_solver.o
+
+# target to build an object file
+src/m_1D/m_vacuum_BC_solver.f90.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_1D/m_vacuum_BC_solver.f90.o
+.PHONY : src/m_1D/m_vacuum_BC_solver.f90.o
+
+src/m_1D/m_vacuum_BC_solver.i: src/m_1D/m_vacuum_BC_solver.f90.i
+.PHONY : src/m_1D/m_vacuum_BC_solver.i
+
+# target to preprocess a source file
+src/m_1D/m_vacuum_BC_solver.f90.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_1D/m_vacuum_BC_solver.f90.i
+.PHONY : src/m_1D/m_vacuum_BC_solver.f90.i
+
+src/m_1D/m_vacuum_BC_solver.s: src/m_1D/m_vacuum_BC_solver.f90.s
+.PHONY : src/m_1D/m_vacuum_BC_solver.s
+
+# target to generate assembly for a file
+src/m_1D/m_vacuum_BC_solver.f90.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_1D/m_vacuum_BC_solver.f90.s
+.PHONY : src/m_1D/m_vacuum_BC_solver.f90.s
+
+src/m_2D/m_FV_NDE_2D.o: src/m_2D/m_FV_NDE_2D.f90.o
+.PHONY : src/m_2D/m_FV_NDE_2D.o
+
+# target to build an object file
+src/m_2D/m_FV_NDE_2D.f90.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_2D/m_FV_NDE_2D.f90.o
+.PHONY : src/m_2D/m_FV_NDE_2D.f90.o
+
+src/m_2D/m_FV_NDE_2D.i: src/m_2D/m_FV_NDE_2D.f90.i
+.PHONY : src/m_2D/m_FV_NDE_2D.i
+
+# target to preprocess a source file
+src/m_2D/m_FV_NDE_2D.f90.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_2D/m_FV_NDE_2D.f90.i
+.PHONY : src/m_2D/m_FV_NDE_2D.f90.i
+
+src/m_2D/m_FV_NDE_2D.s: src/m_2D/m_FV_NDE_2D.f90.s
+.PHONY : src/m_2D/m_FV_NDE_2D.s
+
+# target to generate assembly for a file
+src/m_2D/m_FV_NDE_2D.f90.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/src.dir/build.make CMakeFiles/src.dir/src/m_2D/m_FV_NDE_2D.f90.s
+.PHONY : src/m_2D/m_FV_NDE_2D.f90.s
 
 # Help Target
 help:
@@ -371,30 +419,36 @@ help:
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
-	@echo "... src/m_MMS_solver.o"
-	@echo "... src/m_MMS_solver.i"
-	@echo "... src/m_MMS_solver.s"
-	@echo "... src/m_constants.o"
-	@echo "... src/m_constants.i"
-	@echo "... src/m_constants.s"
-	@echo "... src/m_driver.o"
-	@echo "... src/m_driver.i"
-	@echo "... src/m_driver.s"
-	@echo "... src/m_iterative_power_solver.o"
-	@echo "... src/m_iterative_power_solver.i"
-	@echo "... src/m_iterative_power_solver.s"
-	@echo "... src/m_multigroup_1D_diffusion.o"
-	@echo "... src/m_multigroup_1D_diffusion.i"
-	@echo "... src/m_multigroup_1D_diffusion.s"
-	@echo "... src/m_sparse_mm.o"
-	@echo "... src/m_sparse_mm.i"
-	@echo "... src/m_sparse_mm.s"
-	@echo "... src/m_thomas_algorithm.o"
-	@echo "... src/m_thomas_algorithm.i"
-	@echo "... src/m_thomas_algorithm.s"
-	@echo "... src/m_vacuum_BC_solver.o"
-	@echo "... src/m_vacuum_BC_solver.i"
-	@echo "... src/m_vacuum_BC_solver.s"
+	@echo "... src/m_1D/m_CSR_types.o"
+	@echo "... src/m_1D/m_CSR_types.i"
+	@echo "... src/m_1D/m_CSR_types.s"
+	@echo "... src/m_1D/m_MMS_solver.o"
+	@echo "... src/m_1D/m_MMS_solver.i"
+	@echo "... src/m_1D/m_MMS_solver.s"
+	@echo "... src/m_1D/m_constants.o"
+	@echo "... src/m_1D/m_constants.i"
+	@echo "... src/m_1D/m_constants.s"
+	@echo "... src/m_1D/m_driver.o"
+	@echo "... src/m_1D/m_driver.i"
+	@echo "... src/m_1D/m_driver.s"
+	@echo "... src/m_1D/m_iterative_power_solver.o"
+	@echo "... src/m_1D/m_iterative_power_solver.i"
+	@echo "... src/m_1D/m_iterative_power_solver.s"
+	@echo "... src/m_1D/m_multigroup_1D_diffusion.o"
+	@echo "... src/m_1D/m_multigroup_1D_diffusion.i"
+	@echo "... src/m_1D/m_multigroup_1D_diffusion.s"
+	@echo "... src/m_1D/m_sparse_mm.o"
+	@echo "... src/m_1D/m_sparse_mm.i"
+	@echo "... src/m_1D/m_sparse_mm.s"
+	@echo "... src/m_1D/m_thomas_algorithm.o"
+	@echo "... src/m_1D/m_thomas_algorithm.i"
+	@echo "... src/m_1D/m_thomas_algorithm.s"
+	@echo "... src/m_1D/m_vacuum_BC_solver.o"
+	@echo "... src/m_1D/m_vacuum_BC_solver.i"
+	@echo "... src/m_1D/m_vacuum_BC_solver.s"
+	@echo "... src/m_2D/m_FV_NDE_2D.o"
+	@echo "... src/m_2D/m_FV_NDE_2D.i"
+	@echo "... src/m_2D/m_FV_NDE_2D.s"
 .PHONY : help
 
 

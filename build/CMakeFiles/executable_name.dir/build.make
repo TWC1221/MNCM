@@ -72,15 +72,15 @@ include CMakeFiles/executable_name.dir/flags.make
 CMakeFiles/executable_name.dir/main.f90.o: CMakeFiles/executable_name.dir/flags.make
 CMakeFiles/executable_name.dir/main.f90.o: ../main.f90
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building Fortran object CMakeFiles/executable_name.dir/main.f90.o"
-	/usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/tom/Documents/Repo/MNCM/main.f90 -o CMakeFiles/executable_name.dir/main.f90.o
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/tom/Documents/Repo/MNCM/main.f90 -o CMakeFiles/executable_name.dir/main.f90.o
 
 CMakeFiles/executable_name.dir/main.f90.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing Fortran source to CMakeFiles/executable_name.dir/main.f90.i"
-	/usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/tom/Documents/Repo/MNCM/main.f90 > CMakeFiles/executable_name.dir/main.f90.i
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/tom/Documents/Repo/MNCM/main.f90 > CMakeFiles/executable_name.dir/main.f90.i
 
 CMakeFiles/executable_name.dir/main.f90.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling Fortran source to assembly CMakeFiles/executable_name.dir/main.f90.s"
-	/usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/tom/Documents/Repo/MNCM/main.f90 -o CMakeFiles/executable_name.dir/main.f90.s
+	/usr/bin/gfortran $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/tom/Documents/Repo/MNCM/main.f90 -o CMakeFiles/executable_name.dir/main.f90.s
 
 # Object files for target executable_name
 executable_name_OBJECTS = \
@@ -92,8 +92,10 @@ executable_name_EXTERNAL_OBJECTS =
 ../executable_name: CMakeFiles/executable_name.dir/main.f90.o
 ../executable_name: CMakeFiles/executable_name.dir/build.make
 ../executable_name: libsrc.a
-../executable_name: /usr/lib/x86_64-linux-gnu/libblas.so
-../executable_name: /usr/lib/x86_64-linux-gnu/liblapack.so
+../executable_name: /opt/intel/oneapi/mkl/2025.3/lib/libmkl_gf_lp64.so
+../executable_name: /opt/intel/oneapi/mkl/2025.3/lib/libmkl_gnu_thread.so
+../executable_name: /opt/intel/oneapi/mkl/2025.3/lib/libmkl_core.so
+../executable_name: /usr/lib/gcc/x86_64-linux-gnu/11/libgomp.so
 ../executable_name: CMakeFiles/executable_name.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/tom/Documents/Repo/MNCM/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking Fortran executable ../executable_name"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/executable_name.dir/link.txt --verbose=$(VERBOSE)

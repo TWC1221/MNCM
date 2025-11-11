@@ -1,5 +1,13 @@
 # Remove fortran modules provided by this target.
 FILE(REMOVE
+  "csr_types.mod"
+  "CSR_TYPES.mod"
+  "CMakeFiles/src.dir/csr_types.mod.stamp"
+
+  "fv_nde_2d.mod"
+  "FV_NDE_2D.mod"
+  "CMakeFiles/src.dir/fv_nde_2d.mod.stamp"
+
   "m_constants.mod"
   "M_CONSTANTS.mod"
   "CMakeFiles/src.dir/m_constants.mod.stamp"
