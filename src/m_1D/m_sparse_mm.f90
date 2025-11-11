@@ -11,11 +11,13 @@
 ! 24/10/2025    T. Charlton      Original code                          -!      
 ! 28/10/2025    T. Charlton      Added true CSR Cholesky preconditioner -!
 ! 29/10/2025    T. Charlton      Integrated CG with 1D multigroup solver-!
+! 30/10/2025    T. Charlton      Cases, Adjoint + Preconditioners ILU(0)-!
 !------------------------------------------------------------------------! 
 
 module m_Sparse_mm
 implicit none
 contains 
+    
     function CSR_dot_product(AA,JA,IA,x) result(Y)
         implicit none
         real(8), intent(in) :: AA(:), x(:)
@@ -346,73 +348,108 @@ contains
     !-------------------------
     ! Subroutine integrated with multigroup 1D diffusion solver to build CSR matrix and solve using PCG
     !-------------------------
-    subroutine build_CSR_matrix_multigroup(N, alpha, G, phi_ptr, dx, Dif, A_scatter, S0, gg, Sigma_a)
+    subroutine build_CSR_matrix_multigroup(N, alpha, G, gg, dx, Dif, A_scatter, Sigma_a, A)
+        use CSR_types, only: CSRMatrix
+        implicit none
         integer, intent(in) :: N, G, gg
-        real(8), intent(in) :: Dif, dx(:), alpha, A_scatter(:,:), Sigma_a, S0(:)
-        
-        real(8), intent(out) :: phi_ptr(:)
-        real(8), allocatable :: AA(:), b(:)
-        integer, allocatable :: JA(:), IA(:)
+        real(8), intent(in) :: Dif, dx(:), alpha, A_scatter(:,:), Sigma_a
+        type(CSRMatrix), intent(out) :: A
+
         integer :: ii, nnz
 
-        allocate(AA(3*N-2), JA(3*N-2), IA(N+1))
+        allocate(A%AA(3*N-2))
+        allocate(A%JA(3*N-2))
+        allocate(A%IA(N+1))
+        A%N = N
 
+        nnz = 0
         do ii = 1,N
             if (ii == 1) then
-                AA(1:2) = [((2*Dif)/(dx(ii)**2) + 1/dx(ii)*(1-alpha)/(1+alpha) + sum(A_scatter(gg,1:G)) - A_scatter(gg,gg) + Sigma_a), (-(2*Dif)/(dx(ii)**2))]
-                JA(1:2) = [1, 2]
-                IA(1) = 1
+                A%AA(1:2) = [ (2*Dif)/(dx(ii)**2) + 1/dx(ii)*(1-alpha)/(1+alpha) + sum(A_scatter(gg,1:G)) - A_scatter(gg,gg) + Sigma_a, &
+                            -(2*Dif)/(dx(ii)**2) ]
+                A%JA(1:2) = [1, 2]
+                
+                A%IA(1) = 1
                 nnz = 2
             elseif (ii == N) then
-                AA(nnz+1:nnz+2) = [(-(2*Dif)/(dx(ii-1)**2)), ((2*Dif)/(dx(ii-1)**2) + 1/dx(ii-1)*(1-alpha)/(1+alpha) + sum(A_scatter(gg,1:G)) - A_scatter(gg,gg) + Sigma_a)]
-                JA(nnz+1:nnz+2) = [N-1, N]
-                IA(N) = nnz + 1
+                A%AA(nnz+1:nnz+2) = [ -(2*Dif)/(dx(ii-1)**2), &
+                            (2*Dif)/(dx(ii-1)**2) + 1/dx(ii-1)*(1-alpha)/(1+alpha) + sum(A_scatter(gg,1:G)) - A_scatter(gg,gg) + Sigma_a ]
+                A%JA(nnz+1:nnz+2) = [N-1, N]
+                A%IA(N) = nnz + 1
                 nnz = nnz + 2
             else
-                AA(nnz+1:nnz+3) = [(-(2*Dif)/(dx(ii-1)*(dx(ii)+dx(ii-1)))), ((2*Dif)/dx(ii-1)+(2*Dif)/dx(ii))/(dx(ii)+dx(ii-1)) + sum(A_scatter(gg,1:G)) - A_scatter(gg,gg) + Sigma_a, (-(2*Dif)/(dx(ii)*(dx(ii)+dx(ii-1))))]
-                JA(nnz+1:nnz+3) = [ii-1, ii, ii+1]
-                IA(ii) = nnz + 1
+                A%AA(nnz+1:nnz+3) = [ -(2*Dif)/(dx(ii-1)*(dx(ii)+dx(ii-1))), &
+                                    ((2*Dif)/dx(ii-1)+(2*Dif)/dx(ii))/(dx(ii)+dx(ii-1)) + sum(A_scatter(gg,1:G)) - A_scatter(gg,gg) + Sigma_a, &
+                                    -(2*Dif)/(dx(ii)*(dx(ii)+dx(ii-1))) ]
+                A%JA(nnz+1:nnz+3) = [ii-1, ii, ii+1]
+                A%IA(ii) = nnz + 1
                 nnz = nnz + 3
             end if
         end do
-        IA(N+1) = nnz + 1 
-
-        b = S0
-
-        call PCG_algorithm(AA, JA, IA, phi_ptr, b)
-
+        A%IA(N+1) = nnz + 1
     end subroutine
 
     !-------------------------
     ! Principle Conjugation Gradient (PCG) Algorithm driver, solving Ax=b
     !-------------------------
-    subroutine PCG_algorithm(AA, JA, IA, x, b)
+    subroutine PCG_algorithm(AA, JA, IA, x, sf, PCG_mode, N, dx)
         implicit none
-        real(8), intent(in) :: AA(:), b(:)
+        real(8), intent(in) :: AA(:), sf(:), dx(:)
         integer, intent(in) :: JA(:), IA(:)
+        integer, intent(in) :: PCG_mode, N
         real(8), intent(out) :: x(:)
+
         real(8) :: alpha, beta
         integer :: ii, max_iter
-        real(8), allocatable :: L_AA(:), U_AA(:), diag(:), r(:), d(:), z(:), q(:)
+        real(8), allocatable :: L_AA(:), U_AA(:), diag(:), r(:), d(:), z(:), q(:), b(:)
         integer, allocatable :: L_IA(:), L_JA(:), U_IA(:), U_JA(:)
 
-        call Cholesky_CSR(AA, JA, IA, L_AA, L_JA, L_IA)
-        !call ILU0_CSR(AA, JA, IA, L_AA, L_JA, L_IA, U_AA, U_JA, U_IA)
-        !call Jacobi_CSR(AA, JA, IA, diag)
+        b = sf
+        ! Q_source
+        ! b(1) = sf(1) + 4*1/dx(1)
+        ! b(N) = sf(N) + 4*1/dx(N-1)
 
         r = b - CSR_dot_product(AA, JA, IA, x)
-        z = PCG_Cholesky_CSR(L_AA, L_JA, L_IA, r) ! PCG_ILU_CSR(L_AA, L_JA, L_IA, U_AA, U_JA, U_IA, r) ! r/diag  !
+        
+        select case(PCG_mode)
+        case(1)
+            call Cholesky_CSR(AA, JA, IA, L_AA, L_JA, L_IA)
+            z = PCG_Cholesky_CSR(L_AA, L_JA, L_IA, b)
+        case(2)
+            call ILU0_CSR(AA, JA, IA, L_AA, L_JA, L_IA, U_AA, U_JA, U_IA)
+            z = PCG_ILU_CSR(L_AA, L_JA, L_IA, U_AA, U_JA, U_IA, b)
+        case(3)
+            call Jacobi_CSR(AA, JA, IA, diag)
+            z = r/diag
+        case(4)
+            z = r
+        end select
+        
         d = z
-        max_iter = 50
+        max_iter = 1000
         do ii = 1, max_iter
             q = CSR_dot_product(AA, JA, IA, d)
             alpha = dot_product(r, z)/dot_product(d, q)
             x = x + alpha*d
             r = r - alpha*q
-            z =  PCG_Cholesky_CSR(L_AA, L_JA, L_IA, r) ! PCG_ILU_CSR(L_AA, L_JA, L_IA, U_AA, U_JA, U_IA, r) !r/diag  ! 
-            beta = dot_product(r, z)/dot_product(r - alpha*q, z - alpha*d) ! optional check
+
+            select case(PCG_mode)
+            case(1)
+                z = PCG_Cholesky_CSR(L_AA, L_JA, L_IA, r)
+            case(2)
+                z = PCG_ILU_CSR(L_AA, L_JA, L_IA, U_AA, U_JA, U_IA, r)
+            case(3)
+                z = r / diag
+            case(4)
+                z = r
+            end select
+
+            beta = dot_product(r, z)/dot_product(r - alpha*q, z - alpha*d)
             d = z + beta*d
+
+            if (sqrt(dot_product(r,r)) < 1.0d-6) exit
         end do
+        !print*,sqrt(dot_product(r,r)), ii
         !print*, "Solution:", x
         !print*, "aX = ", CSR_dot_product(AA, JA, IA, x)
 
