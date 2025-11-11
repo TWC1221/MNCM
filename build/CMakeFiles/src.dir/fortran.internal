@@ -1,5 +1,7 @@
 # The fortran modules provided by this target.
 provides
+ csr_types.mod
+ fv_nde_2d.mod
  m_constants.mod
  m_driver.mod
  m_iterative_power_solver.mod

@@ -1,4 +1,4 @@
-set(CMAKE_Fortran_COMPILER "/usr/bin/f95")
+set(CMAKE_Fortran_COMPILER "/usr/bin/gfortran")
 set(CMAKE_Fortran_COMPILER_ARG1 "")
 set(CMAKE_Fortran_COMPILER_ID "GNU")
 set(CMAKE_Fortran_COMPILER_VERSION "11.4.0")
@@ -55,7 +55,7 @@ endif()
 
 
 
-set(CMAKE_Fortran_IMPLICIT_INCLUDE_DIRECTORIES "/usr/lib/gcc/x86_64-linux-gnu/11/finclude;/usr/lib/gcc/x86_64-linux-gnu/11/include;/usr/local/include;/usr/include/x86_64-linux-gnu;/usr/include")
+set(CMAKE_Fortran_IMPLICIT_INCLUDE_DIRECTORIES "/usr/lib/gcc/x86_64-linux-gnu/11/finclude;/opt/intel/oneapi/dev-utilities/2025.3/include;/opt/intel/oneapi/ccl/2021.17/include;/opt/intel/oneapi/umf/1.0/include;/opt/intel/oneapi/tbb/2022.3/include;/opt/intel/oneapi/mpi/2021.17/include;/opt/intel/oneapi/mkl/2025.3/include;/opt/intel/oneapi/ishmem/1.5/include;/opt/intel/oneapi/ippcp/2025.3/include;/opt/intel/oneapi/ipp/2022.3/include;/opt/intel/oneapi/dnnl/2025.3/include;/usr/lib/gcc/x86_64-linux-gnu/11/include;/usr/local/include;/usr/include/x86_64-linux-gnu;/usr/include")
 set(CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES "gfortran;m;gcc_s;gcc;quadmath;m;gcc_s;gcc;c;gcc_s;gcc")
-set(CMAKE_Fortran_IMPLICIT_LINK_DIRECTORIES "/usr/lib/gcc/x86_64-linux-gnu/11;/usr/lib/x86_64-linux-gnu;/usr/lib;/lib/x86_64-linux-gnu;/lib")
+set(CMAKE_Fortran_IMPLICIT_LINK_DIRECTORIES "/opt/intel/oneapi/tcm/1.4/lib;/opt/intel/oneapi/umf/1.0/lib;/opt/intel/oneapi/tbb/2022.3/lib/intel64/lib;/opt/intel/oneapi/mpi/2021.17/lib;/opt/intel/oneapi/mkl/2025.3/lib;/opt/intel/oneapi/ishmem/1.5/lib;/opt/intel/oneapi/ippcp/2025.3/lib;/opt/intel/oneapi/ipp/2022.3/lib;/opt/intel/oneapi/dnnl/2025.3/lib;/opt/intel/oneapi/dal/2025.9/lib;/opt/intel/oneapi/compiler/2025.3/lib;/opt/intel/oneapi/ccl/2021.17/lib;/usr/lib/gcc/x86_64-linux-gnu/11;/usr/lib/x86_64-linux-gnu;/usr/lib;/lib/x86_64-linux-gnu;/lib;/opt/intel/oneapi/tbb/2022.3/lib/intel64/gcc4.8")
 set(CMAKE_Fortran_IMPLICIT_LINK_FRAMEWORK_DIRECTORIES "")
