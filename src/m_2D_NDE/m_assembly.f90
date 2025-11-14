@@ -124,7 +124,7 @@ module m_diffusion_matrix
 
   end subroutine assemble_2D_diffusion_matrix
   
-  subroutine assemble_rth_diffusion_matrix(nr, nth, R_domain, D, Sigma_a, ia, ja, a, dr, dth)
+  subroutine assemble_rth_diffusion_matrix(nr, nth, R_domain, D, Sigma_a, ia, ja, a, dr, dth, ri)
     implicit none
     !---------------------------------------------------------------
     ! Assembles CSR matrix for 2D diffusion operator:
@@ -147,26 +147,27 @@ module m_diffusion_matrix
     integer, intent(in) :: nr, nth
     real(8), intent(in) :: R_domain, D, Sigma_a
     integer, allocatable, intent(out) :: ia(:), ja(:)
-    real(8), allocatable, intent(out) :: a(:), dr, dth
+    real(8), allocatable, intent(out) :: a(:), ri(:)
+    real(8), intent(out) :: dr, dth
 
     integer :: ii, jj, kk, row, nnz
-    real(8) :: aN, aE, aS, aW, a0, ri
+    real(8) :: aN, aE, aS, aW, a0
     real(8), allocatable :: AA(:,:)
 
+    allocate(AA(1:nth,1:nr), ri(nr))
     dr = R_domain/nr ; dth = 2*PI/nth
 
     nnz = 1
     ia(1) = 1
 
     do ii = 1, nr
+      ri(ii) = ii*dr
       do jj = 1, nth
         row = (ii-1)*nth + jj
 
-        ri = ii*dr
-
-        aN = D*(2*ri+dr)/(2*ri*dr*dr)
-        aS = D*(2*ri-dr)/(2*ri*dr*dr)
-        aE = D/(ri*ri*dth*dth)
+        aN = D*(2*ii*dr+dr)/(2*ii*dr*dr*dr)
+        aS = D*(2*ii*dr-dr)/(2*ii*dr*dr*dr)
+        aE = D/(ii*dr*ii*dr*dth*dth)
         aW = aE
         a0 = -(aN+aS)-2.0d0*aE + Sigma_a
 
@@ -210,8 +211,6 @@ module m_diffusion_matrix
       a = a(1:nnz-1)
       ja = ja(1:nnz-1)
     end if
-
-    allocate(AA(1:nth,1:nr))
   
     do ii = 1, nnz
       do kk = ia(ii), ia(ii+1)-1
