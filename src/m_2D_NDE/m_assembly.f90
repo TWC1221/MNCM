@@ -124,7 +124,7 @@ module m_diffusion_matrix
 
   end subroutine assemble_2D_diffusion_matrix
   
-  subroutine assemble_rth_diffusion_matrix(nr, nth, R_domain, D, Sigma_a, ia, ja, a, dr, dth, ri)
+  subroutine assemble_rth_diffusion_matrix(nr, nth, ri, dr, dth, D, Sigma_a, ia, ja, a)
     implicit none
     !---------------------------------------------------------------
     ! Assembles CSR matrix for 2D diffusion operator:
@@ -145,34 +145,34 @@ module m_diffusion_matrix
     !   Lexicographic ordering: k = ii + (jj-1)*nx
     !---------------------------------------------------------------
     integer, intent(in) :: nr, nth
-    real(8), intent(in) :: R_domain, D, Sigma_a
+    real(8), intent(in) :: D, Sigma_a, ri(:)
     integer, allocatable, intent(out) :: ia(:), ja(:)
-    real(8), allocatable, intent(out) :: a(:), ri(:)
+    real(8), allocatable, intent(out) :: a(:)
     real(8), intent(out) :: dr, dth
 
-    integer :: ii, jj, kk, row, nnz
+    integer :: ii, jj, kk, row, nnz, est_nnz, N
     real(8) :: aN, aE, aS, aW, a0
     real(8), allocatable :: AA(:,:)
 
-    allocate(AA(1:nth,1:nr), ri(nr))
-    dr = R_domain/nr ; dth = 2*PI/nth
-
+    N = nr * nth
+    est_nnz = 5 * N
     nnz = 1
+
+    allocate(ia(nr*nth+1),ja(est_nnz),a(est_nnz), AA(N,N))
     ia(1) = 1
 
     do ii = 1, nr
-      ri(ii) = ii*dr
       do jj = 1, nth
         row = (ii-1)*nth + jj
 
-        aN = D*(2*ii*dr+dr)/(2*ii*dr*dr*dr)
-        aS = D*(2*ii*dr-dr)/(2*ii*dr*dr*dr)
-        aE = D/(ii*dr*ii*dr*dth*dth)
+        aN = -D*(2*ri(ii)+dr)/(2*ri(ii)*dr*dr)
+        aS = -D*(2*ri(ii)-dr)/(2*ri(ii)*dr*dr)
+        aE = -D/(ri(ii)*ri(ii)*dth*dth)
         aW = aE
         a0 = -(aN+aS)-2.0d0*aE + Sigma_a
 
         if (ii == 1) then
-          a0 = a0 + aS
+          a0 = a0 - aS
         else 
           kk = (ii-2)*nth + jj
           ja(nnz) = kk
@@ -189,11 +189,11 @@ module m_diffusion_matrix
           nnz = nnz + 1
         end if
 
-        kk = (ii-1)*nth + merge(jj-1,Nth,jj>1)
+        kk = (ii-1)*nth + merge(jj-1,nth,jj>1)
         ja(nnz) = kk
         a(nnz) = aW
 
-        kk = (ii-1)*nth + merge(jj-1,1,jj<nth)
+        kk = (ii-1)*nth + merge(jj+1,1,jj<nth)
         ja(nnz) = kk
         a(nnz) = aE
         nnz = nnz + 1
@@ -211,14 +211,6 @@ module m_diffusion_matrix
       a = a(1:nnz-1)
       ja = ja(1:nnz-1)
     end if
-  
-    do ii = 1, nnz
-      do kk = ia(ii), ia(ii+1)-1
-        AA(ii, ja(kk)) = a(kk)
-      end do
-    end do
-
-    print '(25F5.2)', ((AA(ii,jj), jj=1,nth), ii=1,nr)
 
   end subroutine assemble_rth_diffusion_matrix     
 
