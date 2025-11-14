@@ -189,23 +189,23 @@ module m_driver
 
     subroutine iterative_power_driver()
         implicit none
-        integer :: N = 10, N_interface = 10, jj = 1
-        real(8) :: alpha = 0.0, x_interface = 10, nu = 3, R_domain = 10, Norm
-        real(8), allocatable :: a(:), b(:), c(:), phi(:), dx(:), Dif(:), Sigma_a(:), Sigma_f(:), S0(:), dx_V(:), phi_old(:)
+        integer :: N = 1000, jj = 1
+        real(8) :: alpha = 0.5, x_interface = 1, nu = 3, Norm
+        real(8), allocatable :: a(:), b(:), c(:), phi(:), dx(:), Dif(:), Sigma_a(:), Sigma_f(:), S0(:), phi_old(:)
         real(8), dimension(1000) :: lambda
 
-        allocate(dx(N-1), Dif(N), Sigma_a(N), Sigma_f(N), S0(N), dx_V(N), phi(N), a(N), b(N), c(N), phi_old(N))
+        allocate(dx(N), Dif(N), Sigma_a(N), Sigma_f(N), S0(N), phi(N), a(N), b(N), c(N), phi_old(N))
+        call system("pkill gnuplot")
 
         !call random_number(phi(1:N)) 
         phi(1:N) = 1 
         lambda(1) = 1; !LAMBDA 0
 
-        dx(1:N_interface-1) = x_interface / real(N_interface-1, 8) ; dx(N_interface:N-1) = (R_domain - x_interface) / real(N - N_interface -1, 8)
-        dx_V(1:N-1) = 0.5*dx(1:N-1) ; dx_V(2:N) = dx_V(2:N) + 0.5 * dx(1:N-1)
+        dx(1:N) = x_interface / real(N, 8)
 
-        Dif(1:N_interface-1) = 1.0/(3.0*0.1) ;  Dif(N_interface:N) = 1.0/(3.0*0.1) 
-        Sigma_a(1:N_interface-1) = 0.1 ; Sigma_a(N_interface:N) = 0.1
-        Sigma_f(1:N_interface-1) = 0.06 ; Sigma_f(N_interface:N) = 0.06
+        Dif(1:N) = 1.0/(3.0) 
+        Sigma_a(1:N) = 2
+        Sigma_f(1:N) = 0.16
 
         do
             S0 = (nu * Sigma_f * phi) / lambda(jj) !S(0)
@@ -217,13 +217,13 @@ module m_driver
 
             call build_matrix_A_iterative_power(a, b, c, N, alpha, phi, dx, Dif, Sigma_a, S0)
             print*,phi
-            stop
-            lambda(jj) = lambda(jj-1) * sum(nu*Sigma_f*phi*dx_V)/sum(nu*Sigma_f*phi_old*dx_V)
 
-            Norm = nu*sum(phi*Sigma_f*dx_V)/(lambda(jj))
+            lambda(jj) = lambda(jj-1) * sum(nu*Sigma_f*phi*dx)/sum(nu*Sigma_f*phi_old*dx)
+
+            Norm = nu*sum(phi*Sigma_f*dx)/(lambda(jj))
             phi = phi/Norm
 
-            print*,"Iteration =", jj, "Keff =", lambda(jj), "norm_check =",nu*sum(phi*Sigma_f*dx_V)/(lambda(jj))
+            print*,"Iteration =", jj, "Keff =", lambda(jj), "norm_check =",nu*sum(phi*Sigma_f*dx)/(lambda(jj))
 
             if (abs((lambda(jj) - lambda(jj-1)) / lambda(jj-1)) < 1.0d-10) exit
             if (maxval(abs(phi - phi_old)) < 1.0d-8) exit
@@ -234,6 +234,7 @@ module m_driver
         write(995,*) "set title 'Flux vs x for different alpha'"
         write(995,*) "set xlabel 'x'"
         write(995,*) "set ylabel 'phi(x)'"
+        write(995,*) "set yrange [0:*]"
         write(995,*) "plot 'flux.dat' using 1:2 with lines title 'numerical'"
         close(995)
         call system("gnuplot -persist plot_flux.gp")

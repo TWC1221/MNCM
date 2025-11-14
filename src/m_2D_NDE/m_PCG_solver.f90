@@ -67,8 +67,8 @@ contains
 
             beta = dot_product(r, z)/dot_product(r - alpha*q, z - alpha*d)
             d = z + beta*d
-
-            if (sqrt(dot_product(r,r)) < 1.0d-6) exit
+            !print'(10F6.4)',r
+            if (sqrt(dot_product(r,r)) < 1.0d-4) exit
         end do
     end subroutine
 
