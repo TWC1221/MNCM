@@ -2,6 +2,7 @@ module m_iter
     use m_diffusion_matrix
     use m_PCG_solver
     use m_outpVTK
+    use m_constants
     implicit none
     contains
     subroutine iter(PCG_mode, max_iter)
@@ -50,7 +51,7 @@ module m_iter
       integer, intent(in) :: PCG_mode, max_iter
       integer, allocatable :: ia(:), ja(:)
       real(8), allocatable :: aa(:), phi(:), phi1(:), x(:), lambda(:), src(:), ri(:), r_node(:)
-      integer :: nr, nth, N, iter_idx, max_outer, ii, jj, kk 
+      integer :: nr, nth, N, iter_idx, max_outer, ii, jj
       real(8) :: R_domain, D, Sigma_a, nuSigma_f, norm, dr, dth
         
       nr = 10
@@ -67,8 +68,12 @@ module m_iter
 
       dr = R_domain/real(nr)
       dth = 2.0d0*PI/real(nth)
+
       do ii = 1, nr
         ri(ii) = (ii-0.5d0) * dr
+        do jj = 1, nth
+            r_node(jj+(ii-1)*nr) = ri(ii)
+        end do
       end do
     
       call assemble_rth_diffusion_matrix(nr, nth, ri, dr, dth, D, Sigma_a, ia, ja, aa)
@@ -88,13 +93,6 @@ module m_iter
         
         phi1 = x
 
-        do ii = 1, nr
-          do jj = 1, nth
-            kk = kk + 1
-            r_node(kk) = ri(ii)
-          end do
-        end do
-
         lambda(iter_idx+1) = lambda(iter_idx) * sum(nuSigma_f*phi1*dr*r_node*dth)/sum(nuSigma_f*phi*dr*r_node*dth)
 
         norm = sqrt(sum((phi1**2) * r_node)*dr*dth)
@@ -105,11 +103,11 @@ module m_iter
         if (maxval(abs(phi1 - phi)) < 1.0d-8) exit
 
         iter_idx = iter_idx + 1
+    
+      end do
 
-        end do
-
-        !print'(20F6.2)',phi1
-        call outpVTK(phi1, nr, nth, dr, dth)
+      !print'(20F6.2)',phi1
+      call outpVTK(phi1, nr, nth, dr, dth)
 
     end subroutine iter_cyl
 end module
