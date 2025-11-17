@@ -28,6 +28,10 @@ FILE(REMOVE
   "M_MULTIGROUP_1D_DIFFUSION.mod"
   "CMakeFiles/src.dir/m_multigroup_1d_diffusion.mod.stamp"
 
+  "m_outpvtk.mod"
+  "M_OUTPVTK.mod"
+  "CMakeFiles/src.dir/m_outpvtk.mod.stamp"
+
   "m_pcg_solver.mod"
   "M_PCG_SOLVER.mod"
   "CMakeFiles/src.dir/m_pcg_solver.mod.stamp"
