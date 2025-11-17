@@ -52,8 +52,8 @@ module m_iter
       integer, allocatable :: ia(:), ja(:)
       real(8), allocatable :: aa(:), phi(:), phi1(:), phi_ptr(:), lambda(:), src(:), dr, dz
       integer :: nr = 100, nz = 100, N, ii = 1
-      !real(8) :: r_domain = 2.0, z_domain = 2.0, D = 0.1, Sigma_a = 0.02, nuSigma_f = 3.0, norm
-      real(8) :: r_domain = 20.0, z_domain = 20.0, D = 1/0.6, Sigma_a = 0.2, nuSigma_f = 1.0, norm
+      real(8) :: r_domain = 2.0, z_domain = 2.0, D = 0.04, Sigma_a = 0.02, nuSigma_f = 3.0, norm
+      !real(8) :: r_domain = 20.0, z_domain = 20.0, D = 1/0.6, Sigma_a = 0.2, nuSigma_f = 1.0, norm
       call system("pkill gnuplot")
 
       N = nr*nz

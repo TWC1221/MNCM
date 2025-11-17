@@ -144,15 +144,15 @@ module m_diffusion_matrix
     do jj = 1, nz
       do ii = 1, nr
 
-        aL = -D / dr**2 + D/(2*ri(ii)*dr)
-        aR = -D / dr**2 - D/(2*ri(ii)*dr) 
+        aL = -D / dr**2 + D/(2*(ri(ii)-0.5*ii)*dr)
+        aR = -D / dr**2 - D/(2*(ri(ii)+0.5*ii)*dr) 
         aB = -D / dz**2
         aT = -D / dz**2
 
         kk = ii + (jj-1)*nr !Flattening index, assign each (ii,jj) to a kk
         
         aC = Sigma_a - (aL + aR + aB + aT)
-          if (ii == 1)   aL = 0.0d0  ! has left neighbor
+          if (ii == 1)   aL = aC - aL   ! has left neighbor
           if (ii == nr)  aC = aC - aR  ! has right neighbor
           if (jj == 1)   aC = aC - aB  ! has bottom neighbor
           if (jj == nz)  aC = aC - aT  ! has top neighbor
