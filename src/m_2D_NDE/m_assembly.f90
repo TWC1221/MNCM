@@ -122,7 +122,8 @@ module m_diffusion_matrix
     integer, intent(in) :: nr, nz
     real(8), intent(in) :: r_domain, z_domain, D, Sigma_a
     integer, allocatable, intent(out) :: ia(:), ja(:)
-    real(8), allocatable, intent(out) :: a(:), dr, dz
+    real(8), allocatable, intent(out) :: a(:)
+    real(8), intent(out) ::  dr, dz
 
     integer :: N, ii, jj, kk, ptr, est_nnz
     real(8) :: aL, aB, aR, aT, aC
@@ -144,18 +145,22 @@ module m_diffusion_matrix
     do jj = 1, nz
       do ii = 1, nr
 
-        aL = -D / dr**2 + D/(2*(ri(ii)-0.5*ii)*dr)
-        aR = -D / dr**2 - D/(2*(ri(ii)+0.5*ii)*dr) 
+        aL = -D*(ri(ii)-dr/2)/(dr**2*ri(ii)) !-D / dr**2 + D/(2*(ri(ii)-0.5*ii*dr)*dr)
+        aR = -D*(ri(ii)+dr/2)/(dr**2*ri(ii)) !-D / dr**2 - D/(2*(ri(ii)+0.5*ii*dr)*dr) 
         aB = -D / dz**2
         aT = -D / dz**2
 
         kk = ii + (jj-1)*nr !Flattening index, assign each (ii,jj) to a kk
         
         aC = Sigma_a - (aL + aR + aB + aT)
-          if (ii == 1)   aL = aC - aL   ! has left neighbor
-          if (ii == nr)  aC = aC - aR  ! has right neighbor
-          if (jj == 1)   aC = aC - aB  ! has bottom neighbor
-          if (jj == nz)  aC = aC - aT  ! has top neighbor
+          if (ii == 1)   aC = aC - aL ! has left neighbor
+          if (ii == nr .or. jj == 1 .or. jj == nz) then 
+            ja(ptr) = kk
+            a(ptr) = 1.0
+            ptr = ptr + 1
+            ia(kk+1) = ptr
+            cycle
+          end if
 
         ! Center
         ja(ptr) = kk
