@@ -26,75 +26,118 @@ module m_diffusion_matrix
     !---------------------------------------------------------------
     integer, intent(in) :: nx, ny
     real(8), intent(in) :: x_domain, y_domain, D, Sigma_a
+    real(8), intent(out) :: dx, dy
     integer, allocatable, intent(out) :: ia(:), ja(:)
-    real(8), allocatable, intent(out) :: a(:), dx, dy
+    real(8), allocatable, intent(out) :: a(:)
 
     integer :: N, ii, jj, kk, ptr, est_nnz
-    real(8) :: aL, aB, aR, aT, aC
+    real(8) :: aL, aR, aB, aT, aC
 
-    dx = x_domain/real(nx) ; dy = y_domain/real(ny) !Linearly spaced dx, dy
-    
+    !-----------------------------------------------------------
+    ! For box method: dx,dy = cell sizes
+    !-----------------------------------------------------------
+    dx = x_domain / real(nx)
+    dy = y_domain / real(ny)
+
     N = nx * ny
-    est_nnz = 5 * N
+    est_nnz = 5*N
+
     allocate(ia(N+1), ja(est_nnz), a(est_nnz))
-
-    aL = -D / dx**2
-    aR = -D / dx**2
-    aB = -D / dy**2
-    aT = -D / dy**2
-
     ptr = 1
     ia(1) = 1
 
     do jj = 1, ny
       do ii = 1, nx
-        kk = ii + (jj-1)*nx !Flattening index, assign each (ii,jj) to a kk
-        
-        aC = Sigma_a - (aL + aR + aB + aT)
-          if (ii == 1)   aC = aC - aL   ! has left neighbor
-          if (ii == nx)  aC = aC - aR   ! has right neighbor
-          if (jj == 1)   aC = aC - aB   ! has bottom neighbor
-          if (jj == ny)  aC = aC - aT   ! has top neighbor
+        kk = ii + (jj-1)*nx
+
+        ! Base interior coefficients
+        aL = -D * dy / dx
+        aR = -D * dy / dx
+        aB = -D * dx / dy
+        aT = -D * dx / dy
+
+        !-----------------------------------------------------
+        ! Apply Dirichlet BCs via zero-value ghost cells
+        ! Remove outside neighbors and add to diagonal
+        !-----------------------------------------------------
+
+        ! Left boundary face
+        if (ii == 1) then
+            ! Φ_g = 0 → diagonal += -aL ; no left entry
+            aC = aC - aL
+            aL = 0.0
+        else
+            aC = 0.0
+        end if
+
+        ! Right boundary
+        if (ii == nx) then
+            aC = aC - aR
+            aR = 0.0
+        end if
+
+        ! Bottom
+        if (jj == 1) then
+            aC = aC - aB
+            aB = 0.0
+        end if
+
+        ! Top
+        if (jj == ny) then
+            aC = aC - aT
+            aT = 0.0
+        end if
+
+        ! Complete diagonal
+        aC = aC + -(aL + aR + aB + aT) + Sigma_a*dx*dy
+
+        !-----------------------------------------------------
+        ! Write row in CSR
+        !-----------------------------------------------------
 
         ! Center
         ja(ptr) = kk
-        a(ptr) = aC
+        a(ptr)  = aC
         ptr = ptr + 1
 
-        ! Left
-        if (ii > 1) then
-            ja(ptr) = kk-1
+        ! Left neighbor
+        if (aL /= 0.0) then
+            ja(ptr) = kk - 1
             a(ptr)  = aL
             ptr = ptr + 1
-        endif
+        end if
+
         ! Right
-        if (ii < nx) then
-            ja(ptr) = kk+1
+        if (aR /= 0.0) then
+            ja(ptr) = kk + 1
             a(ptr)  = aR
             ptr = ptr + 1
-        endif
-        ! Down
-        if (jj > 1) then
-            ja(ptr) = kk-nx
+        end if
+
+        ! Bottom
+        if (aB /= 0.0) then
+            ja(ptr) = kk - nx
             a(ptr)  = aB
             ptr = ptr + 1
-        endif
-        ! Up
-        if (jj < ny) then
-            ja(ptr) = kk+nx
+        end if
+
+        ! Top
+        if (aT /= 0.0) then
+            ja(ptr) = kk + nx
             a(ptr)  = aT
             ptr = ptr + 1
-        endif
+        end if
+
         ia(kk+1) = ptr
+
       end do
     end do
 
-    ! Finalize CSR structure
     ia(N+1) = ptr
-    if (ptr-1 < size(a)) then
-      a = a(1:ptr-1)
-      ja = ja(1:ptr-1)
-    end if
+
+    ! Trim storage
+    a  = a(1:ptr-1)
+    ja = ja(1:ptr-1)
 
   end subroutine assemble_2D_diffusion_matrix
 
@@ -145,22 +188,51 @@ module m_diffusion_matrix
     do jj = 1, nz
       do ii = 1, nr
 
+        kk = ii + (jj-1)*nr
+
         aL = -D*(ri(ii)-dr/2)/(dr**2*ri(ii)) !-D / dr**2 + D/(2*(ri(ii)-0.5*ii*dr)*dr)
         aR = -D*(ri(ii)+dr/2)/(dr**2*ri(ii)) !-D / dr**2 - D/(2*(ri(ii)+0.5*ii*dr)*dr) 
         aB = -D / dz**2
         aT = -D / dz**2
-
-        kk = ii + (jj-1)*nr !Flattening index, assign each (ii,jj) to a kk
         
         aC = Sigma_a - (aL + aR + aB + aT)
-          if (ii == 1)   aC = aC - aL ! has left neighbor
-          if (ii == nr .or. jj == 1 .or. jj == nz) then 
-            ja(ptr) = kk
-            a(ptr) = 1.0
-            ptr = ptr + 1
-            ia(kk+1) = ptr
-            cycle
-          end if
+
+        !-------------------------
+        ! Boundary conditions
+        !-------------------------
+
+        !------------------------------------------------------------
+        ! Reflective at r = 0  (Neumann: ∂φ/∂r = 0)
+        ! → Left flux = 0 → aL = 0, but DO NOT change aC
+        !------------------------------------------------------------
+        if (ii == 1) then
+            aC = aC - aL 
+            aL = 0
+        end if
+
+        !------------------------------------------------------------
+        ! Dirichlet at r = r_max
+        !------------------------------------------------------------
+        if (ii == nr) then
+            aC = aC - aR
+            aR = 0.0d0
+        end if
+
+        !------------------------------------------------------------
+        ! Dirichlet at z = 0
+        !------------------------------------------------------------
+        if (jj == 1) then
+            aC = aC - aB
+            aB = 0.0d0
+        end if
+
+        !------------------------------------------------------------
+        ! Dirichlet at z = z_max
+        !------------------------------------------------------------
+        if (jj == nz) then
+            aC = aC - aT
+            aT = 0.0d0
+        end if
 
         ! Center
         ja(ptr) = kk

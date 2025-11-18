@@ -9,9 +9,10 @@ module m_iter
       implicit none
       integer, intent(in) :: PCG_mode, max_iter
       integer, allocatable :: ia(:), ja(:)
-      real(8), allocatable :: aa(:), phi(:), phi1(:), phi_ptr(:), lambda(:), src(:), dx, dy
-      integer :: nx = 100, ny = 100, N, ii = 1
-      real(8) :: x_domain = 20.0, y_domain = 20.0, D = 1/0.6, Sigma_a = 0.2, nuSigma_f = 1.0, norm
+      real(8), allocatable :: aa(:), phi(:), phi1(:), phi_ptr(:), lambda(:), src(:)
+      integer :: nx = 100, ny = 200, N, ii = 1
+      real(8) :: x_domain = 20.0, y_domain = 20.0, D = 1/0.6, Sigma_a = 0.2, nuSigma_f = 1.0, norm, dx, dy
+      !real(8) :: x_domain = 2.0, y_domain = 2.0, D = 1/0.06, Sigma_a = 0.02, nuSigma_f = 0.12, norm, dx, dy
       call system("pkill gnuplot")
 
       N = nx*ny
@@ -31,14 +32,14 @@ module m_iter
 
           lambda(ii) = lambda(ii-1) * sum(nuSigma_f*phi1*dx*dy)/sum(nuSigma_f*phi*dx*dy)
 
-          norm = (sum(phi1*nuSigma_f*dx*dy)/(lambda(ii)))
+          norm = (sum(phi1*nuSigma_f*dx*dy))
           phi = phi1/norm
 
           !print*,phi1(10),phi(10),lambda(ii), lambda(ii-1)
           print*,"Iteration =", ii, "Keff =", lambda(ii), "norm_check =",sum(phi*nuSigma_f*dx*dy)/(lambda(ii))
 
           if (abs((lambda(ii) - lambda(ii-1)) / lambda(ii-1)) < 1.0d-13) exit
-          if (maxval(abs(phi1 - phi)) < 1.0d-8) exit
+          if (maxval(abs(phi1 - phi)) < 1.0d-12) exit
       end do
 
       !print'(20F6.2)',phi1
@@ -46,45 +47,46 @@ module m_iter
 
   end subroutine iter
 
-   subroutine iter_rz(PCG_mode, max_iter)
-      implicit none
-      integer, intent(in) :: PCG_mode, max_iter
-      integer, allocatable :: ia(:), ja(:)
-      real(8), allocatable :: aa(:), phi(:), phi1(:), phi_ptr(:), lambda(:), src(:), dr, dz
-      integer :: nr = 100, nz = 100, N, ii = 1
-      real(8) :: r_domain = 2.0, z_domain = 2.0, D = 0.04, Sigma_a = 0.02, nuSigma_f = 3.0, norm
-      !real(8) :: r_domain = 20.0, z_domain = 20.0, D = 1/0.6, Sigma_a = 0.2, nuSigma_f = 1.0, norm
-      call system("pkill gnuplot")
+  subroutine iter_rz(PCG_mode, max_iter)
+    implicit none
+    integer, intent(in) :: PCG_mode, max_iter
+    integer, allocatable :: ia(:), ja(:)
+    real(8), allocatable :: aa(:), phi(:), phi1(:), phi_ptr(:), lambda(:), src(:), r(:)
+    real(8) :: dr, dz
+    integer :: nr = 200, nz = 200, N, ii = 1
+    !real(8) :: r_domain = 2.0, z_domain = 2.0, D = 0.04, Sigma_a = 0.02, nuSigma_f = 3.0, norm
+    real(8) :: r_domain = 20.0, z_domain = 20.0, D = 1/0.6, Sigma_a = 0.2, nuSigma_f = 1.0, norm
+    call system("pkill gnuplot")
 
-      N = nr*nz
-      allocate(ia(nz+1), ja(N), aa(N), phi(N), phi1(N), phi_ptr(N), lambda(100), src(N))
-      
-      call assemble_rz_diffusion_matrix(nr, nz, r_domain, z_domain, D, Sigma_a, ia, ja, aa, dr, dz)
+    N = nr*nz
+    allocate(phi(N), phi1(N), phi_ptr(N), lambda(100000), src(N))
+    allocate(r(nr))
 
-      phi(1:N) = 1; lambda(1) = 1
+    call assemble_rz_diffusion_matrix(nr, nz, r_domain, z_domain, D, Sigma_a, ia, ja, aa, dr, dz)
+    
+    phi(1:N) = 1; lambda(1) = 1
 
-      do
-          ii = ii + 1
-          src = (nuSigma_f * phi) / lambda(ii-1)
+    do
+        ii = ii + 1
+        src = (nuSigma_f * phi) / lambda(ii-1)
 
-          phi_ptr = phi(1:N)
-          call PCG_algorithm(AA, ja, IA, phi_ptr, src, PCG_mode, max_iter)
-          phi1(1:N) = phi_ptr
+        phi_ptr = phi(1:N)
+        call PCG_algorithm(aa, ja, ia, phi_ptr, src, PCG_mode, max_iter)
+        phi1(1:N) = phi_ptr
 
-          lambda(ii) = lambda(ii-1) * sum(nuSigma_f*phi1*dr*dz)/sum(nuSigma_f*phi*dr*dz)
+        lambda(ii) = lambda(ii-1) * sum(nuSigma_f*phi1*dr*dz)/sum(nuSigma_f*phi*dr*dz)
 
-          norm = (sum(phi1*nuSigma_f*dr*dz)/(lambda(ii)))
-          phi = phi1/norm
+        norm = sum(phi1*nuSigma_f*dr*dz)
+        phi = phi1/norm
 
-          !print*,phi1(10),phi(10),lambda(ii), lambda(ii-1)
-          print*,"Iteration =", ii, "Keff =", lambda(ii), "norm_check =",sum(phi*nuSigma_f*dr*dz)/(lambda(ii))
+        !print*,phi1(10),phi(10),lambda(ii), lambda(ii-1)
+        print*,"Iteration =", ii, "Keff =", lambda(ii), "norm_check =",sum(phi*nuSigma_f*dr*dz)/(lambda(ii))
 
-          if (abs((lambda(ii) - lambda(ii-1)) / lambda(ii-1)) < 1.0d-13) exit
-          if (maxval(abs(phi1 - phi)) < 1.0d-8) exit
-      end do
+        if (abs((lambda(ii) - lambda(ii-1)) / lambda(ii-1)) < 1.0d-8) exit
+    end do
 
-      !print'(20F6.2)',phi1
-      call outpVTK_rz(phi, nr, nz, dr, dz)
+    !print'(20F6.2)',phi1
+    call outpVTK_rz(phi, nr, nz, dr, dz)
 
   end subroutine iter_rz
 
@@ -97,7 +99,7 @@ module m_iter
     real(8) :: R_domain, D, Sigma_a, nuSigma_f, norm, dr, dth
       
     nr = 100
-    nth = 10
+    nth = 100
     R_domain = 10
     D = 3
     Sigma_a = 0.12
