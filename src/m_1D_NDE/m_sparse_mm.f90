@@ -403,7 +403,7 @@ contains
         integer :: ii, max_iter
         real(8), allocatable :: L_AA(:), U_AA(:), diag(:), r(:), d(:), z(:), q(:), b(:)
         integer, allocatable :: L_IA(:), L_JA(:), U_IA(:), U_JA(:)
-
+        
         b = sf
         ! Q_source
         ! b(1) = sf(1) + 4*1/dx(1)
