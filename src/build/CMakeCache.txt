@@ -21,7 +21,16 @@ BLAS_gomp_LIBRARY:FILEPATH=/usr/lib/gcc/x86_64-linux-gnu/11/libgomp.so
 BLAS_guide_LIBRARY:FILEPATH=BLAS_guide_LIBRARY-NOTFOUND
 
 //Path to a library.
+BLAS_mkl_core_LIBRARY:FILEPATH=/opt/intel/oneapi/mkl/2025.3/lib/libmkl_core.so
+
+//Path to a library.
 BLAS_mkl_gf_LIBRARY:FILEPATH=BLAS_mkl_gf_LIBRARY-NOTFOUND
+
+//Path to a library.
+BLAS_mkl_gf_lp64_LIBRARY:FILEPATH=/opt/intel/oneapi/mkl/2025.3/lib/libmkl_gf_lp64.so
+
+//Path to a library.
+BLAS_mkl_gnu_thread_LIBRARY:FILEPATH=/opt/intel/oneapi/mkl/2025.3/lib/libmkl_gnu_thread.so
 
 //Path to a program.
 CMAKE_ADDR2LINE:FILEPATH=/usr/bin/addr2line
@@ -411,6 +420,9 @@ CMAKE_UNAME:INTERNAL=/usr/bin/uname
 //ADVANCED property for variable: CMAKE_VERBOSE_MAKEFILE
 CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
 //Details about finding BLAS
+FIND_PACKAGE_MESSAGE_DETAILS_BLAS:INTERNAL=[/opt/intel/oneapi/mkl/2025.3/lib/libmkl_gf_lp64.so;/opt/intel/oneapi/mkl/2025.3/lib/libmkl_gnu_thread.so;/opt/intel/oneapi/mkl/2025.3/lib/libmkl_core.so;/usr/lib/gcc/x86_64-linux-gnu/11/libgomp.so;-lm;-ldl][v()]
+//Details about finding LAPACK
+FIND_PACKAGE_MESSAGE_DETAILS_LAPACK:INTERNAL=[/opt/intel/oneapi/mkl/2025.3/lib/libmkl_gf_lp64.so;/opt/intel/oneapi/mkl/2025.3/lib/libmkl_gnu_thread.so;/opt/intel/oneapi/mkl/2025.3/lib/libmkl_core.so;/usr/lib/gcc/x86_64-linux-gnu/11/libgomp.so;-lm;-ldl;-lm;-ldl][v()]
 //Details about finding Threads
 FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
 //Have Fortran function cheev

@@ -1,5 +1,0 @@
- set term wxt 0 title 'Error vs N'
- set title 'Error vs N'
- set xlabel 'log10(N)'
- set ylabel 'log10(Error)'
- plot 'error.dat' using 1:2 with lines title 'Error'
