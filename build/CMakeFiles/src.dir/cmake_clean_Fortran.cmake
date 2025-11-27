@@ -1,5 +1,13 @@
 # Remove fortran modules provided by this target.
 FILE(REMOVE
+  "csr_types.mod"
+  "CSR_TYPES.mod"
+  "CMakeFiles/src.dir/csr_types.mod.stamp"
+
+  "m_boundaries.mod"
+  "M_BOUNDARIES.mod"
+  "CMakeFiles/src.dir/m_boundaries.mod.stamp"
+
   "m_constants.mod"
   "M_CONSTANTS.mod"
   "CMakeFiles/src.dir/m_constants.mod.stamp"
@@ -19,6 +27,14 @@ FILE(REMOVE
   "m_iterative_power_solver.mod"
   "M_ITERATIVE_POWER_SOLVER.mod"
   "CMakeFiles/src.dir/m_iterative_power_solver.mod.stamp"
+
+  "m_matrix_check.mod"
+  "M_MATRIX_CHECK.mod"
+  "CMakeFiles/src.dir/m_matrix_check.mod.stamp"
+
+  "m_mms.mod"
+  "M_MMS.mod"
+  "CMakeFiles/src.dir/m_mms.mod.stamp"
 
   "m_mms_solver.mod"
   "M_MMS_SOLVER.mod"
