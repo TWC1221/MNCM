@@ -9,67 +9,148 @@
 !! Record of revisions:                                                 -!
 !   Date       Programmer     Description of change                     -!
 !   ====       ==========     =====================                     -!
-! 11/11/25     T. Charlton    Implemented 2D matrix fomrulation         -!
+! 11/11/25     T. Charlton    Implemented 2D Application                -!
 !------------------------------------------------------------------------! 
 
 module m_PCG_solver
 implicit none
+    !-----------------------------
+    ! Enumerated preconditioner types
+    !-----------------------------
+    integer, parameter :: PCG_PRECON_NONE = 0
+    integer, parameter :: PCG_PRECON_CHOLESKY = 1
+    integer, parameter :: PCG_PRECON_ILU = 2
+    integer, parameter :: PCG_PRECON_JACOBI = 3
+
 contains 
 
     !-------------------------
     ! Principle Conjugation Gradient (PCG) Algorithm driver, solving Ax=b
     !-------------------------
     subroutine PCG_algorithm(AA, JA, IA, x, b, PCG_mode, max_iter)
-        implicit none
+        implicit none 
+
+        real(8) :: alpha, beta
+        integer :: ii
         real(8), intent(in) :: AA(:), b(:)
         integer, intent(in) :: JA(:), IA(:)
         integer, intent(in) :: PCG_mode, max_iter
         real(8), intent(out) :: x(:)
 
-        real(8) :: alpha, beta
-        integer :: ii
+        real(8) :: rho_old, rho_new, denom !residual_norm
         real(8), allocatable :: L_AA(:), U_AA(:), diag(:), r(:), d(:), z(:), q(:)
         integer, allocatable :: L_IA(:), L_JA(:), U_IA(:), U_JA(:)
+        logical :: nan_detected
+
+        allocate(r(size(b)), d(size(b)), z(size(b)), q(size(b)))
 
         r = b - CSR_dot_product(AA, JA, IA, x)
-        
+
+        ! apply preconditioner to get initial z = M^-1 r
         select case(PCG_mode)
-        case(1)
-            call Cholesky_CSR(AA, JA, IA, L_AA, L_JA, L_IA)
-            z = PCG_Cholesky_CSR(L_AA, L_JA, L_IA, b)
-        case(2)
-            call ILU0_CSR(AA, JA, IA, L_AA, L_JA, L_IA, U_AA, U_JA, U_IA)
-            z = PCG_ILU_CSR(L_AA, L_JA, L_IA, U_AA, U_JA, U_IA, b)
-        case(3)
-            call Jacobi_CSR(AA, JA, IA, diag)
-            z = r/diag
-        case(4)
-            z = r
+            case(PCG_PRECON_NONE)
+                z = r
+            case(PCG_PRECON_CHOLESKY)
+                call Cholesky_CSR(AA, JA, IA, L_AA, L_JA, L_IA)
+                z = PCG_Cholesky_CSR(L_AA, L_JA, L_IA, r)
+            case(PCG_PRECON_ILU)
+                call ILU0_CSR(AA, JA, IA, L_AA, L_JA, L_IA, U_AA, U_JA, U_IA)
+                z = PCG_ILU_CSR(L_AA, L_JA, L_IA, U_AA, U_JA, U_IA, r)
+            case(PCG_PRECON_JACOBI)
+                call Jacobi_CSR(AA, JA, IA, diag)
+                z = r/diag
         end select
-        
+
+        ! Check for NaN in initial z
+        nan_detected = .false.
+        if (any(isnan(z))) then
+            print *, "WARNING: NaN detected in initial preconditioned residual z"
+            z = r  
+            nan_detected = .true.
+        end if
+
         d = z
+        ! rho = r^T z (used to compute alpha and beta)
+        rho_old = dot_product(r, z)
+
+        ! if (isnan(rho_old)) then
+        !     print *, "WARNING: rho_old is NaN in PCG initialization"
+        !     rho_old = 1.0d0
+        ! end if
+
         do ii = 1, max_iter
             q = CSR_dot_product(AA, JA, IA, d)
-            alpha = dot_product(r, z)/dot_product(d, q)
+            denom = dot_product(d, q)
+            
+            ! if (abs(denom) < 1.0d-20) then
+            !     print *, "WARNING: denom too small in PCG iteration", ii, ":", denom
+            !     print *, "  rho_old =", rho_old
+            !     print *, "  ||d|| =", sqrt(dot_product(d,d))
+            !     print *, "  ||q|| =", sqrt(dot_product(q,q))
+            !     exit
+            ! end if
+            
+            alpha = rho_old / denom
+
+            if (isnan(alpha)) then
+                print *, "ERROR: alpha is NaN in iteration", ii
+                print *, "  rho_old =", rho_old
+                print *, "  denom =", denom
+                print *, "  ||d|| =", sqrt(dot_product(d,d))
+                print *, "  ||q|| =", sqrt(dot_product(q,q))
+                print *, "  Residual norm =", sqrt(dot_product(r,r))
+                exit
+            end if
+
+            if (abs(alpha) > 1.0d10) then
+                print *, "WARNING: alpha too large in iteration", ii, ":", alpha
+                exit
+            end if
+
             x = x + alpha*d
             r = r - alpha*q
 
+            ! Apply preconditioner to new residual
             select case(PCG_mode)
-            case(1)
-                z = PCG_Cholesky_CSR(L_AA, L_JA, L_IA, r)
-            case(2)
-                z = PCG_ILU_CSR(L_AA, L_JA, L_IA, U_AA, U_JA, U_IA, r)
-            case(3)
-                z = r / diag
-            case(4)
-                z = r
+                case(PCG_PRECON_NONE)
+                    z = r
+                case(PCG_PRECON_CHOLESKY)
+                    z = PCG_Cholesky_CSR(L_AA, L_JA, L_IA, r)
+                case(PCG_PRECON_ILU)
+                    z = PCG_ILU_CSR(L_AA, L_JA, L_IA, U_AA, U_JA, U_IA, r)
+                case(PCG_PRECON_JACOBI)
+                    z = r / diag
             end select
 
-            beta = dot_product(r, z)/dot_product(r - alpha*q, z - alpha*d)
+            if (any(isnan(z))) then
+                print *, "WARNING: NaN detected in preconditioned residual at iteration", ii
+                print *, "  Setting z = r (unpreconditioned)"
+                z = r
+            end if
+
+            rho_new = dot_product(r, z)
+            
+            if (isnan(rho_new)) then
+                print *, "WARNING: rho_new is NaN in iteration", ii
+                exit
+            end if
+
+            if (abs(rho_old) < 1.0d-21) then
+                print *, "WARNING: rho_old too small in iteration", ii, ":", rho_old
+                exit
+            end if
+            
+            !print*, ii, r(1), r(50), r(2000), r(4000)
+            
+            beta = rho_new / rho_old
             d = z + beta*d
-            !print'(10F6.4)',r
-            if (sqrt(dot_product(r,r)) < 1.0d-4) exit
+            rho_old = rho_new
         end do
+
+        if (any(isnan(x))) then
+            print *, "ERROR: NaN detected in final solution x"
+        end if
+
     end subroutine
 
     !-------------------------
@@ -341,7 +422,7 @@ contains
         allocate(y(size(L_IA)-1))
         call forward_solver_CSR(L_AA,L_JA,L_IA,r,y)
         allocate(d(size(L_IA)-1))
-        call backward_solver_CSR(U_AA,U_JA,U_IA,y,d)
+        call backward_solver_upper_CSR(U_AA,U_JA,U_IA,y,d)
 
     end function
 
@@ -353,51 +434,173 @@ contains
         real(8), intent(in) :: L_AA(:), r0(:)
         integer, intent(in) :: L_JA(:), L_IA(:)
         real(8), intent(out) :: y0(:)
-        integer :: ii, k1, k2
+        integer :: ii, k1, k2, jj
+        real(8) :: diag_val, sum_val
 
+        ! Solve L*y = r where L is lower triangular stored in CSR
+        ! L has the structure from Cholesky decomposition: diagonal is stored inline
+        
         do ii = 1, size(L_IA) - 1
             k1 = L_IA(ii)
             k2 = L_IA(ii+1) - 1
-            y0(ii) = (r0(ii) - dot_product(L_AA(k1:k2-1), y0(L_JA(k1:k2-1))))/L_AA(k2)
+            
+            ! Find diagonal and compute forward substitution
+            diag_val = 0.0d0
+            sum_val = 0.0d0
+            
+            do jj = k1, k2
+                if (L_JA(jj) == ii) then
+                    diag_val = L_AA(jj)
+                else if (L_JA(jj) < ii) then
+                    sum_val = sum_val + L_AA(jj) * y0(L_JA(jj))
+                end if
+            end do
+            
+            if (abs(diag_val) < 1.0d-20) then
+                print *, "ERROR: Near-zero diagonal in forward_solver at row", ii, ":", diag_val
+                y0(ii) = 0.0d0
+            else
+                y0(ii) = (r0(ii) - sum_val) / diag_val
+            end if
         end do
         return
     end subroutine
 
     !-------------------------
-    ! Backward solve: L^T d = y  (L stored in CSR; diagonal is last element per row)
+    ! Backward solve: L^T d = y  (L stored in CSR; diagonal is stored inline)
     !-------------------------
     subroutine backward_solver_CSR(L_AA,L_JA,L_IA,y0,d0)
         implicit none
         real(8), intent(in) :: L_AA(:), y0(:)
         integer, intent(in) :: L_JA(:), L_IA(:)
-
         real(8),intent(out) :: d0(size(L_IA)-1)
 
         integer :: ii, jj, k1, k2, n
-        real(8) :: L_D0
+        real(8) :: diag_val
 
-        n = SIZE((L_IA))-1
+        ! Solve L^T * d = y where L is stored in CSR format
+        ! For the transpose: L^T has L(i,j) values at position (j,i)
+        ! We need to iterate backwards and handle the transpose implicitly
+        
+        n = size(L_IA) - 1
         d0 = y0
 
+        ! Backward substitution for L^T
         do ii = n, 1, -1
             k1 = L_IA(ii)
             k2 = L_IA(ii+1) - 1
-            L_D0 = 0.0d0
+            
+            ! Find diagonal element in row ii
+            diag_val = 0.0d0
             do jj = k1, k2
                 if (L_JA(jj) == ii) then
-                    L_D0 = L_AA(jj)
+                    diag_val = L_AA(jj)
                     exit
                 end if
             end do
+            
+            if (abs(diag_val) < 1.0d-20) then
+                print *, "ERROR: Near-zero diagonal in backward_solver at row", ii, ":", diag_val
+                d0(ii) = 0.0d0
+            else
+                d0(ii) = d0(ii) / diag_val
+            end if
 
-            d0(ii) = d0(ii)/L_D0
-
+            ! Subtract contributions from L^T(j,i) where j > i
+            ! These correspond to L(i,j) entries where j > i
+            ! We need to update d0(jj) for jj > ii using values L(ii,jj)
             do jj = k1, k2
-                if (L_JA(jj) < ii) then
-                    d0(L_JA(jj)) = d0(L_JA(jj)) - L_AA(jj)*d0(ii)
+                if (L_JA(jj) > ii) then
+                    ! This entry is L(ii, L_JA(jj)), and in L^T it's at (L_JA(jj), ii)
+                    ! But since we're doing backward substitution, we need forward entries
+                    ! This approach won't work - we need to iterate over future rows
                 end if
             end do
         end do
+
+        ! Better approach: iterate over all rows to find L^T contributions
+        do ii = n, 1, -1
+            if (abs(d0(ii)) < 1.0d-20) cycle
+            
+            ! Find diagonal in row ii
+            k1 = L_IA(ii)
+            k2 = L_IA(ii+1) - 1
+            diag_val = 0.0d0
+            
+            do jj = k1, k2
+                if (L_JA(jj) == ii) then
+                    diag_val = L_AA(jj)
+                    exit
+                end if
+            end do
+            
+            if (abs(diag_val) < 1.0d-20) then
+                if (ii > 1) then  ! Not catastrophic for last rows
+                    print *, "WARNING: Near-zero diagonal in backward_solver at row", ii
+                end if
+                cycle
+            end if
+            
+            ! Update d0(ii)
+            d0(ii) = d0(ii) / diag_val
+            
+            ! Update rows jj > ii using the L(ii,jj) entries (which become L^T(jj,ii))
+            do jj = k1, k2
+                if (L_JA(jj) > ii) then
+                    d0(L_JA(jj)) = d0(L_JA(jj)) - L_AA(jj) * d0(ii)
+                end if
+            end do
+        end do
+        
         return
     end subroutine
+
+    !-------------------------
+    ! Backward solve for upper triangular: U*d = y
+    ! U is upper triangular stored in CSR; solve by backward substitution
+    !-------------------------
+    subroutine backward_solver_upper_CSR(U_AA, U_JA, U_IA, y0, d0)
+        implicit none
+        real(8), intent(in) :: U_AA(:), y0(:)
+        integer, intent(in) :: U_JA(:), U_IA(:)
+        real(8), intent(out) :: d0(size(U_IA)-1)
+
+        integer :: ii, jj, k1, k2, n
+        real(8) :: diag_val, sum_val
+
+        ! Solve U*d = y where U is upper triangular stored in CSR
+        ! U(i,j) with j >= i are stored
+        
+        n = size(U_IA) - 1
+        d0 = y0
+
+        ! Backward substitution: start from last row and go backwards
+        do ii = n, 1, -1
+            k1 = U_IA(ii)
+            k2 = U_IA(ii+1) - 1
+            
+            ! Find diagonal element U(ii,ii)
+            diag_val = 0.0d0
+            sum_val = 0.0d0
+            
+            do jj = k1, k2
+                if (U_JA(jj) == ii) then
+                    diag_val = U_AA(jj)
+                else if (U_JA(jj) > ii) then
+                    ! Upper entries: U(ii, jj) where jj > ii
+                    sum_val = sum_val + U_AA(jj) * d0(U_JA(jj))
+                end if
+            end do
+            
+            if (abs(diag_val) < 1.0d-20) then
+                print *, "ERROR: Near-zero diagonal in backward_solver_upper at row", ii, ":", diag_val
+                d0(ii) = 0.0d0
+            else
+                d0(ii) = (d0(ii) - sum_val) / diag_val
+            end if
+        end do
+
+        return
+    end subroutine
+
 end module

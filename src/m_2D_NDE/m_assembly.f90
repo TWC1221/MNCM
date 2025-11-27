@@ -33,11 +33,7 @@ module m_diffusion_matrix
     integer :: N, ii, jj, kk, ptr, est_nnz
     real(8) :: aL, aR, aB, aT, aC
 
-    !-----------------------------------------------------------
-    ! For box method: dx,dy = cell sizes
-    !-----------------------------------------------------------
-    dx = x_domain / real(nx)
-    dy = y_domain / real(ny)
+    dx = x_domain / real(nx) ; dy = y_domain / real(ny)
 
     N = nx * ny
     est_nnz = 5*N
@@ -56,6 +52,9 @@ module m_diffusion_matrix
         aB = -D * dx / dy
         aT = -D * dx / dy
 
+        ! Multiply absorption by cell area (finite-volume form)
+        aC = Sigma_a*dx*dy - (aL + aR + aB + aT)
+
         !-----------------------------------------------------
         ! Apply Dirichlet BCs via zero-value ghost cells
         ! Remove outside neighbors and add to diagonal
@@ -63,11 +62,8 @@ module m_diffusion_matrix
 
         ! Left boundary face
         if (ii == 1) then
-            ! Φ_g = 0 → diagonal += -aL ; no left entry
             aC = aC - aL
             aL = 0.0
-        else
-            aC = 0.0
         end if
 
         ! Right boundary
@@ -88,9 +84,6 @@ module m_diffusion_matrix
             aT = 0.0
         end if
 
-        ! Complete diagonal
-        aC = aC + -(aL + aR + aB + aT) + Sigma_a*dx*dy
-
         !-----------------------------------------------------
         ! Write row in CSR
         !-----------------------------------------------------
@@ -101,28 +94,28 @@ module m_diffusion_matrix
         ptr = ptr + 1
 
         ! Left neighbor
-        if (aL /= 0.0) then
+        if (ii > 1) then
             ja(ptr) = kk - 1
             a(ptr)  = aL
             ptr = ptr + 1
         end if
 
         ! Right
-        if (aR /= 0.0) then
+        if (ii < nx) then
             ja(ptr) = kk + 1
             a(ptr)  = aR
             ptr = ptr + 1
         end if
 
         ! Bottom
-        if (aB /= 0.0) then
+        if (jj > 1) then
             ja(ptr) = kk - nx
             a(ptr)  = aB
             ptr = ptr + 1
         end if
 
         ! Top
-        if (aT /= 0.0) then
+        if (jj < ny) then
             ja(ptr) = kk + nx
             a(ptr)  = aT
             ptr = ptr + 1
@@ -140,6 +133,172 @@ module m_diffusion_matrix
     ja = ja(1:ptr-1)
 
   end subroutine assemble_2D_diffusion_matrix
+
+  subroutine assemble_3D_diffusion_matrix(nx, ny, nz, x_domain, y_domain, z_domain, D, Sigma_a, gamma, ia, ja, a, dx, dy, dz)
+    use m_matrix_check
+    implicit none
+    integer, intent(in) :: nx, ny, nz
+    real(8), intent(in) :: x_domain, y_domain, z_domain, D, Sigma_a, gamma
+    real(8), intent(out) :: dx, dy, dz
+    integer, allocatable, intent(out) :: ia(:), ja(:)
+    real(8), allocatable, intent(out) :: a(:)
+
+    integer :: N, ii, jj, kk, row, ptr, est_nnz
+    integer :: idxL, idxR, idxB, idxT, idxBk, idxFr
+    real(8) :: aL, aR, aB, aT, aBack, aFront, aC
+
+    logical :: is_spd, is_symmetric, is_pd
+
+    ! grid spacing
+    dx = x_domain / real(nx)
+    dy = y_domain / real(ny)
+    dz = z_domain / real(nz)
+
+    ! number of unknowns
+    N = nx * ny * nz
+
+    ! each row has ≤ 7 nonzeros
+    est_nnz = 7*N
+    allocate(ia(N+1), ja(est_nnz), a(est_nnz))
+
+    ptr = 1
+    ia(1) = 1
+
+    ! loop in k-jj-ii order (k slowest, ii fastest)
+    do kk = 1, nz
+       do jj = 1, ny
+          do ii = 1, nx
+
+             ! flatten to row index
+             row = ii + (jj-1)*nx + (kk-1)*nx*ny
+
+             ! stencil coefficients (base values)
+             aL    = -D * dy * dz / dx
+             aR    = -D * dy * dz / dx
+             aB    = -D * dx * dz / dy
+             aT    = -D * dx * dz / dy
+             aBack = -D * dx * dy / dz
+             aFront= -D * dx * dy / dz
+
+             ! diagonal
+             aC = Sigma_a*dx*dy*dz - (aL + aR + aB + aT + aBack + aFront)
+
+            !-------------------------------------------
+            ! Neumann BC 
+            !-------------------------------------------
+
+            !  if (ii == 1)  aC = aC + aL
+            !  if (ii == nx) aC = aC + aR
+            !  if (jj == 1)  aC = aC + aB
+            !  if (jj == ny) aC = aC + aT
+            !  if (kk == 1)  aC = aC + aBack
+            !  if (kk == nz) aC = aC + aFront
+
+             !-------------------------------------------
+             ! Dirichlet BC 
+             !-------------------------------------------
+
+            !  if (ii == 1)  aC = aC - aL
+            !  if (ii == nx) aC = aC - aR
+            !  if (jj == 1)  aC = aC - aB
+            !  if (jj == ny) aC = aC - aT
+            !  if (kk == 1)  aC = aC - aBack
+            !  if (kk == nz) aC = aC - aFront
+
+            !-------------------------------------------
+            ! Vacuum BC 
+            !-------------------------------------------
+
+            !  if (ii == 1)  aC = aC + aL + (2*D*dy*dz)/(4*D+dx)
+            !  if (ii == nx) aC = aC + aR + (2*D*dy*dz)/(4*D+dx)
+            !  if (jj == 1)  aC = aC + aB + (2*D*dx*dz)/(4*D+dy)
+            !  if (jj == ny) aC = aC + aT + (2*D*dx*dz)/(4*D+dy)
+            !  if (kk == 1)  aC = aC + aBack + (2*D*dx*dy)/(4*D+dz)
+            !  if (kk == nz) aC = aC + aFront + (2*D*dx*dy)/(4*D+dz)
+
+            
+            !-------------------------------------------
+            ! Albedo BC 
+            !-------------------------------------------
+
+             if (ii == 1)  aC = aC + aL + (2*D*gamma*dy*dz)/(2+gamma*dx)
+             if (ii == nx) aC = aC + aR + (2*D*gamma*dy*dz)/(2+gamma*dx)
+             if (jj == 1)  aC = aC + aB + (2*D*gamma*dx*dz)/(2+gamma*dy)
+             if (jj == ny) aC = aC + aT + (2*D*gamma*dx*dz)/(2+gamma*dy)
+             if (kk == 1)  aC = aC + aBack + (2*D*gamma*dx*dy)/(2+gamma*dz)
+             if (kk == nz) aC = aC + aFront + (2*D*gamma*dx*dy)/(2+gamma*dz)
+
+            !-------------------------------------------
+            ! Write center (always valid)
+            !-------------------------------------------
+            ja(ptr) = row
+            a(ptr)  = aC
+            ptr = ptr + 1
+            
+            ! LEFT
+            if (ii > 1 .and. nx > 1) then
+              idxL = row - 1
+              ja(ptr) = idxL
+              a(ptr)  = aL
+              ptr = ptr + 1
+            end if
+
+            ! RIGHT
+            if (ii < nx .and. nx > 1) then
+              idxR = row + 1
+              ja(ptr) = idxR
+              a(ptr)  = aR
+              ptr = ptr + 1
+            end if
+
+            ! BOTTOM
+            if (jj > 1 .and. ny > 1) then
+              idxB = row - nx
+              ja(ptr) = idxB
+              a(ptr)  = aB
+              ptr = ptr + 1
+            end if
+
+            ! TOP
+            if (jj < ny .and. ny > 1) then
+              idxT = row + nx
+              ja(ptr) = idxT
+              a(ptr)  = aT
+              ptr = ptr + 1
+            end if
+
+            ! BACK (k-1)
+            if (kk > 1 .and. nz > 1) then
+              idxBk = row - nx*ny
+              ja(ptr) = idxBk
+              a(ptr)  = aBack
+              ptr = ptr + 1
+            end if
+
+            ! FRONT (k+1)
+            if (kk < nz .and. nz > 1) then
+              idxFr = row + nx*ny
+              ja(ptr) = idxFr
+              a(ptr)  = aFront
+              ptr = ptr + 1
+            end if
+
+            ! CSR row pointer
+            ia(row+1) = ptr
+
+          end do
+       end do
+    end do
+
+    ia(N+1) = ptr
+
+    ! trim unused (ptr-1 actual nnz)
+    ja = ja(1:ptr-1)
+    a  = a(1:ptr-1)
+
+    call check_matrix_SPD_CSR(ia, ja, a, is_spd, is_symmetric, is_pd, verbose=.true.)
+
+  end subroutine assemble_3D_diffusion_matrix
 
   subroutine assemble_rz_diffusion_matrix(nr, nz, r_domain, z_domain, D, Sigma_a, ia, ja, a, dr, dz)
     implicit none
@@ -181,8 +340,8 @@ module m_diffusion_matrix
     ptr = 1
     ia(1) = 1
 
-    do ii = 1, nr
-      ri(ii) = (ii-0.5)*dr
+    do ii = 1,nr
+      ri(ii) = (ii-0.5d0)*dr
     end do
 
     do jj = 1, nz
@@ -192,22 +351,20 @@ module m_diffusion_matrix
 
         aL = -D*(ri(ii)-dr/2)/(dr**2*ri(ii)) !-D / dr**2 + D/(2*(ri(ii)-0.5*ii*dr)*dr)
         aR = -D*(ri(ii)+dr/2)/(dr**2*ri(ii)) !-D / dr**2 - D/(2*(ri(ii)+0.5*ii*dr)*dr) 
-        aB = -D / dz**2
-        aT = -D / dz**2
+        aB = -D / (dz**2)
+        aT = -D / (dz**2)
         
+        ! Multiply absorption by cell volume in r-z (finite-volume form):
         aC = Sigma_a - (aL + aR + aB + aT)
-
-        !-------------------------
-        ! Boundary conditions
-        !-------------------------
-
+        
         !------------------------------------------------------------
         ! Reflective at r = 0  (Neumann: ∂φ/∂r = 0)
-        ! → Left flux = 0 → aL = 0, but DO NOT change aC
         !------------------------------------------------------------
         if (ii == 1) then
-            aC = aC - aL 
-            aL = 0
+          ! Reflective at r=0 (Neumann ∂φ/∂r = 0): remove the missing left-face
+          ! contribution by adding its value to the diagonal (same pattern as 2D/rth)
+          aC = aC - aL
+          aL = 0.0d0
         end if
 
         !------------------------------------------------------------
@@ -230,8 +387,8 @@ module m_diffusion_matrix
         ! Dirichlet at z = z_max
         !------------------------------------------------------------
         if (jj == nz) then
-            aC = aC - aT
-            aT = 0.0d0
+          aC = aC - aT
+          aT = 0.0d0
         end if
 
         ! Center
@@ -241,27 +398,27 @@ module m_diffusion_matrix
 
         ! Left
         if (ii > 1) then
-            ja(ptr) = kk-1
-            a(ptr)  = aL
-            ptr = ptr + 1
+          ja(ptr) = kk-1
+          a(ptr)  = aL
+          ptr = ptr + 1
         endif
         ! Right
         if (ii < nr) then
-            ja(ptr) = kk+1
-            a(ptr)  = aR
-            ptr = ptr + 1
+          ja(ptr) = kk+1
+          a(ptr)  = aR
+          ptr = ptr + 1
         endif
         ! Down
         if (jj > 1) then
-            ja(ptr) = kk-nr
-            a(ptr)  = aB
-            ptr = ptr + 1
+          ja(ptr) = kk-nr
+          a(ptr)  = aB
+          ptr = ptr + 1
         endif
         ! Up
         if (jj < nz) then
-            ja(ptr) = kk+nr
-            a(ptr)  = aT
-            ptr = ptr + 1
+          ja(ptr) = kk+nr
+          a(ptr)  = aT
+          ptr = ptr + 1
         endif
         ia(kk+1) = ptr
       end do
@@ -275,16 +432,111 @@ module m_diffusion_matrix
     end if
 
   end subroutine assemble_rz_diffusion_matrix
-  
-  subroutine assemble_rth_diffusion_matrix(nr, nth, ri, dr, dth, D, Sigma_a, ia, ja, a)
+
+subroutine assemble_rth_diffusion_matrix(nr, nth, ri, dr, dth, D, Sigma_a, ia, ja, a)
+  implicit none
+
+  integer, intent(in) :: nr, nth
+  real(8), intent(in) :: ri(:), dr, dth, D, Sigma_a
+  integer, allocatable, intent(out) :: ia(:), ja(:)
+  real(8), allocatable, intent(out) :: a(:)
+
+  integer :: ii, jj, row, nnz, est_nnz, col
+  real(8) :: r, aN, aS, aE, aW, a0
+
+  est_nnz = 5 * nr * nth          ! 5-point stencil
+  allocate(ia(nr*nth+1), ja(est_nnz), a(est_nnz))
+
+  nnz = 1
+  ia(1) = 1
+
+  do ii = 1, nr
+    do jj = 1, nth
+
+      row = (ii-1)*nth + jj
+      r = ri(ii)
+
+      ! angular diffusion
+      aE = -D / (r*r * dth*dth)
+      aW =  aE
+
+      ! radial diffusion (symmetric discretization)
+      aN = -D * (r+0.5d0*dr) / (r * dr*dr)
+      aS = -D * (r-0.5d0*dr) / (r * dr*dr)
+
+      !--- MODIFY FOR BOUNDARIES ---!
+
+      ! Reflective at r=0
+      if (ii == 1) then
+          ! Neumann BC: dφ/dr=0 → S-coefficient mirrors N
+          aS = aN
+      end if
+
+      ! Dirichlet at r=R
+      if (ii == nr) then
+          ! Replace row with φ = 0
+          ja(nnz) = row
+          a(nnz) = 1.0d0
+          nnz = nnz + 1
+          ia(row+1) = nnz
+          cycle
+      end if
+
+      ! center coefficient
+      a0 = -(aN + aS + aE + aW) + Sigma_a * r
+
+      !--------- SOUTH ----------
+      if (ii > 1) then
+          col = (ii-2)*nth + jj
+          ja(nnz) = col
+          a(nnz)  = aS
+          nnz = nnz + 1
+      end if
+
+      !---------- NORTH ---------
+      col = ii*nth + jj
+      ja(nnz) = col
+      a(nnz)  = aN
+      nnz = nnz + 1
+
+      !---------- WEST ----------
+      col = (ii-1)*nth + merge(jj-1, nth, jj>1)
+      ja(nnz) = col
+      a(nnz)  = aW
+      nnz = nnz + 1
+
+      !---------- EAST ----------
+      col = (ii-1)*nth + merge(jj+1, 1, jj<nth)
+      ja(nnz) = col
+      a(nnz)  = aE
+      nnz = nnz + 1
+
+      !---------- CENTER ----------
+      ja(nnz) = row
+      a(nnz)  = a0
+      nnz = nnz + 1
+
+      ia(row+1) = nnz
+
+    end do
+  end do
+
+  ! trim storage
+  a  = a(1:nnz-1)
+  ja = ja(1:nnz-1)
+
+end subroutine
+
+subroutine assemble_2D_diffusion_matrix_g(nx, ny, x_domain, y_domain, D, Sigma_a, ia, ja, a, dx, dy)
     implicit none
     !---------------------------------------------------------------
     ! Assembles CSR matrix for 2D diffusion operator:
-    !   -D*(d2/dr2 + 1/r d/dr + 1/r2 d2/dth2) + Sigma_a
+    !   -D*(d2/dx2 + d2/dy2) + Sigma_a
+    ! Dirichlet boundary conditions (phi=0) on all edges.
     !
     ! Input:
-    !   nr, nth     - grid points (including boundaries)
-    !   dr, dth     - grid spacing
+    !   nx, ny     - grid points (including boundaries)
+    !   dx, dy     - grid spacing
     !   D          - diffusion coefficient
     !   Sigma_a    - absorption coefficient
     !
@@ -296,78 +548,116 @@ module m_diffusion_matrix
     ! Notes:
     !   Lexicographic ordering: k = ii + (jj-1)*nx
     !---------------------------------------------------------------
-    integer, intent(in) :: nr, nth
-    real(8), intent(in) :: D, Sigma_a, ri(:)
+    integer, intent(in) :: nx, ny
+    real(8), intent(in) :: x_domain, y_domain, D, Sigma_a
+    real(8), intent(out) :: dx, dy
     integer, allocatable, intent(out) :: ia(:), ja(:)
     real(8), allocatable, intent(out) :: a(:)
-    real(8), intent(out) :: dr, dth
 
-    integer :: ii, jj, kk, row, nnz, est_nnz, N
-    real(8) :: aN, aE, aS, aW, a0
+    integer :: N, ii, jj, kk, ptr, est_nnz
+    real(8) :: aL, aR, aB, aT, aC
 
-    N = nr * nth
-    est_nnz = 5 * N
-    nnz = 1
+    !-----------------------------------------------------------
+    ! For box method: dx,dy = cell sizes
+    !-----------------------------------------------------------
+    dx = x_domain / real(nx) ; dy = y_domain / real(ny)
 
-    allocate(ia(nr*nth+1),ja(est_nnz),a(est_nnz))
+    N = nx * ny
+    est_nnz = 5*N
+
+    allocate(ia(N+1), ja(est_nnz), a(est_nnz))
+    ptr = 1
     ia(1) = 1
 
-    do ii = 1, nr
-      do jj = 1, nth
-        row = (ii-1)*nth + jj
+    do jj = 1, ny
+      do ii = 1, nx
+        kk = ii + (jj-1)*nx
 
-        aN = -D*(2*ri(ii)+dr)/(2*ri(ii)*dr**2)
-        aS = -D*(2*ri(ii)-dr)/(2*ri(ii)*dr**2)
-        aE = -D/(ri(ii)**2 * dth**2)
-        aW = aE
+        ! Base interior coefficients
+        aL = -D * dy / dx
+        aR = -D * dy / dx
+        aB = -D * dx / dy
+        aT = -D * dx / dy
 
-        a0 = -(aN+aS)-2.0d0*aE + Sigma_a
+        ! Multiply absorption by cell area (finite-volume form)
+        aC = Sigma_a*dx*dy - (aL + aR + aB + aT)
 
+        !-----------------------------------------------------
+        ! Apply Dirichlet BCs via zero-value ghost cells
+        ! Remove outside ne ighbors and add to diagonal
+        !-----------------------------------------------------
+
+        ! Left boundary face
         if (ii == 1) then
-          a0 = a0 - aS
-        else 
-          kk = (ii-2)*nth + jj
-          ja(nnz) = kk
-          a(nnz) = aS
-          nnz = nnz + 1
+            aC = aC - aL
+            aL = 0.0
         end if
 
-        if (ii == nr) then
-          kk = (ii-1)*nth + jj
-          ja(nnz) = kk
-          a(nnz) = 1.0d0
-          nnz = nnz + 1
-        else
-          kk = ii*Nth + jj
-          ja(nnz) = kk
-          a(nnz) = aN
-          nnz = nnz + 1
+        ! Right boundary
+        if (ii == nx) then
+            aC = aC - aR
+            aR = 0.0
         end if
 
-        kk = (ii-1)*nth + merge(jj-1,nth,jj>1)
-        ja(nnz) = kk
-        a(nnz) = aW
-        nnz = nnz + 1
+        ! Bottom
+        if (jj == 1) then
+            aC = aC - aB
+            aB = 0.0
+        end if
 
-        kk = (ii-1)*nth + merge(jj+1,1,jj<nth)
-        ja(nnz) = kk
-        a(nnz) = aE
-        nnz = nnz + 1
-        
-        ja(nnz) = row
-        a(nnz) = a0
-        nnz = nnz + 1
+        ! Top
+        if (jj == ny) then
+            aC = aC - aT
+            aT = 0.0
+        end if
 
-        ia(row+1) = nnz
-      end do 
-    end do 
-    
-    ! Finalize CSR structure
-    if (nnz-1 < size(a)) then
-      a = a(1:nnz-1)
-      ja = ja(1:nnz-1)
-    end if
+        !-----------------------------------------------------
+        ! Write row in CSR
+        !-----------------------------------------------------
 
-  end subroutine assemble_rth_diffusion_matrix     
+        ! Center
+        ja(ptr) = kk
+        a(ptr)  = aC
+        ptr = ptr + 1
 
+        ! Left neighbor
+        if (ii > 1) then
+            ja(ptr) = kk - 1
+            a(ptr)  = aL
+            ptr = ptr + 1
+        end if
+
+        ! Right
+        if (ii < nx) then
+            ja(ptr) = kk + 1
+            a(ptr)  = aR
+            ptr = ptr + 1
+        end if
+
+        ! Bottom
+        if (jj > 1) then
+            ja(ptr) = kk - nx
+            a(ptr)  = aB
+            ptr = ptr + 1
+        end if
+
+        ! Top
+        if (jj < ny) then
+            ja(ptr) = kk + nx
+            a(ptr)  = aT
+            ptr = ptr + 1
+        end if
+
+        ia(kk+1) = ptr
+
+      end do
+    end do
+
+    ia(N+1) = ptr
+
+    ! Trim storage
+    a  = a(1:ptr-1)
+    ja = ja(1:ptr-1)
+
+  end subroutine assemble_2D_diffusion_matrix_g
 end module m_diffusion_matrix
