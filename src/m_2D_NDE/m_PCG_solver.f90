@@ -136,7 +136,7 @@ contains
             end if
 
             if (abs(rho_old) < 1.0d-21) then
-                print *, "WARNING: rho_old too small in iteration", ii, ":", rho_old
+                !print *, "WARNING: rho_old too small in iteration", ii, ":", rho_old
                 exit
             end if
             

@@ -149,7 +149,7 @@ module m_iter
 
       print*,'Iteration =', ii, 'Keff =', lambda(ii), 'norm_check =', sum(phi*nuSigma_f * dx*dy*dz)/(lambda(ii))
 
-      if (abs((lambda(ii) - lambda(ii-1)) / lambda(ii-1)) < 1.0d-8) exit
+      if (abs((lambda(ii) - lambda(ii-1)) / lambda(ii-1)) < 1.0d-10) exit
       !if (maxval(abs(phi1 - phi)) < 1.0d-13) then; print*,('phi'); exit; end if
     end do
 

@@ -65,16 +65,17 @@ add_library(src
     src/m_1D_NDE/m_sparse_mm
     src/m_2D_NDE/m_assembly.f90
     src/m_2D_NDE/m_iter.f90
-    src/m_2D_NDE/m_boundaries.f90
+    src/m_2D_NDE/m_dtype.f90
     src/m_2D_NDE/m_matrix_check.f90
     src/m_2D_NDE/m_MMS.f90
     src/m_2D_NDE/m_outpVTK.f90
     src/m_2D_NDE/m_PCG_solver.f90
+    src/m_2D_NDE/m_dtype.f90
     )
-add_executable(executable_name main.f90)
+add_executable(exe main.f90)
 
 # Manually link PETSc
 # target_include_directories(executable_name PRIVATE ${PETSC_INCLUDES})
 # target_link_libraries(executable_name PRIVATE src ${PETSC_LIBRARIES} LAPACK::LAPACK BLAS::BLAS)
-target_include_directories(executable_name PRIVATE src)
-target_link_libraries(executable_name PRIVATE src LAPACK::LAPACK BLAS::BLAS)
+target_include_directories(exe PRIVATE src)
+target_link_libraries(exe PRIVATE src LAPACK::LAPACK BLAS::BLAS)

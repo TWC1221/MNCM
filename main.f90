@@ -1,13 +1,14 @@
 program main
     use m_iter
     use m_driver
+    use multigroup_multidimensional
     implicit none
     integer :: PCG_mode = PCG_PRECON_JACOBI
     integer :: max_iter = 1000
     real(8) :: t_start, t_end
 
     call cpu_time(t_start)
-    call iter_xyz(PCG_mode, max_iter)
+    call multigroup_diffusion_iter_3d(PCG_mode, max_iter)!call iter_xyz(PCG_mode, max_iter)
     call cpu_time(t_end)
 
     print*,t_end - t_start
