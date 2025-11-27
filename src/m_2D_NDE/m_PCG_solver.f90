@@ -9,87 +9,66 @@
 !! Record of revisions:                                                 -!
 !   Date       Programmer     Description of change                     -!
 !   ====       ==========     =====================                     -!
-! 11/11/25     T. Charlton    Implemented 2D Application                -!
+! 11/11/25     T. Charlton    Implemented 2D matrix fomrulation         -!
 !------------------------------------------------------------------------! 
 
 module m_PCG_solver
 implicit none
-
-    integer, parameter :: PCG_PRECON_NONE = 0
-    integer, parameter :: PCG_PRECON_CHOLESKY = 1
-    integer, parameter :: PCG_PRECON_ILU = 2
-    integer, parameter :: PCG_PRECON_JACOBI = 3
-
 contains 
 
     !-------------------------
     ! Principle Conjugation Gradient (PCG) Algorithm driver, solving Ax=b
     !-------------------------
     subroutine PCG_algorithm(AA, JA, IA, x, b, PCG_mode, max_iter)
-        implicit none 
-
-        real(8) :: alpha, beta
-        integer :: ii
+        implicit none
         real(8), intent(in) :: AA(:), b(:)
         integer, intent(in) :: JA(:), IA(:)
         integer, intent(in) :: PCG_mode, max_iter
         real(8), intent(out) :: x(:)
 
-        real(8) :: rho_old, rho_new, denom
+        real(8) :: alpha, beta
+        integer :: ii
         real(8), allocatable :: L_AA(:), U_AA(:), diag(:), r(:), d(:), z(:), q(:)
         integer, allocatable :: L_IA(:), L_JA(:), U_IA(:), U_JA(:)
 
-        allocate(r(size(b)), d(size(b)), z(size(b)), q(size(b)))
-
         r = b - CSR_dot_product(AA, JA, IA, x)
-
-        ! apply preconditioner to get initial z = M^-1 r
+        
         select case(PCG_mode)
-            case(PCG_PRECON_NONE)
-                z = r
-            case(PCG_PRECON_CHOLESKY)
-                call Cholesky_CSR(AA, JA, IA, L_AA, L_JA, L_IA)
-                z = PCG_Cholesky_CSR(L_AA, L_JA, L_IA, r)
-            case(PCG_PRECON_ILU)
-                call ILU0_CSR(AA, JA, IA, L_AA, L_JA, L_IA, U_AA, U_JA, U_IA)
-                z = PCG_ILU_CSR(L_AA, L_JA, L_IA, U_AA, U_JA, U_IA, r)
-            case(PCG_PRECON_JACOBI)
-                call Jacobi_CSR(AA, JA, IA, diag)
-                z = r/diag
+        case(1)
+            call Cholesky_CSR(AA, JA, IA, L_AA, L_JA, L_IA)
+            z = PCG_Cholesky_CSR(L_AA, L_JA, L_IA, b)
+        case(2)
+            call ILU0_CSR(AA, JA, IA, L_AA, L_JA, L_IA, U_AA, U_JA, U_IA)
+            z = PCG_ILU_CSR(L_AA, L_JA, L_IA, U_AA, U_JA, U_IA, b)
+        case(3)
+            call Jacobi_CSR(AA, JA, IA, diag)
+            z = r/diag
+        case(4)
+            z = r
         end select
-
+        
         d = z
-        ! rho = r^T z (used to compute alpha and beta)
-        rho_old = dot_product(r, z)
-
         do ii = 1, max_iter
             q = CSR_dot_product(AA, JA, IA, d)
-            denom = dot_product(d, q)
-            if (denom == 0.0d0) exit
-            alpha = rho_old / denom
-
+            alpha = dot_product(r, z)/dot_product(d, q)
             x = x + alpha*d
             r = r - alpha*q
 
-            ! Convergence check (absolute residual)
-            if (sqrt(dot_product(r,r)) < 1.0d-14) exit
-
-            ! Apply preconditioner to new residual
             select case(PCG_mode)
-                case(PCG_PRECON_NONE)
-                    z = r
-                case(PCG_PRECON_CHOLESKY)
-                    z = PCG_Cholesky_CSR(L_AA, L_JA, L_IA, r)
-                case(PCG_PRECON_ILU)
-                    z = PCG_ILU_CSR(L_AA, L_JA, L_IA, U_AA, U_JA, U_IA, r)
-                case(PCG_PRECON_JACOBI)
-                    z = r / diag
+            case(1)
+                z = PCG_Cholesky_CSR(L_AA, L_JA, L_IA, r)
+            case(2)
+                z = PCG_ILU_CSR(L_AA, L_JA, L_IA, U_AA, U_JA, U_IA, r)
+            case(3)
+                z = r / diag
+            case(4)
+                z = r
             end select
 
-            rho_new = dot_product(r, z)
-            beta = rho_new / rho_old
+            beta = dot_product(r, z)/dot_product(r - alpha*q, z - alpha*d)
             d = z + beta*d
-            rho_old = rho_new
+            !print'(10F6.4)',r
+            if (sqrt(dot_product(r,r)) < 1.0d-4) exit
         end do
     end subroutine
 
