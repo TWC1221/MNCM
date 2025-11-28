@@ -527,7 +527,7 @@ module m_diffusion_matrix
 
   end subroutine
 
-  subroutine assemble_3D_diffusion_matrix_g(nx, ny, nz, N, G, gg, x_domain, y_domain, z_domain, D, Sigma_r, gamma, A, dx, dy, dz)
+subroutine assemble_3D_diffusion_matrix_g(nx, ny, nz, N, G, gg, x_domain, y_domain, z_domain, D, Sigma_r, gamma, A, dx, dy, dz)
     use CSR_types, only: CSRMatrix
     implicit none
 
@@ -550,20 +550,23 @@ module m_diffusion_matrix
     dy = y_domain / real(ny)
     dz = z_domain / real(nz)
 
-    ! each row has ≤ 7 nonzeros (7-point stencil)
-    est_nnz = 7*N
+    ! estimate nnz (7-point stencil maximum)
+    est_nnz = 7 * N
+
+    ! allocate CSR arrays
     allocate(A%ia(N+1))
     allocate(A%ja(est_nnz))
     allocate(A%aa(est_nnz))
 
+    ! initialize
     A%ia = 0
     A%ja = 0
     A%aa = 0
 
     ptr = 1
-    A%ia(1) = 1
+    A%ia(1) = 1  ! 1-based CSR convention: IA(1) = index of first element = 1
 
-    ! loop over grid (k-j-i order)
+    ! loop rows in k-j-i order (consistent with your flattening)
     do kk = 1, nz
         do jj = 1, ny
             do ii = 1, nx
@@ -571,35 +574,35 @@ module m_diffusion_matrix
                 ! flatten to row index (1-based)
                 row = ii + (jj-1)*nx + (kk-1)*nx*ny
 
-                ! stencil coefficients
-                aL = -D*dy*dz/dx
-                aR = -D*dy*dz/dx
-                aB = -D*dx*dz/dy
-                aT = -D*dx*dz/dy
-                aBack = -D*dx*dy/dz
-                aFront = -D*dx*dy/dz
+                ! stencil coefficients (off-diagonals)
+                aL = -D * ( dy * dz ) / dx
+                aR = aL
+                aB = -D * ( dx * dz ) / dy
+                aT = aB
+                aBack  = -D * ( dx * dy ) / dz
+                aFront = aBack
 
-                ! diagonal
-                aC = Sigma_r*dx*dy*dz - (aL+aR+aB+aT+aBack+aFront)
+                ! diagonal contribution (positive) - note sign convention: off-diagonals are negative
+                aC = Sigma_r * dx * dy * dz - (aL + aR + aB + aT + aBack + aFront)
 
-                ! Albedo BC
-                if (ii == 1)  aC = aC + aL + (2*D*gamma*dy*dz)/(2+gamma*dx)
-                if (ii == nx) aC = aC + aR + (2*D*gamma*dy*dz)/(2+gamma*dx)
-                if (jj == 1)  aC = aC + aB + (2*D*gamma*dx*dz)/(2+gamma*dy)
-                if (jj == ny) aC = aC + aT + (2*D*gamma*dx*dz)/(2+gamma*dy)
-                if (kk == 1)  aC = aC + aBack + (2*D*gamma*dx*dy)/(2+gamma*dz)
-                if (kk == nz) aC = aC + aFront + (2*D*gamma*dx*dy)/(2+gamma*dz)
+                ! apply Albedo BC by shifting off-diagonal contributions into diagonal (keeps same sign convention)
+                if (ii == 1)  aC = aC + aL + ( 2.0d0*D*gamma*dy*dz )/( 2.0d0 + gamma*dx )
+                if (ii == nx) aC = aC + aR + ( 2.0d0*D*gamma*dy*dz )/( 2.0d0 + gamma*dx )
+                if (jj == 1)  aC = aC + aB + ( 2.0d0*D*gamma*dx*dz )/( 2.0d0 + gamma*dy )
+                if (jj == ny) aC = aC + aT + ( 2.0d0*D*gamma*dx*dz )/( 2.0d0 + gamma*dy )
+                if (kk == 1)  aC = aC + aBack + ( 2.0d0*D*gamma*dx*dy )/( 2.0d0 + gamma*dz )
+                if (kk == nz) aC = aC + aFront + ( 2.0d0*D*gamma*dx*dy )/( 2.0d0 + gamma*dz )
 
-                !--- center ---
+                ! --- center (column = row) ---
                 if (ptr > est_nnz) then
-                    print *, "ERROR: ptr exceeds est_nnz!"
+                    print *, "ERROR: ptr exceeds est_nnz in assemble_3D_diffusion_matrix_g, increase est_nnz"
                     stop
                 end if
-                A%ja(ptr) = row
+                A%ja(ptr) = row       ! column index of diagonal
                 A%aa(ptr) = aC
                 ptr = ptr + 1
 
-                ! LEFT
+                ! LEFT neighbour (col = row-1)
                 if (ii > 1) then
                     idxL = row - 1
                     A%ja(ptr) = idxL
@@ -607,7 +610,7 @@ module m_diffusion_matrix
                     ptr = ptr + 1
                 end if
 
-                ! RIGHT
+                ! RIGHT neighbour
                 if (ii < nx) then
                     idxR = row + 1
                     A%ja(ptr) = idxR
@@ -615,7 +618,7 @@ module m_diffusion_matrix
                     ptr = ptr + 1
                 end if
 
-                ! BOTTOM
+                ! BOTTOM neighbour (j-1)
                 if (jj > 1) then
                     idxB = row - nx
                     A%ja(ptr) = idxB
@@ -623,7 +626,7 @@ module m_diffusion_matrix
                     ptr = ptr + 1
                 end if
 
-                ! TOP
+                ! TOP neighbour (j+1)
                 if (jj < ny) then
                     idxT = row + nx
                     A%ja(ptr) = idxT
@@ -631,7 +634,7 @@ module m_diffusion_matrix
                     ptr = ptr + 1
                 end if
 
-                ! BACK
+                ! BACK neighbour (k-1)
                 if (kk > 1) then
                     idxBk = row - nx*ny
                     A%ja(ptr) = idxBk
@@ -639,7 +642,7 @@ module m_diffusion_matrix
                     ptr = ptr + 1
                 end if
 
-                ! FRONT
+                ! FRONT neighbour (k+1)
                 if (kk < nz) then
                     idxFr = row + nx*ny
                     A%ja(ptr) = idxFr
@@ -647,27 +650,21 @@ module m_diffusion_matrix
                     ptr = ptr + 1
                 end if
 
-                ! CSR row pointer
+                ! set IA for next row (first index after this row's entries)
                 A%ia(row+1) = ptr
 
             end do
         end do
     end do
 
-    ! final NNZ
+    ! final NNZ index pointer: ptr is (nnz + 1)
     A%ia(N+1) = ptr
 
-    ! trim arrays
-    A%ja = A%ja(1:ptr-1)
-    A%aa = A%aa(1:ptr-1)
+    ! trim JA and AA to actual nnz
+    if (ptr - 1 < size(A%ja)) A%ja = A%ja(1:ptr-1)
+    if (ptr - 1 < size(A%aa)) A%aa = A%aa(1:ptr-1)
 
-    !--- DEBUG PRINT ---
-    ! print *, "Assembled CSR matrix for group ", gg
-    ! print *, " N = ", N, " nnz = ", ptr-1
-    ! print *, "IA(1:10) = ", A%ia(1:min(10,N+1))
-    ! print *, "JA(1:10) = ", A%ja(1:min(10,ptr-1))
-    ! print *, "AA(1:10) = ", A%aa(1:min(10,ptr-1))
-
+    return
 end subroutine assemble_3D_diffusion_matrix_g
 
 end module m_diffusion_matrix
