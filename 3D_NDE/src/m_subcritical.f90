@@ -14,13 +14,11 @@ subroutine k_subcritical(mesh, MATs, K_eff)
   type(MatMatrix), intent(in) :: MATs
   real(dp),        intent(in) :: K_eff
   real(dp)                 :: ks, kq, ksq, b_eff
-  real(dp)                 :: ks_num, kq_num, S, Q, T, check
+  real(dp)                 :: ks_num, kq_num, S, Q, check
 
   integer :: G, ncell, gg
   real(dp), allocatable :: phi(:,:), phi_adj(:,:), phi_fix(:,:), src_ext(:,:)
   real(dp), allocatable :: nu_sigma_f(:), chi(:)
-
-  real(dp) :: beta, b_eff_num
 
   !------------------------------------------------------------
   ! Dimensions
@@ -72,15 +70,21 @@ subroutine k_subcritical(mesh, MATs, K_eff)
   check = check - ks_num - kq_num
 
   ! Effective delayed fraction: adjoint-weighted ratio; equals beta here
-  b_eff = sum( phi_adj(2,:) * sum(MATs%Beta) * sum(MATs%Delayed_Chi) * nu_sigma_f(2) * phi_fix(2,:) * mesh%dV ) / sum( phi_adj(2,:) * nu_sigma_f(2) * phi_fix(2,:) * mesh%dV )
+  !b_eff = sum( phi_adj(2,:) * sum(MATs%Beta) * sum(MATs%Delayed_Chi) * nu_sigma_f(2) * phi_fix(2,:) * mesh%dV ) / sum( phi_adj(2,:) * nu_sigma_f(2) * phi_fix(2,:) * mesh%dV )
 
   if (check > 1.0d-7) print'(A,F12.8)', 'WARNING: subcritical multiplication factor self-consistency NOT confirmed, residual error = ', check
-  
-  print '(A,F12.8,A,F15.8)', 'k_sub_ks     = ', ks, '    : error (pcm)   =', (ks - MATs%EVAL(2))/MATs%EVAL(2)*1.0d5
-  print '(A,F12.8,A,F15.8)', 'k_sub_kq     = ', kq, '    : error (pcm)   =', (kq - MATs%EVAL(3))/MATs%EVAL(3)*1.0d5
-  print '(A,F12.8,A,F15.8)', 'k_sub_ksq    = ', ksq, '    : error (pcm)   =', (ksq - MATs%EVAL(4))/MATs%EVAL(4)*1.0d5
-  print '(A,F12.8,A,F15.8)', 'S            = ', S,  '    : error (pcm)   =', (S - MATs%EVAL(5))/MATs%EVAL(5)*1.0d5
-  print '(A,F12.8)',         'b_eff        = ', b_eff
+  if (sum(MATs%EVAL) > 0.1) then
+    print '(A,F12.8,A,F15.8)', ' k_sub_ks   = ', ks, '    : error (pcm)  =', (ks - MATs%EVAL(2))/MATs%EVAL(2)*1.0d5
+    print '(A,F12.8,A,F15.8)', ' k_sub_kq   = ', kq, '    : error (pcm)  =', (kq - MATs%EVAL(3))/MATs%EVAL(3)*1.0d5
+    print '(A,F12.8,A,F15.8)', ' k_sub_ksq  = ', ksq, '    : error (pcm)  =', (ksq - MATs%EVAL(4))/MATs%EVAL(4)*1.0d5
+    print '(A,F12.8,A,F15.8)', ' S          = ', S,  '    : error (pcm)  =', (S - MATs%EVAL(5))/MATs%EVAL(5)*1.0d5
+  else
+    print '(A,F12.8)',         ' k_sub_ks   = ', ks
+    print '(A,F12.8)',         ' k_sub_kq   = ', kq
+    print '(A,F12.8)',         ' k_sub_ksq  = ', ksq
+    print '(A,F12.8)',         ' S          = ', S
+  end if
+  !print '(A,F12.8)',         'b_eff        = ', b_eff
 
 end subroutine k_subcritical
 

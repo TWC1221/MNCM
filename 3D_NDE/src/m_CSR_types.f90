@@ -95,8 +95,8 @@ module CSR_types
             end do
         end do
 
-        if (eval) call read_vector(MATs%Beta)
-        if (eval) call read_vector(MATs%Delayed_Chi)
+        ! call read_vector(MATs%Beta)
+        ! call read_vector(MATs%Delayed_Chi)
         if (eval) call read_vector(MATs%EVAL)
 
         close(unit)
