@@ -16,6 +16,9 @@ module CSR_types
         real(8), allocatable :: Sigma_s(:,:)
         real(8), allocatable :: nu_Sigma_f(:)
         real(8), allocatable :: Sigma_a(:)
+        real(8), allocatable :: EVAL(:)
+        real(8), allocatable :: Beta(:)
+        real(8), allocatable :: Delayed_Chi(:)
     end type MatMatrix
 
     contains
@@ -27,6 +30,9 @@ module CSR_types
         integer :: i, ios, unit, pos
         character(len=256) :: line
         real(8), allocatable :: temp_row(:)
+        logical :: eval
+
+        eval = .false.
 
         open(newunit=unit, file=filename, status='old', action='read', iostat=ios)
         if (ios /= 0) then
@@ -42,6 +48,7 @@ module CSR_types
                 stop
             end if
             line = adjustl(line)
+            if (line(1:5) == '#EVAL') eval = .true.
             if (len_trim(line) == 0) cycle         ! skip empty lines
             if (line(1:1) == '#') cycle           ! skip comments
             ! remove anything before '=' if exists
@@ -56,6 +63,9 @@ module CSR_types
         allocate(MATs%Sigma_a(MATs%G))
         allocate(MATs%nu_Sigma_f(MATs%G))
         allocate(MATs%Sigma_s(MATs%G, MATs%G))
+        allocate(MATs%EVAL(5))
+        allocate(MATs%Beta(6))
+        allocate(MATs%Delayed_Chi(6))
 
         ! Helper to read a vector
 
@@ -85,12 +95,17 @@ module CSR_types
             end do
         end do
 
+        if (eval) call read_vector(MATs%Beta)
+        if (eval) call read_vector(MATs%Delayed_Chi)
+        if (eval) call read_vector(MATs%EVAL)
+
         close(unit)
         contains
             subroutine read_vector(arr)
                 real(8), intent(out) :: arr(:)
                 do
                     read(unit,'(A)', iostat=ios) line
+                    if (line(1:5) == '#EVAL') eval = .true.
                     if (ios /= 0) then
                         print*, 'Unexpected EOF reading vector!'
                         stop

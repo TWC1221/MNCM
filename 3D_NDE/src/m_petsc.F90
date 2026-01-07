@@ -13,8 +13,7 @@ public :: run_petsc
 contains
 
 subroutine run_petsc(m, n, v_csr, j_csr, i_csr, x_vals, b_vals)
-implicit none
-
+  implicit none
   ! Dimensions
   PetscInt, intent(in) :: m, n
 
