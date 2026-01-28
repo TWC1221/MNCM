@@ -14,6 +14,7 @@ module m_quadrature
 !   Date       Programmer     Description of change                    -!
 !   ====       ==========     =====================                    -!
 ! 14/03/24      C. Jones         Original code                         -!
+! 27/01/26      T. Charlton      3D LvL Sym Quadratures Implemented    -!
 !-----------------------------------------------------------------------!
 
 use m_constants
@@ -21,8 +22,24 @@ implicit none
 
 type :: t_Quadrature
     real(dp), dimension(:), allocatable :: Xi, Eta, Zeta, W
+    real(dp), allocatable :: dir(:,:)
     integer :: NoPoints
 end type t_Quadrature
+
+type t_sn_quadrature
+    integer :: NoAngles
+    real(dp), dimension(:), allocatable   :: mu, eta, zeta
+    real(dp), dimension(:,:), allocatable :: Angles
+    real(dp), dimension(:), allocatable   :: w
+    real(dp), dimension(:), allocatable   :: alpha1D
+    real(dp), dimension(:,:), allocatable :: alpha2D
+
+    contains
+        procedure :: get_angle_weights
+        procedure :: get_angle_vectors
+        procedure :: get_number_of_angles
+
+end type t_sn_quadrature
 
 contains
 
@@ -46,7 +63,828 @@ function rescale_weights(w, a, b) result(w_rescale)
 
     w_rescale = 0.5_dp * (b - a) * w
 
-end function rescale_weights
+end function rescale_weights 
+
+function get_angle_weights(this) result (w)
+
+    class(t_sn_quadrature), intent(in) :: this
+    real(dp), dimension(this%NoAngles)  :: w
+
+    w = this%w
+
+end function get_angle_weights
+
+function get_angle_vectors(this) result (angles)
+
+    class(t_sn_quadrature), intent(in)   :: this
+    real(dp), dimension(this%NoAngles,3)  :: angles
+
+    angles = this%Angles
+
+end function get_angle_vectors
+
+function get_number_of_angles(this) result (no_angles)
+
+    class(t_sn_quadrature), intent(in) :: this
+    integer                             :: no_angles
+
+    no_angles = this%NoAngles
+
+end function get_number_of_angles
+
+subroutine Get2DAngleQuadrature(sn_quad, SN, flag_Adjoint)
+    type(t_sn_quadrature)  :: sn_quad
+    integer,intent(in) :: SN
+    logical, optional, intent(in) :: flag_Adjoint
+    logical :: Adjoint = .false.
+    integer                 :: i
+
+    if (present(flag_Adjoint)) Adjoint = .true.
+
+    if (SN == 2) then
+        sn_quad%NoAngles = 4
+        allocate(sn_quad%mu(1), sn_quad%eta(1), sn_quad%zeta(1), sn_quad%w(4))
+        allocate(sn_quad%Angles(4,3))
+
+        sn_quad%mu(1) = 0.5773502691896257_dp
+        sn_quad%eta = sn_quad%mu
+        sn_quad%zeta = sn_quad%mu
+
+        ! Calculate all angle pairs for Angles
+        ! Top right quadrant
+        if (Adjoint) then
+            sn_quad%Angles(1,:) = [-sn_quad%mu(1), -sn_quad%eta(1), sn_quad%zeta(1)]
+            sn_quad%Angles(2,:) = [sn_quad%mu(1), -sn_quad%eta(1), sn_quad%zeta(1)]
+            sn_quad%Angles(3,:) = [sn_quad%mu(1), sn_quad%eta(1), sn_quad%zeta(1)]
+            sn_quad%Angles(4,:) = [-sn_quad%mu(1), sn_quad%eta(1), sn_quad%zeta(1)]
+        else 
+            sn_quad%Angles(1,:) = [sn_quad%mu(1), sn_quad%eta(1), sn_quad%zeta(1)]
+            sn_quad%Angles(2,:) = [-sn_quad%mu(1), sn_quad%eta(1), sn_quad%zeta(1)]
+            sn_quad%Angles(3,:) = [-sn_quad%mu(1), -sn_quad%eta(1), sn_quad%zeta(1)]
+            sn_quad%Angles(4,:) = [sn_quad%mu(1), -sn_quad%eta(1), sn_quad%zeta(1)]
+        end if
+
+        sn_quad%w = 1.0_dp
+
+    else if (SN == 4) then
+        sn_quad%NoAngles = 12
+        allocate(sn_quad%mu(2), sn_quad%eta(2), sn_quad%zeta(2), sn_quad%w(12))
+        allocate(sn_quad%Angles(12,3))
+        
+        sn_quad%mu(1) = 0.3500212_dp
+        sn_quad%mu(2) = 0.8688903_dp
+
+        sn_quad%eta = sn_quad%mu
+        sn_quad%zeta = sn_quad%mu
+
+        if (Adjoint) then
+            sn_quad%Angles(1,:) = [-sn_quad%mu(1), -sn_quad%eta(1), sn_quad%zeta(2)]
+            sn_quad%Angles(2,:) = [-sn_quad%mu(2), -sn_quad%eta(1), sn_quad%zeta(1)]
+            sn_quad%Angles(3,:) = [-sn_quad%mu(1), -sn_quad%eta(2), sn_quad%zeta(1)]
+
+            sn_quad%Angles(4,:) = [sn_quad%mu(1), -sn_quad%eta(1), sn_quad%zeta(2)]
+            sn_quad%Angles(5,:) = [sn_quad%mu(2), -sn_quad%eta(1), sn_quad%zeta(1)]
+            sn_quad%Angles(6,:) = [sn_quad%mu(1), -sn_quad%eta(2), sn_quad%zeta(1)]
+
+            sn_quad%Angles(7,:) = [sn_quad%mu(1), sn_quad%eta(1), sn_quad%zeta(2)]
+            sn_quad%Angles(8,:) = [sn_quad%mu(2), sn_quad%eta(1), sn_quad%zeta(1)]
+            sn_quad%Angles(9,:) = [sn_quad%mu(1), sn_quad%eta(2), sn_quad%zeta(1)]
+
+            sn_quad%Angles(10,:) = [-sn_quad%mu(1), sn_quad%eta(1), sn_quad%zeta(2)]
+            sn_quad%Angles(11,:) = [-sn_quad%mu(2), sn_quad%eta(1), sn_quad%zeta(1)]
+            sn_quad%Angles(12,:) = [-sn_quad%mu(1), sn_quad%eta(2), sn_quad%zeta(1)]
+        else
+            sn_quad%Angles(1,:) = [sn_quad%mu(1), sn_quad%eta(1), sn_quad%zeta(2)]
+            sn_quad%Angles(2,:) = [sn_quad%mu(2), sn_quad%eta(1), sn_quad%zeta(1)]
+            sn_quad%Angles(3,:) = [sn_quad%mu(1), sn_quad%eta(2), sn_quad%zeta(1)]
+
+            sn_quad%Angles(4,:) = [-sn_quad%mu(1), sn_quad%eta(1), sn_quad%zeta(2)]
+            sn_quad%Angles(5,:) = [-sn_quad%mu(2), sn_quad%eta(1), sn_quad%zeta(1)]
+            sn_quad%Angles(6,:) = [-sn_quad%mu(1), sn_quad%eta(2), sn_quad%zeta(1)]
+
+            sn_quad%Angles(7,:) = [-sn_quad%mu(1), -sn_quad%eta(1), sn_quad%zeta(2)]
+            sn_quad%Angles(8,:) = [-sn_quad%mu(2), -sn_quad%eta(1), sn_quad%zeta(1)]
+            sn_quad%Angles(9,:) = [-sn_quad%mu(1), -sn_quad%eta(2), sn_quad%zeta(1)]
+
+            sn_quad%Angles(10,:) = [sn_quad%mu(1), -sn_quad%eta(1), sn_quad%zeta(2)]
+            sn_quad%Angles(11,:) = [sn_quad%mu(2), -sn_quad%eta(1), sn_quad%zeta(1)]
+            sn_quad%Angles(12,:) = [sn_quad%mu(1), -sn_quad%eta(2), sn_quad%zeta(1)]
+        end if
+        
+        sn_quad%w = 1.0_dp / 3.0_dp
+
+
+    else if (SN == 6) then
+        sn_quad%NoAngles = 24
+        allocate(sn_quad%mu(3), sn_quad%eta(3), sn_quad%zeta(3), sn_quad%w(24))
+        allocate(sn_quad%Angles(24,3))
+
+        sn_quad%mu(1) = 0.2666355_dp
+        sn_quad%mu(2) = 0.6815076_dp
+        sn_quad%mu(3) = 0.9261808_dp
+        sn_quad%eta = sn_quad%mu
+        sn_quad%zeta = sn_quad%mu
+
+        ! Calculate all angle pairs for Angles
+        if (Adjoint) then
+        ! Top right quadrant
+        sn_quad%Angles(1,:) = [-sn_quad%mu(1), -sn_quad%eta(1), sn_quad%zeta(3)]
+        sn_quad%Angles(2,:) = [-sn_quad%mu(2), -sn_quad%eta(1), sn_quad%zeta(2)]
+        sn_quad%Angles(3,:) = [-sn_quad%mu(3), -sn_quad%eta(1), sn_quad%zeta(1)]
+        sn_quad%Angles(4,:) = [-sn_quad%mu(1), -sn_quad%eta(2), sn_quad%zeta(2)]
+        sn_quad%Angles(5,:) = [-sn_quad%mu(2), -sn_quad%eta(2), sn_quad%zeta(1)]
+        sn_quad%Angles(6,:) = [-sn_quad%mu(1), -sn_quad%eta(3), sn_quad%zeta(1)]
+
+        ! Top left quadrant
+        do i = 7, 12
+            sn_quad%Angles(i,:) = sn_quad%Angles(i-6,:) * [-1.0_dp, 1.0_dp, 1.0_dp]
+        end do
+
+        ! Bottom left quadrant
+        do i = 13, 18
+            sn_quad%Angles(i,:) = sn_quad%Angles(i-12,:) * [-1.0_dp, -1.0_dp, 1.0_dp]
+        end do
+
+        ! Bottom right quadrant
+        do i = 19, 24
+            sn_quad%Angles(i,:) = sn_quad%Angles(i-18,:) * [1.0_dp, -1.0_dp, 1.0_dp]
+        end do
+
+        else
+        sn_quad%Angles(1,:) = [sn_quad%mu(1), sn_quad%eta(1), sn_quad%zeta(3)]
+        sn_quad%Angles(2,:) = [sn_quad%mu(2), sn_quad%eta(1), sn_quad%zeta(2)]
+        sn_quad%Angles(3,:) = [sn_quad%mu(3), sn_quad%eta(1), sn_quad%zeta(1)]
+        sn_quad%Angles(4,:) = [sn_quad%mu(1), sn_quad%eta(2), sn_quad%zeta(2)]
+        sn_quad%Angles(5,:) = [sn_quad%mu(2), sn_quad%eta(2), sn_quad%zeta(1)]
+        sn_quad%Angles(6,:) = [sn_quad%mu(1), sn_quad%eta(3), sn_quad%zeta(1)]
+
+        ! Top left quadrant 
+        do i = 7, 12
+            sn_quad%Angles(i,:) = sn_quad%Angles(i-6,:) * [-1.0_dp, 1.0_dp, 1.0_dp]
+        end do
+
+        ! Bottom left quadrant
+        do i = 13, 18
+            sn_quad%Angles(i,:) = sn_quad%Angles(i-12,:) * [-1.0_dp, -1.0_dp, 1.0_dp]
+        end do
+
+        ! Bottom right quadrant
+        do i = 19, 24
+            sn_quad%Angles(i,:) = sn_quad%Angles(i-18,:) * [1.0_dp, -1.0_dp, 1.0_dp]
+        end do
+        end if
+
+        sn_quad%w(1:6) = (/0.1761263_dp, 0.1572071_dp, 0.1761263_dp, 0.1572071_dp, 0.1572071_dp, 0.1761263_dp/)
+        sn_quad%w(7:12) = sn_quad%w(1:6)
+        sn_quad%w(13:18) = sn_quad%w(1:6)
+        sn_quad%w(19:24) = sn_quad%w(1:6)
+
+    elseif (SN == 8) then
+        sn_quad%NoAngles = 40
+        allocate(sn_quad%mu(4), sn_quad%eta(4), sn_quad%zeta(4), sn_quad%w(40))
+        allocate(sn_quad%Angles(40,3))
+
+        sn_quad%mu(1) = 0.2182179_dp
+        sn_quad%mu(2) = 0.5773503_dp
+        sn_quad%mu(3) = 0.7867958_dp
+        sn_quad%mu(4) = 0.9511897_dp
+        sn_quad%eta = sn_quad%mu
+        sn_quad%zeta = sn_quad%mu
+
+        ! Calculate all angle pairs for Angles
+        if (Adjoint) then
+        ! Top right quadrant
+        sn_quad%Angles(1,:) = [-sn_quad%mu(1), -sn_quad%eta(1), sn_quad%zeta(4)]
+        sn_quad%Angles(2,:) = [-sn_quad%mu(2), -sn_quad%eta(1), sn_quad%zeta(3)]
+        sn_quad%Angles(3,:) = [-sn_quad%mu(3), -sn_quad%eta(1), sn_quad%zeta(2)]
+        sn_quad%Angles(4,:) = [-sn_quad%mu(4), -sn_quad%eta(1), sn_quad%zeta(1)]
+        sn_quad%Angles(5,:) = [-sn_quad%mu(1), -sn_quad%eta(2), sn_quad%zeta(3)]
+        sn_quad%Angles(6,:) = [-sn_quad%mu(2), -sn_quad%eta(2), sn_quad%zeta(2)]
+        sn_quad%Angles(7,:) = [-sn_quad%mu(3), -sn_quad%eta(2), sn_quad%zeta(1)]
+        sn_quad%Angles(8,:) = [-sn_quad%mu(1), -sn_quad%eta(3), sn_quad%zeta(2)]
+        sn_quad%Angles(9,:) = [-sn_quad%mu(2), -sn_quad%eta(3), sn_quad%zeta(1)]
+        sn_quad%Angles(10,:) = [-sn_quad%mu(1), -sn_quad%eta(4), sn_quad%zeta(1)]
+
+        ! Top left quadrant
+        do i = 11, 20
+            sn_quad%Angles(i,:) = sn_quad%Angles(i-10,:) * [-1.0_dp, 1.0_dp, 1.0_dp]
+        end do
+
+        ! Bottom left quadrant
+        do i = 21, 30
+            sn_quad%Angles(i,:) = sn_quad%Angles(i-20,:) * [-1.0_dp, -1.0_dp, 1.0_dp]
+        end do
+
+        ! Bottom right quadrant
+        do i = 31, 40
+            sn_quad%Angles(i,:) = sn_quad%Angles(i-30,:) * [1.0_dp, -1.0_dp, 1.0_dp]
+        end do
+        
+        else
+        ! Top right quadrant
+        sn_quad%Angles(1,:) = [sn_quad%mu(1), sn_quad%eta(1), sn_quad%zeta(4)]
+        sn_quad%Angles(2,:) = [sn_quad%mu(2), sn_quad%eta(1), sn_quad%zeta(3)]
+        sn_quad%Angles(3,:) = [sn_quad%mu(3), sn_quad%eta(1), sn_quad%zeta(2)]
+        sn_quad%Angles(4,:) = [sn_quad%mu(4), sn_quad%eta(1), sn_quad%zeta(1)]
+        sn_quad%Angles(5,:) = [sn_quad%mu(1), sn_quad%eta(2), sn_quad%zeta(3)]
+        sn_quad%Angles(6,:) = [sn_quad%mu(2), sn_quad%eta(2), sn_quad%zeta(2)]
+        sn_quad%Angles(7,:) = [sn_quad%mu(3), sn_quad%eta(2), sn_quad%zeta(1)]
+        sn_quad%Angles(8,:) = [sn_quad%mu(1), sn_quad%eta(3), sn_quad%zeta(2)]
+        sn_quad%Angles(9,:) = [sn_quad%mu(2), sn_quad%eta(3), sn_quad%zeta(1)]
+        sn_quad%Angles(10,:) = [sn_quad%mu(1), sn_quad%eta(4), sn_quad%zeta(1)]
+
+        ! Top left quadrant
+        do i = 11, 20
+            sn_quad%Angles(i,:) = sn_quad%Angles(i-10,:) * [-1.0_dp, 1.0_dp, 1.0_dp]
+        end do
+
+        ! Bottom left quadrant
+        do i = 21, 30
+            sn_quad%Angles(i,:) = sn_quad%Angles(i-20,:) * [-1.0_dp, -1.0_dp, 1.0_dp]
+        end do
+
+        ! Bottom right quadrant
+        do i = 31, 40
+            sn_quad%Angles(i,:) = sn_quad%Angles(i-30,:) * [1.0_dp, -1.0_dp, 1.0_dp]
+        end do
+        end if
+        
+        sn_quad%w(1:4) = (/0.1209877_dp, 0.0907407_dp, 0.0907407_dp, 0.1209877_dp/)
+        sn_quad%w(5:7) = (/0.0907407_dp, 0.0925926_dp, 0.0907407_dp/)
+        sn_quad%w(8:9) = (/0.0907407_dp, 0.0907407_dp/)
+        sn_quad%w(10) = 0.1209877_dp
+
+        sn_quad%w(11:20) = sn_quad%w(1:10)
+        sn_quad%w(21:30) = sn_quad%w(1:10)
+        sn_quad%w(31:40) = sn_quad%w(1:10)
+
+    else if (SN == 16) then
+        allocate(sn_quad%mu(8), sn_quad%eta(8), sn_quad%zeta(8), sn_quad%w(144))
+        allocate(sn_quad%Angles(144,3))
+        sn_quad%NoAngles = 144
+        sn_quad%mu(1) = 0.1389568_dp
+        sn_quad%mu(2) = 0.3922893_dp
+        sn_quad%mu(3) = 0.5370966_dp
+        sn_quad%mu(4) = 0.6504264_dp
+        sn_quad%mu(5) = 0.7467506_dp
+        sn_quad%mu(6) = 0.8319966_dp
+        sn_quad%mu(7) = 0.9092855_dp
+        sn_quad%mu(8) = 0.9805009_dp
+
+        sn_quad%eta = sn_quad%mu
+        sn_quad%zeta = sn_quad%mu
+
+        ! Calculate all angle pairs for Angles
+        if (Adjoint) then
+        ! Top right quadrant
+        sn_quad%Angles(1,:) = [-sn_quad%mu(1), -sn_quad%eta(1), sn_quad%zeta(8)]
+        sn_quad%Angles(2,:) = [-sn_quad%mu(2), -sn_quad%eta(1), sn_quad%zeta(7)]
+        sn_quad%Angles(3,:) = [-sn_quad%mu(3), -sn_quad%eta(1), sn_quad%zeta(6)]
+        sn_quad%Angles(4,:) = [-sn_quad%mu(4), -sn_quad%eta(1), sn_quad%zeta(5)]
+        sn_quad%Angles(5,:) = [-sn_quad%mu(5), -sn_quad%eta(1), sn_quad%zeta(4)]
+        sn_quad%Angles(6,:) = [-sn_quad%mu(6), -sn_quad%eta(1), sn_quad%zeta(3)]
+        sn_quad%Angles(7,:) = [-sn_quad%mu(7), -sn_quad%eta(1), sn_quad%zeta(2)]
+        sn_quad%Angles(8,:) = [-sn_quad%mu(8), -sn_quad%eta(1), sn_quad%zeta(1)]
+        sn_quad%Angles(9,:) = [-sn_quad%mu(1), -sn_quad%eta(2), sn_quad%zeta(7)]
+        sn_quad%Angles(10,:) = [-sn_quad%mu(2), -sn_quad%eta(2), sn_quad%zeta(6)]
+        sn_quad%Angles(11,:) = [-sn_quad%mu(3), -sn_quad%eta(2), sn_quad%zeta(5)]
+        sn_quad%Angles(12,:) = [-sn_quad%mu(4), -sn_quad%eta(2), sn_quad%zeta(4)]
+        sn_quad%Angles(13,:) = [-sn_quad%mu(5), -sn_quad%eta(2), sn_quad%zeta(3)]
+        sn_quad%Angles(14,:) = [-sn_quad%mu(6), -sn_quad%eta(2), sn_quad%zeta(2)]
+        sn_quad%Angles(15,:) = [-sn_quad%mu(7), -sn_quad%eta(2), sn_quad%zeta(1)]
+        sn_quad%Angles(16,:) = [-sn_quad%mu(1), -sn_quad%eta(3), sn_quad%zeta(6)]
+        sn_quad%Angles(17,:) = [-sn_quad%mu(2), -sn_quad%eta(3), sn_quad%zeta(5)]
+        sn_quad%Angles(18,:) = [-sn_quad%mu(3), -sn_quad%eta(3), sn_quad%zeta(4)]
+        sn_quad%Angles(19,:) = [-sn_quad%mu(4), -sn_quad%eta(3), sn_quad%zeta(3)]
+        sn_quad%Angles(20,:) = [-sn_quad%mu(5), -sn_quad%eta(3), sn_quad%zeta(2)]
+        sn_quad%Angles(21,:) = [-sn_quad%mu(6), -sn_quad%eta(3), sn_quad%zeta(1)]
+        sn_quad%Angles(22,:) = [-sn_quad%mu(1), -sn_quad%eta(4), sn_quad%zeta(5)]
+        sn_quad%Angles(23,:) = [-sn_quad%mu(2), -sn_quad%eta(4), sn_quad%zeta(4)]
+        sn_quad%Angles(24,:) = [-sn_quad%mu(3), -sn_quad%eta(4), sn_quad%zeta(3)]
+        sn_quad%Angles(25,:) = [-sn_quad%mu(4), -sn_quad%eta(4), sn_quad%zeta(2)]
+        sn_quad%Angles(26,:) = [-sn_quad%mu(5), -sn_quad%eta(4), sn_quad%zeta(1)]
+        sn_quad%Angles(27,:) = [-sn_quad%mu(1), -sn_quad%eta(5), sn_quad%zeta(4)]
+        sn_quad%Angles(28,:) = [-sn_quad%mu(2), -sn_quad%eta(5), sn_quad%zeta(3)]
+        sn_quad%Angles(29,:) = [-sn_quad%mu(3), -sn_quad%eta(5), sn_quad%zeta(2)]
+        sn_quad%Angles(30,:) = [-sn_quad%mu(4), -sn_quad%eta(5), sn_quad%zeta(1)]
+        sn_quad%Angles(31,:) = [-sn_quad%mu(1), -sn_quad%eta(6), sn_quad%zeta(3)]
+        sn_quad%Angles(32,:) = [-sn_quad%mu(2), -sn_quad%eta(6), sn_quad%zeta(2)]
+        sn_quad%Angles(33,:) = [-sn_quad%mu(3), -sn_quad%eta(6), sn_quad%zeta(1)]
+        sn_quad%Angles(34,:) = [-sn_quad%mu(1), -sn_quad%eta(7), sn_quad%zeta(2)]
+        sn_quad%Angles(35,:) = [-sn_quad%mu(2), -sn_quad%eta(7), sn_quad%zeta(1)]
+        sn_quad%Angles(36,:) = [-sn_quad%mu(1), -sn_quad%eta(8), sn_quad%zeta(1)]
+
+        ! Top left quadrant
+        do i = 37, 72
+            sn_quad%Angles(i,:) = sn_quad%Angles(i-36,:) * [-1.0_dp, 1.0_dp, 1.0_dp]
+        end do
+
+        ! Bottom left quadrant
+        do i = 73, 108
+            sn_quad%Angles(i,:) = sn_quad%Angles(i-72,:) * [-1.0_dp, -1.0_dp, 1.0_dp]
+        end do
+
+        ! Bottom right quadrant
+        do i = 109, 144
+            sn_quad%Angles(i,:) = sn_quad%Angles(i-108,:) * [1.0_dp, -1.0_dp, 1.0_dp]
+        end do
+
+        else
+        ! Top right quadrant
+        sn_quad%Angles(1,:) = [sn_quad%mu(1), sn_quad%eta(1), sn_quad%zeta(8)]
+        sn_quad%Angles(2,:) = [sn_quad%mu(2), sn_quad%eta(1), sn_quad%zeta(7)]
+        sn_quad%Angles(3,:) = [sn_quad%mu(3), sn_quad%eta(1), sn_quad%zeta(6)]
+        sn_quad%Angles(4,:) = [sn_quad%mu(4), sn_quad%eta(1), sn_quad%zeta(5)]
+        sn_quad%Angles(5,:) = [sn_quad%mu(5), sn_quad%eta(1), sn_quad%zeta(4)]
+        sn_quad%Angles(6,:) = [sn_quad%mu(6), sn_quad%eta(1), sn_quad%zeta(3)]
+        sn_quad%Angles(7,:) = [sn_quad%mu(7), sn_quad%eta(1), sn_quad%zeta(2)]
+        sn_quad%Angles(8,:) = [sn_quad%mu(8), sn_quad%eta(1), sn_quad%zeta(1)]
+        sn_quad%Angles(9,:) = [sn_quad%mu(1), sn_quad%eta(2), sn_quad%zeta(7)]
+        sn_quad%Angles(10,:) = [sn_quad%mu(2), sn_quad%eta(2), sn_quad%zeta(6)]
+        sn_quad%Angles(11,:) = [sn_quad%mu(3), sn_quad%eta(2), sn_quad%zeta(5)]
+        sn_quad%Angles(12,:) = [sn_quad%mu(4), sn_quad%eta(2), sn_quad%zeta(4)]
+        sn_quad%Angles(13,:) = [sn_quad%mu(5), sn_quad%eta(2), sn_quad%zeta(3)]
+        sn_quad%Angles(14,:) = [sn_quad%mu(6), sn_quad%eta(2), sn_quad%zeta(2)]
+        sn_quad%Angles(15,:) = [sn_quad%mu(7), sn_quad%eta(2), sn_quad%zeta(1)]
+        sn_quad%Angles(16,:) = [sn_quad%mu(1), sn_quad%eta(3), sn_quad%zeta(6)]
+        sn_quad%Angles(17,:) = [sn_quad%mu(2), sn_quad%eta(3), sn_quad%zeta(5)]
+        sn_quad%Angles(18,:) = [sn_quad%mu(3), sn_quad%eta(3), sn_quad%zeta(4)]
+        sn_quad%Angles(19,:) = [sn_quad%mu(4), sn_quad%eta(3), sn_quad%zeta(3)]
+        sn_quad%Angles(20,:) = [sn_quad%mu(5), sn_quad%eta(3), sn_quad%zeta(2)]
+        sn_quad%Angles(21,:) = [sn_quad%mu(6), sn_quad%eta(3), sn_quad%zeta(1)]
+        sn_quad%Angles(22,:) = [sn_quad%mu(1), sn_quad%eta(4), sn_quad%zeta(5)]
+        sn_quad%Angles(23,:) = [sn_quad%mu(2), sn_quad%eta(4), sn_quad%zeta(4)]
+        sn_quad%Angles(24,:) = [sn_quad%mu(3), sn_quad%eta(4), sn_quad%zeta(3)]
+        sn_quad%Angles(25,:) = [sn_quad%mu(4), sn_quad%eta(4), sn_quad%zeta(2)]
+        sn_quad%Angles(26,:) = [sn_quad%mu(5), sn_quad%eta(4), sn_quad%zeta(1)]
+        sn_quad%Angles(27,:) = [sn_quad%mu(1), sn_quad%eta(5), sn_quad%zeta(4)]
+        sn_quad%Angles(28,:) = [sn_quad%mu(2), sn_quad%eta(5), sn_quad%zeta(3)]
+        sn_quad%Angles(29,:) = [sn_quad%mu(3), sn_quad%eta(5), sn_quad%zeta(2)]
+        sn_quad%Angles(30,:) = [sn_quad%mu(4), sn_quad%eta(5), sn_quad%zeta(1)]
+        sn_quad%Angles(31,:) = [sn_quad%mu(1), sn_quad%eta(6), sn_quad%zeta(3)]
+        sn_quad%Angles(32,:) = [sn_quad%mu(2), sn_quad%eta(6), sn_quad%zeta(2)]
+        sn_quad%Angles(33,:) = [sn_quad%mu(3), sn_quad%eta(6), sn_quad%zeta(1)]
+        sn_quad%Angles(34,:) = [sn_quad%mu(1), sn_quad%eta(7), sn_quad%zeta(2)]
+        sn_quad%Angles(35,:) = [sn_quad%mu(2), sn_quad%eta(7), sn_quad%zeta(1)]
+        sn_quad%Angles(36,:) = [sn_quad%mu(1), sn_quad%eta(8), sn_quad%zeta(1)]
+
+        ! Top left quadrant
+        do i = 37, 72
+            sn_quad%Angles(i,:) = sn_quad%Angles(i-36,:) * [-1.0_dp, 1.0_dp, 1.0_dp]
+        end do
+
+        ! Bottom left quadrant
+        do i = 73, 108
+            sn_quad%Angles(i,:) = sn_quad%Angles(i-72,:) * [-1.0_dp, -1.0_dp, 1.0_dp]
+        end do
+
+        ! Bottom right quadrant
+        do i = 109, 144
+            sn_quad%Angles(i,:) = sn_quad%Angles(i-108,:) * [1.0_dp, -1.0_dp, 1.0_dp]
+        end do
+        end if
+
+        ! Weights
+        sn_quad%w(1:8) = (/0.0489872_dp, 0.0413296_dp, 0.0212326_dp, 0.0256207_dp, 0.0256207_dp, 0.0212326_dp, 0.0413296_dp, 0.0489872_dp/)
+        sn_quad%w(9:15) = (/0.0413296_dp, 0.0360486_dp, 0.0144589_dp, 0.0344958_dp, 0.0144589_dp, 0.0360486_dp, 0.0413296_dp/)
+        sn_quad%w(16:21) = (/0.0212326_dp, 0.0144589_dp, 0.0085179_dp, 0.0085179_dp, 0.0144589_dp, 0.0212326_dp/)
+        sn_quad%w(22:26) = (/0.0256207_dp, 0.0344958_dp, 0.0085179_dp, 0.0344958_dp, 0.0256207_dp/)
+        sn_quad%w(27:30) = (/0.0256207_dp, 0.0144589_dp, 0.0144589_dp, 0.0256207_dp/)
+        sn_quad%w(31:33) = (/0.0212326_dp, 0.0360486_dp, 0.0212326_dp/) 
+        sn_quad%w(34:35) = (/0.0413296_dp, 0.0413296_dp/)
+        sn_quad%w(36) = 0.0489872_dp
+
+        sn_quad%w(37:72) = sn_quad%w(1:36)
+        sn_quad%w(73:108) = sn_quad%w(1:36)
+        sn_quad%w(109:144) = sn_quad%w(1:36)
+
+    end if
+
+    end subroutine Get2DAngleQuadrature
+
+
+subroutine Get3DAngleQuadrature(sn_quad, SN, flag_Adjoint)
+    type(t_sn_quadrature)  :: sn_quad
+    integer,intent(in) :: SN
+    logical, optional, intent(in) :: flag_Adjoint
+    logical :: Adjoint = .false.
+    integer                 :: i
+
+    if (present(flag_Adjoint)) Adjoint = .true.
+
+    if (SN == 2) then
+        sn_quad%NoAngles = 8
+        allocate(sn_quad%mu(1), sn_quad%eta(1), sn_quad%zeta(1), sn_quad%w(8))
+        allocate(sn_quad%Angles(8,3))
+
+        sn_quad%mu(1) = 0.5773502691896257_dp
+        sn_quad%eta = sn_quad%mu
+        sn_quad%zeta = sn_quad%mu
+
+        ! Calculate all angle pairs for Angles
+        ! Top right quadrant
+        if (Adjoint) then
+            sn_quad%Angles(1,:) = [-sn_quad%mu(1), -sn_quad%eta(1), -sn_quad%zeta(1)]
+            sn_quad%Angles(2,:) = [sn_quad%mu(1), -sn_quad%eta(1), -sn_quad%zeta(1)]
+            sn_quad%Angles(3,:) = [sn_quad%mu(1), sn_quad%eta(1), -sn_quad%zeta(1)]
+            sn_quad%Angles(4,:) = [-sn_quad%mu(1), sn_quad%eta(1), -sn_quad%zeta(1)]
+
+            sn_quad%Angles(5:8,:) = sn_quad%Angles(1:4,:)
+            sn_quad%Angles(5:8,3) = -sn_quad%Angles(1:4,3) 
+        else 
+            sn_quad%Angles(1,:) = [sn_quad%mu(1), sn_quad%eta(1), sn_quad%zeta(1)]
+            sn_quad%Angles(2,:) = [-sn_quad%mu(1), sn_quad%eta(1), sn_quad%zeta(1)]
+            sn_quad%Angles(3,:) = [-sn_quad%mu(1), -sn_quad%eta(1), sn_quad%zeta(1)]
+            sn_quad%Angles(4,:) = [sn_quad%mu(1), -sn_quad%eta(1), sn_quad%zeta(1)]
+
+            sn_quad%Angles(5:8,:) = sn_quad%Angles(1:4,:)
+            sn_quad%Angles(5:8,3) = -sn_quad%Angles(1:4,3) 
+        end if
+
+        sn_quad%w = 1.0_dp
+
+    else if (SN == 4) then
+        sn_quad%NoAngles = 24
+        allocate(sn_quad%mu(2), sn_quad%eta(2), sn_quad%zeta(2), sn_quad%w(24))
+        allocate(sn_quad%Angles(24,3))
+        
+        sn_quad%mu(1) = 0.3500212_dp
+        sn_quad%mu(2) = 0.8688903_dp
+
+        sn_quad%eta = sn_quad%mu
+        sn_quad%zeta = sn_quad%mu
+
+        if (Adjoint) then
+            sn_quad%Angles(1,:) = [-sn_quad%mu(1), -sn_quad%eta(1), -sn_quad%zeta(2)]
+            sn_quad%Angles(2,:) = [-sn_quad%mu(2), -sn_quad%eta(1), -sn_quad%zeta(1)]
+            sn_quad%Angles(3,:) = [-sn_quad%mu(1), -sn_quad%eta(2), -sn_quad%zeta(1)]
+
+            sn_quad%Angles(4,:) = [sn_quad%mu(1), -sn_quad%eta(1), -sn_quad%zeta(2)]
+            sn_quad%Angles(5,:) = [sn_quad%mu(2), -sn_quad%eta(1), -sn_quad%zeta(1)]
+            sn_quad%Angles(6,:) = [sn_quad%mu(1), -sn_quad%eta(2), -sn_quad%zeta(1)]
+
+            sn_quad%Angles(7,:) = [sn_quad%mu(1), sn_quad%eta(1), -sn_quad%zeta(2)]
+            sn_quad%Angles(8,:) = [sn_quad%mu(2), sn_quad%eta(1), -sn_quad%zeta(1)]
+            sn_quad%Angles(9,:) = [sn_quad%mu(1), sn_quad%eta(2), -sn_quad%zeta(1)]
+
+            sn_quad%Angles(10,:) = [-sn_quad%mu(1), sn_quad%eta(1), -sn_quad%zeta(2)]
+            sn_quad%Angles(11,:) = [-sn_quad%mu(2), sn_quad%eta(1), -sn_quad%zeta(1)]
+            sn_quad%Angles(12,:) = [-sn_quad%mu(1), sn_quad%eta(2), -sn_quad%zeta(1)]
+
+            sn_quad%Angles(13:24,:) = sn_quad%Angles(1:12,:)
+            sn_quad%Angles(13:24,3) = -sn_quad%Angles(1:12,3) 
+        else
+            sn_quad%Angles(1,:) = [sn_quad%mu(1), sn_quad%eta(1), sn_quad%zeta(2)]
+            sn_quad%Angles(2,:) = [sn_quad%mu(2), sn_quad%eta(1), sn_quad%zeta(1)]
+            sn_quad%Angles(3,:) = [sn_quad%mu(1), sn_quad%eta(2), sn_quad%zeta(1)]
+
+            sn_quad%Angles(4,:) = [-sn_quad%mu(1), sn_quad%eta(1), sn_quad%zeta(2)]
+            sn_quad%Angles(5,:) = [-sn_quad%mu(2), sn_quad%eta(1), sn_quad%zeta(1)]
+            sn_quad%Angles(6,:) = [-sn_quad%mu(1), sn_quad%eta(2), sn_quad%zeta(1)]
+
+            sn_quad%Angles(7,:) = [-sn_quad%mu(1), -sn_quad%eta(1), sn_quad%zeta(2)]
+            sn_quad%Angles(8,:) = [-sn_quad%mu(2), -sn_quad%eta(1), sn_quad%zeta(1)]
+            sn_quad%Angles(9,:) = [-sn_quad%mu(1), -sn_quad%eta(2), sn_quad%zeta(1)]
+
+            sn_quad%Angles(10,:) = [sn_quad%mu(1), -sn_quad%eta(1), sn_quad%zeta(2)]
+            sn_quad%Angles(11,:) = [sn_quad%mu(2), -sn_quad%eta(1), sn_quad%zeta(1)]
+            sn_quad%Angles(12,:) = [sn_quad%mu(1), -sn_quad%eta(2), sn_quad%zeta(1)]
+    
+            sn_quad%Angles(13:24,:) = sn_quad%Angles(1:12,:)
+            sn_quad%Angles(13:24,3) = -sn_quad%Angles(1:12,3) 
+        end if
+        
+        sn_quad%w = 1.0_dp / 3.0_dp
+
+
+    else if (SN == 6) then
+        sn_quad%NoAngles = 48
+        allocate(sn_quad%mu(3), sn_quad%eta(3), sn_quad%zeta(3), sn_quad%w(48))
+        allocate(sn_quad%Angles(48,3))
+
+        sn_quad%mu(1) = 0.2666355_dp
+        sn_quad%mu(2) = 0.6815076_dp
+        sn_quad%mu(3) = 0.9261808_dp
+        sn_quad%eta = sn_quad%mu
+        sn_quad%zeta = sn_quad%mu
+
+        ! Calculate all angle pairs for Angles
+        if (Adjoint) then
+            ! Top right quadrant
+            sn_quad%Angles(1,:) = [-sn_quad%mu(1), -sn_quad%eta(1), -sn_quad%zeta(3)]
+            sn_quad%Angles(2,:) = [-sn_quad%mu(2), -sn_quad%eta(1), -sn_quad%zeta(2)]
+            sn_quad%Angles(3,:) = [-sn_quad%mu(3), -sn_quad%eta(1), -sn_quad%zeta(1)]
+            sn_quad%Angles(4,:) = [-sn_quad%mu(1), -sn_quad%eta(2), -sn_quad%zeta(2)]
+            sn_quad%Angles(5,:) = [-sn_quad%mu(2), -sn_quad%eta(2), -sn_quad%zeta(1)]
+            sn_quad%Angles(6,:) = [-sn_quad%mu(1), -sn_quad%eta(3), -sn_quad%zeta(1)]
+
+            ! Top left quadrant
+            do i = 7, 12
+                sn_quad%Angles(i,:) = sn_quad%Angles(i-6,:) * [-1.0_dp, 1.0_dp, 1.0_dp]
+            end do
+
+            ! Bottom left quadrant
+            do i = 13, 18
+                sn_quad%Angles(i,:) = sn_quad%Angles(i-12,:) * [-1.0_dp, -1.0_dp, 1.0_dp]
+            end do
+
+            ! Bottom right quadrant
+            do i = 19, 24
+                sn_quad%Angles(i,:) = sn_quad%Angles(i-18,:) * [1.0_dp, -1.0_dp, 1.0_dp]
+            end do
+
+            sn_quad%Angles(25:48,:) = sn_quad%Angles(1:24,:)
+            sn_quad%Angles(25:48,3) = -sn_quad%Angles(1:24,3) 
+
+        else
+            sn_quad%Angles(1,:) = [sn_quad%mu(1), sn_quad%eta(1), sn_quad%zeta(3)]
+            sn_quad%Angles(2,:) = [sn_quad%mu(2), sn_quad%eta(1), sn_quad%zeta(2)]
+            sn_quad%Angles(3,:) = [sn_quad%mu(3), sn_quad%eta(1), sn_quad%zeta(1)]
+            sn_quad%Angles(4,:) = [sn_quad%mu(1), sn_quad%eta(2), sn_quad%zeta(2)]
+            sn_quad%Angles(5,:) = [sn_quad%mu(2), sn_quad%eta(2), sn_quad%zeta(1)]
+            sn_quad%Angles(6,:) = [sn_quad%mu(1), sn_quad%eta(3), sn_quad%zeta(1)]
+
+            ! Top left quadrant 
+            do i = 7, 12
+                sn_quad%Angles(i,:) = sn_quad%Angles(i-6,:) * [-1.0_dp, 1.0_dp, 1.0_dp]
+            end do
+
+            ! Bottom left quadrant
+            do i = 13, 18
+                sn_quad%Angles(i,:) = sn_quad%Angles(i-12,:) * [-1.0_dp, -1.0_dp, 1.0_dp]
+            end do
+
+            ! Bottom right quadrant
+            do i = 19, 24
+                sn_quad%Angles(i,:) = sn_quad%Angles(i-18,:) * [1.0_dp, -1.0_dp, 1.0_dp]
+            end do
+
+            sn_quad%Angles(25:48,:) = sn_quad%Angles(1:24,:)
+            sn_quad%Angles(25:48,3) = -sn_quad%Angles(1:24,3) 
+        end if
+
+        sn_quad%w(1:6) = (/0.1761263_dp, 0.1572071_dp, 0.1761263_dp, 0.1572071_dp, 0.1572071_dp, 0.1761263_dp/)
+        sn_quad%w(7:12) = sn_quad%w(1:6)
+        sn_quad%w(13:18) = sn_quad%w(1:6)
+        sn_quad%w(19:24) = sn_quad%w(1:6)
+        sn_quad%w(25:48) = sn_quad%w(1:24)
+
+    elseif (SN == 8) then
+        sn_quad%NoAngles = 80
+        allocate(sn_quad%mu(4), sn_quad%eta(4), sn_quad%zeta(4), sn_quad%w(80))
+        allocate(sn_quad%Angles(80,3))
+
+        sn_quad%mu(1) = 0.2182179_dp
+        sn_quad%mu(2) = 0.5773503_dp
+        sn_quad%mu(3) = 0.7867958_dp
+        sn_quad%mu(4) = 0.9511897_dp
+        sn_quad%eta = sn_quad%mu
+        sn_quad%zeta = sn_quad%mu
+
+        ! Calculate all angle pairs for Angles
+        if (Adjoint) then
+            ! Top right quadrant
+            sn_quad%Angles(1,:) = [-sn_quad%mu(1), -sn_quad%eta(1), -sn_quad%zeta(4)]
+            sn_quad%Angles(2,:) = [-sn_quad%mu(2), -sn_quad%eta(1), -sn_quad%zeta(3)]
+            sn_quad%Angles(3,:) = [-sn_quad%mu(3), -sn_quad%eta(1), -sn_quad%zeta(2)]
+            sn_quad%Angles(4,:) = [-sn_quad%mu(4), -sn_quad%eta(1), -sn_quad%zeta(1)]
+            sn_quad%Angles(5,:) = [-sn_quad%mu(1), -sn_quad%eta(2), -sn_quad%zeta(3)]
+            sn_quad%Angles(6,:) = [-sn_quad%mu(2), -sn_quad%eta(2), -sn_quad%zeta(2)]
+            sn_quad%Angles(7,:) = [-sn_quad%mu(3), -sn_quad%eta(2), -sn_quad%zeta(1)]
+            sn_quad%Angles(8,:) = [-sn_quad%mu(1), -sn_quad%eta(3), -sn_quad%zeta(2)]
+            sn_quad%Angles(9,:) = [-sn_quad%mu(2), -sn_quad%eta(3), -sn_quad%zeta(1)]
+            sn_quad%Angles(10,:) = [-sn_quad%mu(1), -sn_quad%eta(4), -sn_quad%zeta(1)]
+
+            ! Top left quadrant
+            do i = 11, 20
+                sn_quad%Angles(i,:) = sn_quad%Angles(i-10,:) * [-1.0_dp, 1.0_dp, 1.0_dp]
+            end do
+
+            ! Bottom left quadrant
+            do i = 21, 30
+                sn_quad%Angles(i,:) = sn_quad%Angles(i-20,:) * [-1.0_dp, -1.0_dp, 1.0_dp]
+            end do
+
+            ! Bottom right quadrant
+            do i = 31, 40
+                sn_quad%Angles(i,:) = sn_quad%Angles(i-30,:) * [1.0_dp, -1.0_dp, 1.0_dp]
+            end do
+
+            sn_quad%Angles(41:80,:) = sn_quad%Angles(1:40,:)
+            sn_quad%Angles(41:80,3) = -sn_quad%Angles(1:40,3) 
+        
+        else
+            ! Top right quadrant
+            sn_quad%Angles(1,:) = [sn_quad%mu(1), sn_quad%eta(1), sn_quad%zeta(4)]
+            sn_quad%Angles(2,:) = [sn_quad%mu(2), sn_quad%eta(1), sn_quad%zeta(3)]
+            sn_quad%Angles(3,:) = [sn_quad%mu(3), sn_quad%eta(1), sn_quad%zeta(2)]
+            sn_quad%Angles(4,:) = [sn_quad%mu(4), sn_quad%eta(1), sn_quad%zeta(1)]
+            sn_quad%Angles(5,:) = [sn_quad%mu(1), sn_quad%eta(2), sn_quad%zeta(3)]
+            sn_quad%Angles(6,:) = [sn_quad%mu(2), sn_quad%eta(2), sn_quad%zeta(2)]
+            sn_quad%Angles(7,:) = [sn_quad%mu(3), sn_quad%eta(2), sn_quad%zeta(1)]
+            sn_quad%Angles(8,:) = [sn_quad%mu(1), sn_quad%eta(3), sn_quad%zeta(2)]
+            sn_quad%Angles(9,:) = [sn_quad%mu(2), sn_quad%eta(3), sn_quad%zeta(1)]
+            sn_quad%Angles(10,:) = [sn_quad%mu(1), sn_quad%eta(4), sn_quad%zeta(1)]
+
+            ! Top left quadrant
+            do i = 11, 20
+                sn_quad%Angles(i,:) = sn_quad%Angles(i-10,:) * [-1.0_dp, 1.0_dp, 1.0_dp]
+            end do
+
+            ! Bottom left quadrant
+            do i = 21, 30
+                sn_quad%Angles(i,:) = sn_quad%Angles(i-20,:) * [-1.0_dp, -1.0_dp, 1.0_dp]
+            end do
+
+            ! Bottom right quadrant
+            do i = 31, 40
+                sn_quad%Angles(i,:) = sn_quad%Angles(i-30,:) * [1.0_dp, -1.0_dp, 1.0_dp]
+            end do
+
+            sn_quad%Angles(41:80,:) = sn_quad%Angles(1:40,:)
+            sn_quad%Angles(41:80,3) = -sn_quad%Angles(1:40,3) 
+        end if
+        
+        sn_quad%w(1:4) = (/0.1209877_dp, 0.0907407_dp, 0.0907407_dp, 0.1209877_dp/)
+        sn_quad%w(5:7) = (/0.0907407_dp, 0.0925926_dp, 0.0907407_dp/)
+        sn_quad%w(8:9) = (/0.0907407_dp, 0.0907407_dp/)
+        sn_quad%w(10) = 0.1209877_dp
+
+        sn_quad%w(11:20) = sn_quad%w(1:10)
+        sn_quad%w(21:30) = sn_quad%w(1:10)
+        sn_quad%w(31:40) = sn_quad%w(1:10)
+
+        sn_quad%w(41:80) = sn_quad%w(1:40)
+
+    else if (SN == 16) then
+        allocate(sn_quad%mu(8), sn_quad%eta(8), sn_quad%zeta(8), sn_quad%w(288))
+        allocate(sn_quad%Angles(288,3))
+        sn_quad%NoAngles = 288
+        sn_quad%mu(1) = 0.1389568_dp
+        sn_quad%mu(2) = 0.3922893_dp
+        sn_quad%mu(3) = 0.5370966_dp
+        sn_quad%mu(4) = 0.6504264_dp
+        sn_quad%mu(5) = 0.7467506_dp
+        sn_quad%mu(6) = 0.8319966_dp
+        sn_quad%mu(7) = 0.9092855_dp
+        sn_quad%mu(8) = 0.9805009_dp
+
+        sn_quad%eta = sn_quad%mu
+        sn_quad%zeta = sn_quad%mu
+
+        ! Calculate all angle pairs for Angles
+        if (Adjoint) then
+            ! Top right quadrant
+            sn_quad%Angles(1,:) = [-sn_quad%mu(1), -sn_quad%eta(1), -sn_quad%zeta(8)]
+            sn_quad%Angles(2,:) = [-sn_quad%mu(2), -sn_quad%eta(1), -sn_quad%zeta(7)]
+            sn_quad%Angles(3,:) = [-sn_quad%mu(3), -sn_quad%eta(1), -sn_quad%zeta(6)]
+            sn_quad%Angles(4,:) = [-sn_quad%mu(4), -sn_quad%eta(1), -sn_quad%zeta(5)]
+            sn_quad%Angles(5,:) = [-sn_quad%mu(5), -sn_quad%eta(1), -sn_quad%zeta(4)]
+            sn_quad%Angles(6,:) = [-sn_quad%mu(6), -sn_quad%eta(1), -sn_quad%zeta(3)]
+            sn_quad%Angles(7,:) = [-sn_quad%mu(7), -sn_quad%eta(1), -sn_quad%zeta(2)]
+            sn_quad%Angles(8,:) = [-sn_quad%mu(8), -sn_quad%eta(1), -sn_quad%zeta(1)]
+            sn_quad%Angles(9,:) = [-sn_quad%mu(1), -sn_quad%eta(2), -sn_quad%zeta(7)]
+            sn_quad%Angles(10,:) = [-sn_quad%mu(2), -sn_quad%eta(2), -sn_quad%zeta(6)]
+            sn_quad%Angles(11,:) = [-sn_quad%mu(3), -sn_quad%eta(2), -sn_quad%zeta(5)]
+            sn_quad%Angles(12,:) = [-sn_quad%mu(4), -sn_quad%eta(2), -sn_quad%zeta(4)]
+            sn_quad%Angles(13,:) = [-sn_quad%mu(5), -sn_quad%eta(2), -sn_quad%zeta(3)]
+            sn_quad%Angles(14,:) = [-sn_quad%mu(6), -sn_quad%eta(2), -sn_quad%zeta(2)]
+            sn_quad%Angles(15,:) = [-sn_quad%mu(7), -sn_quad%eta(2), -sn_quad%zeta(1)]
+            sn_quad%Angles(16,:) = [-sn_quad%mu(1), -sn_quad%eta(3), -sn_quad%zeta(6)]
+            sn_quad%Angles(17,:) = [-sn_quad%mu(2), -sn_quad%eta(3), -sn_quad%zeta(5)]
+            sn_quad%Angles(18,:) = [-sn_quad%mu(3), -sn_quad%eta(3), -sn_quad%zeta(4)]
+            sn_quad%Angles(19,:) = [-sn_quad%mu(4), -sn_quad%eta(3), -sn_quad%zeta(3)]
+            sn_quad%Angles(20,:) = [-sn_quad%mu(5), -sn_quad%eta(3), -sn_quad%zeta(2)]
+            sn_quad%Angles(21,:) = [-sn_quad%mu(6), -sn_quad%eta(3), -sn_quad%zeta(1)]
+            sn_quad%Angles(22,:) = [-sn_quad%mu(1), -sn_quad%eta(4), -sn_quad%zeta(5)]
+            sn_quad%Angles(23,:) = [-sn_quad%mu(2), -sn_quad%eta(4), -sn_quad%zeta(4)]
+            sn_quad%Angles(24,:) = [-sn_quad%mu(3), -sn_quad%eta(4), -sn_quad%zeta(3)]
+            sn_quad%Angles(25,:) = [-sn_quad%mu(4), -sn_quad%eta(4), -sn_quad%zeta(2)]
+            sn_quad%Angles(26,:) = [-sn_quad%mu(5), -sn_quad%eta(4), -sn_quad%zeta(1)]
+            sn_quad%Angles(27,:) = [-sn_quad%mu(1), -sn_quad%eta(5), -sn_quad%zeta(4)]
+            sn_quad%Angles(28,:) = [-sn_quad%mu(2), -sn_quad%eta(5), -sn_quad%zeta(3)]
+            sn_quad%Angles(29,:) = [-sn_quad%mu(3), -sn_quad%eta(5), -sn_quad%zeta(2)]
+            sn_quad%Angles(30,:) = [-sn_quad%mu(4), -sn_quad%eta(5), -sn_quad%zeta(1)]
+            sn_quad%Angles(31,:) = [-sn_quad%mu(1), -sn_quad%eta(6), -sn_quad%zeta(3)]
+            sn_quad%Angles(32,:) = [-sn_quad%mu(2), -sn_quad%eta(6), -sn_quad%zeta(2)]
+            sn_quad%Angles(33,:) = [-sn_quad%mu(3), -sn_quad%eta(6), -sn_quad%zeta(1)]
+            sn_quad%Angles(34,:) = [-sn_quad%mu(1), -sn_quad%eta(7), -sn_quad%zeta(2)]
+            sn_quad%Angles(35,:) = [-sn_quad%mu(2), -sn_quad%eta(7), -sn_quad%zeta(1)]
+            sn_quad%Angles(36,:) = [-sn_quad%mu(1), -sn_quad%eta(8), -sn_quad%zeta(1)]
+
+            ! Top left quadrant
+            do i = 37, 72
+                sn_quad%Angles(i,:) = sn_quad%Angles(i-36,:) * [-1.0_dp, 1.0_dp, 1.0_dp]
+            end do
+
+            ! Bottom left quadrant
+            do i = 73, 108
+                sn_quad%Angles(i,:) = sn_quad%Angles(i-72,:) * [-1.0_dp, -1.0_dp, 1.0_dp]
+            end do
+
+            ! Bottom right quadrant
+            do i = 109, 144
+                sn_quad%Angles(i,:) = sn_quad%Angles(i-108,:) * [1.0_dp, -1.0_dp, 1.0_dp]
+            end do
+
+            sn_quad%Angles(145:288,:) = sn_quad%Angles(1:144, :)
+            sn_quad%Angles(145:288,3) = -sn_quad%Angles(1:144,3)
+
+        else
+            ! Top right quadrant
+            sn_quad%Angles(1,:) = [sn_quad%mu(1), sn_quad%eta(1), sn_quad%zeta(8)]
+            sn_quad%Angles(2,:) = [sn_quad%mu(2), sn_quad%eta(1), sn_quad%zeta(7)]
+            sn_quad%Angles(3,:) = [sn_quad%mu(3), sn_quad%eta(1), sn_quad%zeta(6)]
+            sn_quad%Angles(4,:) = [sn_quad%mu(4), sn_quad%eta(1), sn_quad%zeta(5)]
+            sn_quad%Angles(5,:) = [sn_quad%mu(5), sn_quad%eta(1), sn_quad%zeta(4)]
+            sn_quad%Angles(6,:) = [sn_quad%mu(6), sn_quad%eta(1), sn_quad%zeta(3)]
+            sn_quad%Angles(7,:) = [sn_quad%mu(7), sn_quad%eta(1), sn_quad%zeta(2)]
+            sn_quad%Angles(8,:) = [sn_quad%mu(8), sn_quad%eta(1), sn_quad%zeta(1)]
+            sn_quad%Angles(9,:) = [sn_quad%mu(1), sn_quad%eta(2), sn_quad%zeta(7)]
+            sn_quad%Angles(10,:) = [sn_quad%mu(2), sn_quad%eta(2), sn_quad%zeta(6)]
+            sn_quad%Angles(11,:) = [sn_quad%mu(3), sn_quad%eta(2), sn_quad%zeta(5)]
+            sn_quad%Angles(12,:) = [sn_quad%mu(4), sn_quad%eta(2), sn_quad%zeta(4)]
+            sn_quad%Angles(13,:) = [sn_quad%mu(5), sn_quad%eta(2), sn_quad%zeta(3)]
+            sn_quad%Angles(14,:) = [sn_quad%mu(6), sn_quad%eta(2), sn_quad%zeta(2)]
+            sn_quad%Angles(15,:) = [sn_quad%mu(7), sn_quad%eta(2), sn_quad%zeta(1)]
+            sn_quad%Angles(16,:) = [sn_quad%mu(1), sn_quad%eta(3), sn_quad%zeta(6)]
+            sn_quad%Angles(17,:) = [sn_quad%mu(2), sn_quad%eta(3), sn_quad%zeta(5)]
+            sn_quad%Angles(18,:) = [sn_quad%mu(3), sn_quad%eta(3), sn_quad%zeta(4)]
+            sn_quad%Angles(19,:) = [sn_quad%mu(4), sn_quad%eta(3), sn_quad%zeta(3)]
+            sn_quad%Angles(20,:) = [sn_quad%mu(5), sn_quad%eta(3), sn_quad%zeta(2)]
+            sn_quad%Angles(21,:) = [sn_quad%mu(6), sn_quad%eta(3), sn_quad%zeta(1)]
+            sn_quad%Angles(22,:) = [sn_quad%mu(1), sn_quad%eta(4), sn_quad%zeta(5)]
+            sn_quad%Angles(23,:) = [sn_quad%mu(2), sn_quad%eta(4), sn_quad%zeta(4)]
+            sn_quad%Angles(24,:) = [sn_quad%mu(3), sn_quad%eta(4), sn_quad%zeta(3)]
+            sn_quad%Angles(25,:) = [sn_quad%mu(4), sn_quad%eta(4), sn_quad%zeta(2)]
+            sn_quad%Angles(26,:) = [sn_quad%mu(5), sn_quad%eta(4), sn_quad%zeta(1)]
+            sn_quad%Angles(27,:) = [sn_quad%mu(1), sn_quad%eta(5), sn_quad%zeta(4)]
+            sn_quad%Angles(28,:) = [sn_quad%mu(2), sn_quad%eta(5), sn_quad%zeta(3)]
+            sn_quad%Angles(29,:) = [sn_quad%mu(3), sn_quad%eta(5), sn_quad%zeta(2)]
+            sn_quad%Angles(30,:) = [sn_quad%mu(4), sn_quad%eta(5), sn_quad%zeta(1)]
+            sn_quad%Angles(31,:) = [sn_quad%mu(1), sn_quad%eta(6), sn_quad%zeta(3)]
+            sn_quad%Angles(32,:) = [sn_quad%mu(2), sn_quad%eta(6), sn_quad%zeta(2)]
+            sn_quad%Angles(33,:) = [sn_quad%mu(3), sn_quad%eta(6), sn_quad%zeta(1)]
+            sn_quad%Angles(34,:) = [sn_quad%mu(1), sn_quad%eta(7), sn_quad%zeta(2)]
+            sn_quad%Angles(35,:) = [sn_quad%mu(2), sn_quad%eta(7), sn_quad%zeta(1)]
+            sn_quad%Angles(36,:) = [sn_quad%mu(1), sn_quad%eta(8), sn_quad%zeta(1)]
+
+            ! Top left quadrant
+            do i = 37, 72
+                sn_quad%Angles(i,:) = sn_quad%Angles(i-36,:) * [-1.0_dp, 1.0_dp, 1.0_dp]
+            end do
+
+            ! Bottom left quadrant
+            do i = 73, 108
+                sn_quad%Angles(i,:) = sn_quad%Angles(i-72,:) * [-1.0_dp, -1.0_dp, 1.0_dp]
+            end do
+
+            ! Bottom right quadrant
+            do i = 109, 144
+                sn_quad%Angles(i,:) = sn_quad%Angles(i-108,:) * [1.0_dp, -1.0_dp, 1.0_dp]
+            end do
+
+            ! ZETA Top right quadrant
+            do i = 145, 180
+                sn_quad%Angles(i,:) = sn_quad%Angles(i-144,:) * [1.0_dp, 1.0_dp, -1.0_dp]
+            end do
+
+            ! ZETA Top left quadrant
+            do i = 181, 216
+                sn_quad%Angles(i,:) = sn_quad%Angles(i-180,:) * [-1.0_dp, 1.0_dp, -1.0_dp]
+            end do
+
+            ! ZETA Bottom left quadrant
+            do i = 217, 252
+                sn_quad%Angles(i,:) = sn_quad%Angles(i-216,:) * [-1.0_dp, -1.0_dp, -1.0_dp]
+            end do
+
+            ! ZETA Bottom right quadrant
+            do i = 253, 288
+                sn_quad%Angles(i,:) = sn_quad%Angles(i-252,:) * [1.0_dp, -1.0_dp, -1.0_dp]
+            end do
+            end if
+
+            ! Weights
+            sn_quad%w(1:8) = (/0.0489872_dp, 0.0413296_dp, 0.0212326_dp, 0.0256207_dp, 0.0256207_dp, 0.0212326_dp, 0.0413296_dp, 0.0489872_dp/)
+            sn_quad%w(9:15) = (/0.0413296_dp, 0.0360486_dp, 0.0144589_dp, 0.0344958_dp, 0.0144589_dp, 0.0360486_dp, 0.0413296_dp/)
+            sn_quad%w(16:21) = (/0.0212326_dp, 0.0144589_dp, 0.0085179_dp, 0.0085179_dp, 0.0144589_dp, 0.0212326_dp/)
+            sn_quad%w(22:26) = (/0.0256207_dp, 0.0344958_dp, 0.0085179_dp, 0.0344958_dp, 0.0256207_dp/)
+            sn_quad%w(27:30) = (/0.0256207_dp, 0.0144589_dp, 0.0144589_dp, 0.0256207_dp/)
+            sn_quad%w(31:33) = (/0.0212326_dp, 0.0360486_dp, 0.0212326_dp/) 
+            sn_quad%w(34:35) = (/0.0413296_dp, 0.0413296_dp/)
+            sn_quad%w(36) = 0.0489872_dp
+
+            sn_quad%w(37:72) = sn_quad%w(1:36)
+            sn_quad%w(73:108) = sn_quad%w(1:36)
+            sn_quad%w(109:144) = sn_quad%w(1:36)
+            sn_quad%w(145:180) = sn_quad%w(1:36)
+            sn_quad%w(181:216) = sn_quad%w(1:36)
+            sn_quad%w(217:252) = sn_quad%w(1:36)
+            sn_quad%w(253:288) = sn_quad%w(1:36)
+    end if
+
+    end subroutine Get3DAngleQuadrature
 
 subroutine GetLineQuad(Quad, IntegOrder)
     type(t_Quadrature)   :: Quad
@@ -465,7 +1303,7 @@ subroutine QuadrilateralQuadrature(Quad, QuadBound, IntegOrder)
     
     type(t_Quadrature)                  :: Quad, QuadBound
     integer, intent(in)                 :: IntegOrder
-    integer :: i, j, k
+    integer :: ii, j, k
 
     allocate(Quad%Xi((IntegOrder+1)**2))
     allocate(Quad%Eta((IntegOrder+1)**2))
@@ -473,11 +1311,11 @@ subroutine QuadrilateralQuadrature(Quad, QuadBound, IntegOrder)
     Quad%NoPoints = (IntegOrder+1)**2
 
     k = 1
-    do i = 1, IntegOrder + 1
+    do ii = 1, IntegOrder + 1
         do j = 1, IntegOrder + 1
-            Quad%Xi(k) = QuadBound%Xi(i)
+            Quad%Xi(k) = QuadBound%Xi(ii)
             Quad%Eta(k) = QuadBound%Xi(j)
-            Quad%W(k) = QuadBound%W(i) * QuadBound%W(j)
+            Quad%W(k) = QuadBound%W(ii) * QuadBound%W(j)
             k = k + 1
         end do
     end do
@@ -806,7 +1644,7 @@ subroutine HexahedralQuadrature(Quad, QuadBound, IntegOrder)
 
     type(t_Quadrature)  :: Quad, QuadBound
     integer, intent(in) :: IntegOrder
-    integer :: i, j, k, gp
+    integer :: ii, j, k, gp
     
     
     allocate(Quad%Xi((IntegOrder+1)**3))
@@ -816,13 +1654,13 @@ subroutine HexahedralQuadrature(Quad, QuadBound, IntegOrder)
     Quad%NoPoints = (IntegOrder+1)**3
 
     gp = 1
-    do i = 1, IntegOrder + 1
+    do ii = 1, IntegOrder + 1
         do j = 1, IntegOrder + 1
             do k = 1, IntegOrder + 1
-                Quad%Xi(gp) = QuadBound%Xi(i)
+                Quad%Xi(gp) = QuadBound%Xi(ii)
                 Quad%Eta(gp) = QuadBound%Xi(j)
                 Quad%Zeta(gp) = QuadBound%Xi(k)
-                Quad%W(gp) = QuadBound%W(i) * QuadBound%W(j) * QuadBound%W(k)
+                Quad%W(gp) = QuadBound%W(ii) * QuadBound%W(j) * QuadBound%W(k)
                 gp = gp + 1
             end do
         end do
@@ -1347,7 +2185,7 @@ end subroutine Spectral1DQuadrature
 subroutine Spectral2DQuadrature(Quad, QuadBound)
     type(t_Quadrature)  :: Quad
     type(t_Quadrature)  :: QuadBound
-    integer                             :: i, j, k
+    integer                             :: ii, j, k
 
     Quad%NoPoints = QuadBound%NoPoints ** 2
 
@@ -1356,11 +2194,11 @@ subroutine Spectral2DQuadrature(Quad, QuadBound)
     allocate(Quad%W(Quad%NoPoints))
 
     k = 1
-    do i = 1, QuadBound%NoPoints
+    do ii = 1, QuadBound%NoPoints
         do j = 1, QuadBound%NoPoints
-            Quad%Xi(k) = QuadBound%Xi(i)
+            Quad%Xi(k) = QuadBound%Xi(ii)
             Quad%Eta(k) = QuadBound%Xi(j)
-            Quad%W(k) = QuadBound%W(i) * QuadBound%W(j)
+            Quad%W(k) = QuadBound%W(ii) * QuadBound%W(j)
             k = k + 1
         end do
     end do

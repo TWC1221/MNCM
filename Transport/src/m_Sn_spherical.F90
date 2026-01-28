@@ -22,8 +22,9 @@ program sn_spherical
   use m_quadrature
   implicit none
   type(t_Quadrature) :: Quad
+  type(t_sn_quadrature) :: sn_quad
 
-  integer :: N, I, nn, ii
+  integer :: N, I, nn, ii, SN
   integer :: iter, max_iter
   real(8) :: R
 
@@ -46,7 +47,7 @@ program sn_spherical
 
   R = 1.0
   N = 20
-  I = 1000000
+  I = 1000
 
   allocate(sigs(I), sigt(I))
   sigs = 0.9
@@ -193,4 +194,25 @@ program sn_spherical
 
   cmd = "gnuplot -persist plot_sn.gp"
   call execute_command_line(cmd)
+
+  SN=4
+  call Get2DAngleQuadrature(sn_quad, SN)
+
+  print *, '----------------------------------------'
+  print *, ' SN Quadrature'
+  print *, ' NoAngles = ', sn_quad%NoAngles
+  print *, '----------------------------------------'
+  print *, '  ii        mu           eta          zeta          w'
+  print *, '----------------------------------------'
+
+  do ii = 1, sn_quad%NoAngles
+      print '(i4,5f13.6)', ii, &
+            sn_quad%Angles(ii,1), &
+            sn_quad%Angles(ii,2), &
+            sn_quad%Angles(ii,3), &
+            sn_quad%w(ii)
+  end do
+
+  print *, '----------------------------------------'
+
 end program sn_spherical
