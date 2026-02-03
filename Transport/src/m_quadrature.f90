@@ -9,12 +9,15 @@ module m_quadrature
 !    - Triangular elements                                             -!
 !    - Tetrahedral elements                                            -!
 !    - Hexahedral elements                                             -!
+!    - Full rotational symmetry level-symmetric quadrature 3D          -!
+!    - RZ discretization quadratures                                   -!      
 !                                                                      -!
 !! Record of revisions:                                                -!
 !   Date       Programmer     Description of change                    -!
 !   ====       ==========     =====================                    -!
 ! 14/03/24      C. Jones         Original code                         -!
-! 27/01/26      T. Charlton      3D LvL Sym Quadratures Implemented    -!
+! 27/01/26      T. Charlton      3D LvL Sym quadratures                -!
+! 28/01/26      T. Charlton      RZ (pp,qq) quadratures                -!
 !-----------------------------------------------------------------------!
 
 use m_constants
@@ -27,12 +30,20 @@ type :: t_Quadrature
 end type t_Quadrature
 
 type t_sn_quadrature
-    integer :: NoAngles
+    integer :: NoAngles, P, Q
     real(dp), dimension(:), allocatable   :: mu, eta, zeta
     real(dp), dimension(:,:), allocatable :: Angles
     real(dp), dimension(:), allocatable   :: w
     real(dp), dimension(:), allocatable   :: alpha1D
     real(dp), dimension(:,:), allocatable :: alpha2D
+
+    integer, allocatable :: pp(:), qq(:)            ! maps: angle nn -> level p, order q
+    integer, allocatable :: zeta_pp(:), qq_len(:)   ! per-level metadata
+
+    real(dp), allocatable :: mu_pq(:,:)    ! (P,Q): μ at (pp,qq)
+    real(dp), allocatable :: zeta_p(:)  ! (P,Q): ζ at (pp,qq)
+    real(dp), allocatable :: w_pq(:,:)     ! (P,Q): weight at (pp,qq)
+    integer, allocatable :: n_pq(:,:)
 
     contains
         procedure :: get_angle_weights
@@ -462,6 +473,149 @@ subroutine Get2DAngleQuadrature(sn_quad, SN, flag_Adjoint)
 
     end subroutine Get2DAngleQuadrature
 
+subroutine GetRZAngleQuadrature(sn_quad, SN, flag_Adjoint)
+  use, intrinsic :: iso_fortran_env, only: dp => real64
+  type(t_sn_quadrature)  :: sn_quad
+  integer, intent(in)    :: SN
+  logical, optional, intent(in) :: flag_Adjoint
+  logical :: Adjoint
+
+  integer :: N0, N, i, j, k, pp, qq, P, Q, beg, fin, M
+  real(dp), parameter :: tol = 1.0e-12_dp
+  integer, allocatable :: keep(:), seg_beg(:), seg_fin(:)
+  integer, allocatable :: ord(:), ring(:)
+  real(dp) :: zcur
+
+  Adjoint =.false.
+  if (present(flag_Adjoint)) Adjoint = flag_Adjoint
+
+  ! 1) Full 3D LQ set
+  call Get3DAngleQuadrature(sn_quad, SN, Adjoint)
+
+  ! 2) Keep only eta >= 0
+  N0 = sn_quad%NoAngles
+  allocate(keep(N0)); k = 0
+  do i = 1, N0
+    if (sn_quad%Angles(i,2) >= -tol) then
+      k = k + 1; keep(k) = i
+    end if
+  end do
+  call compact_keep(sn_quad, keep, k)   ! now NoAngles = k
+  deallocate(keep)
+  N = sn_quad%NoAngles
+
+  ! 3) Sort all directions by zeta to form constant-ζ segments
+  allocate(ord(N)); do i = 1, N; ord(i) = i; end do
+  call sort_idx_by_key(ord, N, sn_quad%Angles(:,3))
+
+  ! Scan for segments (levels) with same ζ (within tol)
+  allocate(seg_beg(N), seg_fin(N)); P = 0; i = 1
+  do while (i <= N)
+    P = P + 1
+    seg_beg(P) = i
+    zcur = sn_quad%Angles(ord(i),3)
+    do
+      i = i + 1
+      if (i > N) exit
+      if (abs(sn_quad%Angles(ord(i),3) - zcur) > tol) exit
+    end do
+    seg_fin(P) = i - 1
+  end do
+
+  ! Max ring length Q and per-level lengths
+  if (allocated(sn_quad%qq_len)) deallocate(sn_quad%qq_len)
+  allocate(sn_quad%qq_len(P)); sn_quad%qq_len = 0
+  Q = 0
+  do pp = 1, P
+    sn_quad%qq_len(pp) = seg_fin(pp) - seg_beg(pp) + 1
+    if (sn_quad%qq_len(pp) > Q) Q = sn_quad%qq_len(pp)
+  end do
+
+  ! 4) Allocate pp/qq maps and 2D arrays (μ, ζ, w), plus zeta per level
+  if (allocated(sn_quad%pp))       deallocate(sn_quad%pp, sn_quad%qq)
+  if (allocated(sn_quad%zeta_pp))  deallocate(sn_quad%zeta_pp)
+  if (allocated(sn_quad%mu_pq))    deallocate(sn_quad%mu_pq, sn_quad%zeta_p, sn_quad%w_pq)
+  if (allocated(sn_quad%n_pq))     deallocate(sn_quad%n_pq)
+
+  allocate(sn_quad%pp(N), sn_quad%qq(N))
+  allocate(sn_quad%zeta_pp(P))
+  allocate(sn_quad%mu_pq(P,Q), sn_quad%zeta_p(P), sn_quad%w_pq(P,Q))
+  allocate(sn_quad%n_pq(P,Q))
+
+  sn_quad%pp = 0; sn_quad%qq = 0
+  sn_quad%mu_pq   = 0.0_dp
+  sn_quad%zeta_p = 0.0_dp
+  sn_quad%w_pq    = 0.0_dp
+  sn_quad%n_pq    = 0
+
+  ! 5) For each level: sort by μ ascending, fill qq, and 2D arrays
+  do pp = 1, P
+    beg = seg_beg(pp); fin = seg_fin(pp); M = fin - beg + 1
+    allocate(ring(M))
+    do j = 1, M
+      ring(j) = ord(beg + j - 1)
+    end do
+
+    call sort_idx_by_key(ring, M, sn_quad%Angles(:,1))  ! by μ
+
+    sn_quad%zeta_pp(pp) = sn_quad%Angles(ring(1),3)     ! representative ζ for level
+
+    do qq = 1, M
+      i = ring(qq)
+      sn_quad%pp(i) = pp
+      sn_quad%qq(i) = qq
+      sn_quad%mu_pq(pp,qq)   = sn_quad%Angles(i,1)
+      sn_quad%zeta_p(pp) = sn_quad%Angles(i,3)
+      sn_quad%w_pq(pp,qq)    = sn_quad%w(i)
+      sn_quad%n_pq(pp,qq)    = i
+    end do
+    deallocate(ring)
+  end do
+
+  sn_quad%P = P
+  sn_quad%Q = Q
+
+contains
+  subroutine compact_keep(snq, keep, mnew)
+    type(t_sn_quadrature), intent(inout) :: snq
+    integer, intent(in) :: keep(:), mnew
+    real(dp), allocatable :: A(:,:), W(:)
+    integer :: t
+    allocate(A(mnew,3), W(mnew))
+    do t = 1, mnew
+      A(t,:) = snq%Angles(keep(t),:)
+      W(t)   = snq%w(keep(t))
+    end do
+    if (allocated(snq%Angles)) deallocate(snq%Angles)
+    if (allocated(snq%w))      deallocate(snq%w)
+    if (allocated(snq%mu))     deallocate(snq%mu, snq%eta, snq%zeta)
+    allocate(snq%Angles(mnew,3), snq%w(mnew))
+    snq%Angles = A; snq%w = W; snq%NoAngles = mnew
+    allocate(snq%mu(mnew), snq%eta(mnew), snq%zeta(mnew))
+    snq%mu   = snq%Angles(:,1)
+    snq%eta  = snq%Angles(:,2)
+    snq%zeta = snq%Angles(:,3)
+    deallocate(A, W)
+  end subroutine compact_keep
+
+  subroutine sort_idx_by_key(ind, m, key)     ! insertion sort, ascending
+    integer, intent(inout) :: ind(:)
+    integer, intent(in)    :: m
+    real(dp), intent(in)   :: key(:)
+    integer :: a, b, t
+    real(dp) :: kval
+    if (m <= 1) return
+    do a = 2, m
+      t = ind(a); kval = key(t); b = a - 1
+      do
+        if (b < 1) exit
+        if (key(ind(b)) <= kval) exit
+        ind(b+1) = ind(b); b = b - 1
+      end do
+      ind(b+1) = t
+    end do
+  end subroutine sort_idx_by_key
+end subroutine GetRZAngleQuadrature
 
 subroutine Get3DAngleQuadrature(sn_quad, SN, flag_Adjoint)
     type(t_sn_quadrature)  :: sn_quad
@@ -886,9 +1040,10 @@ subroutine Get3DAngleQuadrature(sn_quad, SN, flag_Adjoint)
 
     end subroutine Get3DAngleQuadrature
 
-subroutine GetLineQuad(Quad, IntegOrder)
+subroutine GetLineQuad(Quad, IntegOrder, flag_adjoint)
     type(t_Quadrature)   :: Quad
     integer, intent(in)  :: IntegOrder
+    logical, intent(in), optional :: flag_adjoint
 
     allocate(Quad%Xi(IntegOrder+1))
     allocate(Quad%W(IntegOrder+1))
@@ -1295,7 +1450,7 @@ subroutine GetLineQuad(Quad, IntegOrder)
 
     end select
 
-    ! Quad%Xi = - Quad%Xi
+    if (present(flag_adjoint)) Quad%Xi = - Quad%Xi
 
 end subroutine GetLineQuad
     

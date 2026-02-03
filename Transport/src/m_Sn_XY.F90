@@ -1,186 +1,147 @@
 !------------------------------------------------------------------------!
 ! Purpose:                                                              -!
-!  1D spherical S_N discrete ordinates transport solver (steady state)  -!
-!  - Conservative shell balance with spherical face areas and volumes   -!
-!  - Gauss–Legendre quadrature (N-1 to avoid μ=0)                       -!
-!  - Angular differencing coefficients (EE Lewis CMNT formulation)      -!
+!  2D Cartesian S_N discrete ordinates transport solver                 -!
+!  - Steady-state fixed-source solution                                 -!
+!  - Eigenvalue (k-effective) solution                                  -!
+!  - Adjoint (reverse/importance) transport capability                  -!
+!  - Conservative cell balance on a uniform x-y grid                    -!
+!  - Gauss–Legendre quadrature in 2D (μ, η angles)                      -!
+!  - Diamond-difference (or step) spatial discretization                -!
 !  - Isotropic external source and isotropic scattering                 -!
-!  - Source iteration with inward/outward diamond-difference sweeps     -!
-!  - Vacuum outer boundary; center regularity via angular differencing  -!
-!  - Outputs phi.dat (r, φ, ψ_n) and a gnuplot script                   -!
-!  - Colors ψ_n curves by their μ with colorbar scaled to [-1, 1]       -!
+!  - Source iteration with inward/outward sweeps over all angles        -!
+!  - Vacuum boundary conditions on all outer boundaries                 -!
+!  - Outputs phi_xy.dat (x, y, φ) and plot_phi.gp gnuplot script        -!
+!  - Visualizes scalar flux as a pm3d heatmap                           -!
 !------------------------------------------------------------------------!
 !! Record of revisions:                                                 -!
 !   Date       Programmer     Description of change                     -!
 !   ====       ==========     =====================                     -!
-! 01/14/26     T. Charlton    Initial 1D spherical S_N solver; file     -!
-!                             output and μ-colored gnuplot visualization-!
+! 17/01/26     T. Charlton    Initial 2D Cartesian S_N solver; file     -!
+!                             output and pm3d gnuplot visualization     -!
 !------------------------------------------------------------------------!
 
 program sn_XY
   use m_constants
   use m_quadrature
+  use m_outpVTK
   implicit none
   type(t_sn_quadrature) :: sn_Quad
 
   integer :: N, I, J, nn, ii, jj, Nang
 
-  real(8), allocatable :: X, Y, x_edge(:), y_edge(:), dx(:), dy(:)
-  
-  real(8), allocatable :: mu(:), eta(:), w(:), scale(:)
+  real(8), allocatable :: X, Y, x_edge(:), y_edge(:), x_center(:), y_center(:), dx(:), dy(:)
 
-  real(8), allocatable :: sigs(:,:), sigt(:,:)
+  real(8), allocatable :: mu(:), eta(:), w(:)
+
+  real(8), allocatable :: sigs(:,:), sigt(:,:), nu_sigf(:,:)
 
   real(8), allocatable :: psi(:,:,:), psi_i(:,:,:), psi_j(:,:,:)
 
-  real(8), allocatable :: S(:,:,:), q(:,:,:), phi(:,:), phi_prime(:,:)
+  real(8), allocatable :: S_ext(:,:,:), q(:,:,:), phi(:,:), phi_prime(:,:), denom, mode
+  
+  integer :: istart, iend, istep, jstart, jend, jstep, ifor, jfor, irev, jrev, udat, uscr
 
-  real(8), allocatable :: q_MMS(:,:,:), S_MMS(:,:,:), x_MMS(:), y_MMS(:)
+  real(8) :: k_eff, k_eff_prime
 
-  integer :: iter, max_iter
-
-  integer :: udat, uscr
-  real(dp), allocatable :: x_center(:), y_center(:)
-  character(len=256) :: cmd
+  logical :: diamond = .false., flag_adjoint = .false.
 
   call system('pkill gnuplot')
 
-  N = 2
+  N = 16
   I = 100
   J = 100
   X = 1.0
   Y = 1.0
 
-  allocate(x_edge(I+1), Y_edge(J+1), dx(I), dy(J))
+  allocate(x_edge(I+1), y_edge(J+1), dx(I), dy(J))
   x_edge = [((X/I) * ii, ii = 0,I)]
   y_edge = [((Y/J) * jj, jj = 0,J)]
 
   dx = [(x_edge(ii+1)-x_edge(ii),ii=1,I)]
   dy = [(y_edge(jj+1)-y_edge(jj),jj=1,J)]
 
-  call Get2DAngleQuadrature(sn_Quad, N)
+  call Get2DAngleQuadrature(sn_Quad, N, flag_adjoint)
   Nang = sn_Quad%NoAngles 
   mu = sn_Quad%Angles(1:Nang,1)
-  eta = sn_Quad%Angles(1:Nang,2)  
+  eta = sn_Quad%Angles(1:Nang,2)
   w = sn_Quad%w(1:Nang)
 
-  ! print'(40F5.2)',mu
-  ! print'(40F5.2)',eta
-  ! print'(40F5.2)',w
-
-  allocate(sigs(I,J), sigt(I,J))
+  allocate(sigs(I,J), sigt(I,J), nu_sigf(I,J))
   sigs = 0.9
   sigt = 1.0
-  
-  ! allocate(x_MMS(I), y_MMS(J), q_MMS(Nang,I,J),S_MMS(Nang,I,J))
-  ! do nn = 1,Nang
-  !   do ii = 1,I
-  !     do jj = 1,J
-  !       x_MMS(ii) = (x_edge(ii) + x_edge(ii+1))/2.0
-  !       y_MMS(jj) = (y_edge(jj) + y_edge(jj+1))/2.0
-  !       q_MMS(nn,ii,jj) = mu(nn)*(y_MMS(jj)-sin(2.0*pi*x_MMS(ii)) - 2.0*pi*(x_MMS(ii)+cos(2.0*pi*y_MMS(jj)))*cos(2.0*pi*x_MMS(ii))) + eta(nn)*(x_MMS(ii) + cos(2.0*pi*y_MMS(jj)) - 2.0*pi*(y_MMS(jj)-sin(2.0*pi*x_MMS(ii)))*sin(2.0*pi*y_MMS(jj)))
-  !       S_MMS(nn,ii,jj) = q_MMS(1,ii,jj) + (sigt(ii,jj)-sigs(ii,jj)) * (x_MMS(ii)+cos(2.0*pi*y_MMS(jj)))*(y_MMS(jj)-sin(2.0*pi*x_MMS(ii)))
-  !     end do
-  !   end do
-  ! end do
+  nu_sigf = 0.0
 
-  allocate(psi(Nang,I,J),psi_i(Nang,I+1,J),psi_j(Nang,I,J+1), q(Nang,I,J), S(Nang,I,J), phi(I,J), phi_prime(I,J))
+  allocate(psi(Nang,I,J),psi_i(Nang,I+1,J),psi_j(Nang,I,J+1), q(Nang,I,J), S_ext(Nang,I,J), phi(I,J), phi_prime(I,J))
   q = 0.0
-  S(:,:,:) = 1.0 
-  phi_prime = 0.0
+  S_ext = 1.0 
+  phi = 0.0
+  phi_prime = 1.0
+  k_eff = 0.0
+  k_eff_prime = 1.0
 
-  do iter = 1, 100
-
-    q = 0.0
-    do nn = 1, Nang
-      do jj = 1, J
-        do ii = 1, I
-          q(nn,ii,jj) = (sigs(ii,jj) * phi_prime(ii,jj)) + S(nn,ii,jj)
+  do
+    do nn = 1,Nang
+      do jj = 1,J
+        do ii = 1,I
+          q(nn,ii,jj) = (sigs(ii,jj) + nu_sigf(ii,jj)/k_eff_prime) * phi_prime(ii,jj) + S_ext(nn,ii,jj)
         end do
       end do
     end do
-    
-    phi = 0.0
 
     do nn = 1,Nang
-      if (mu(nn) >= 0 .and. eta(nn) >=0) then
-        psi_i(nn,1,1:J) = 0.0
-        psi_j(nn,1:I,1) = 0.0
-        do jj = 1,J
-          do ii = 1,I
-            psi(nn,ii,jj) = (q(nn,ii,jj) + 2.0*abs(mu(nn))/dx(ii) * psi_i(nn,ii,jj) + 2.0*abs(eta(nn))/dy(jj)*psi_j(nn,ii,jj))/(2.0*abs(mu(nn))/dx(ii)+2.0*abs(eta(nn))/dy(jj) + sigt(ii,jj))
-            psi_i(nn,ii+1,jj) = 2.0 * psi(nn,ii,jj) - psi_i(nn,ii,jj)
-            psi_j(nn,ii,jj+1) = 2.0 * psi(nn,ii,jj) - psi_j(nn,ii,jj)
-          end do
-        end do
-            
-        do jj = 1,J
-          do ii = 1,I
-            phi(ii,jj) = phi(ii,jj) + 1.0/(4.0) * w(nn)*psi(nn,ii,jj)
-          end do
-        end do
-      
-      else if (mu(nn) >= 0 .and. eta(nn) <= 0) then
-        psi_i(nn,1,1:J) = 0.0
-        psi_j(nn,1:I,J+1) = 0.0
-        do jj = J, 1, -1
-          do ii = 1,I
-            psi(nn,ii,jj) = (q(nn,ii,jj) + 2.0*abs(mu(nn))/dx(ii) * psi_i(nn,ii,jj) + 2.0*abs(eta(nn))/dy(jj)*psi_j(nn,ii,jj+1))/(2.0*abs(mu(nn))/dx(ii)+2.0*abs(eta(nn))/dy(jj) + sigt(ii,jj))
-            psi_i(nn,ii+1,jj) = 2.0 * psi(nn,ii,jj) - psi_i(nn,ii,jj)
-            psi_j(nn,ii,jj) = 2.0 * psi(nn,ii,jj) - psi_j(nn,ii,jj+1)
-          end do
-        end do
 
-        do jj = 1,J
-          do ii = 1,I
-            phi(ii,jj) = phi(ii,jj) + 1.0/(4.0) * w(nn)*psi(nn,ii,jj)
-          end do
-        end do
-      
-      else if (mu(nn) <= 0 .and. eta(nn) <= 0) then
-        psi_i(nn,I+1,1:J) = 0.0
-        psi_j(nn,1:I,J+1) = 0.0
-        do jj = J, 1, -1
-          do ii = I, 1, -1
-            psi(nn,ii,jj) = (q(nn,ii,jj) + 2.0*abs(mu(nn))/dx(ii) * psi_i(nn,ii+1,jj) + 2.0*abs(eta(nn))/dy(jj)*psi_j(nn,ii,jj+1))/(2.0*abs(mu(nn))/dx(ii)+2.0*abs(eta(nn))/dy(jj) + sigt(ii,jj))
-            psi_i(nn,ii,jj) = 2.0*psi(nn,ii,jj) - psi_i(nn,ii+1,jj)
-            psi_j(nn,ii,jj) = 2.0 * psi(nn,ii,jj) - psi_j(nn,ii,jj+1)
-          end do
-        end do
-            
-        do jj = 1,J
-          do ii = 1,I
-            phi(ii,jj) = phi(ii,jj) + 1.0/(4.0) * w(nn)*psi(nn,ii,jj)
-          end do
-        end do
+      istep  = merge(-1, 1, mu(nn) <= 0)
+      istart = merge(I, 1, mu(nn)  <= 0)
+      iend   = merge(1, I, mu(nn)  <= 0)
 
-      else if (mu(nn) <= 0 .and. eta(nn) >= 0) then
-        psi_i(nn,I+1,1:J) = 0.0
-        psi_j(nn,1:I,1) = 0.0
-        do jj = 1,J
-          do ii = I, 1, -1
-            psi(nn,ii,jj) = (q(nn,ii,jj) + 2.0*abs(mu(nn))/dx(ii) * psi_i(nn,ii+1,jj) + 2.0*abs(eta(nn))/dy(jj)*psi_j(nn,ii,jj))/(2.0*abs(mu(nn))/dx(ii)+2.0*abs(eta(nn))/dy(jj) + sigt(ii,jj))
-            psi_i(nn,ii,jj) = 2.0 * psi(nn,ii,jj) - psi_i(nn,ii+1,jj)
-            psi_j(nn,ii,jj+1) = 2.0 * psi(nn,ii,jj) - psi_j(nn,ii,jj)
-          end do
+      jstep  = merge(-1, 1, eta(nn) <= 0)
+      jstart = merge(J, 1, eta(nn)  <= 0)
+      jend   = merge(1, J, eta(nn)  <= 0)
+
+      ifor = merge(1, 0, mu(nn) >=0)
+      jfor = merge(1, 0, eta(nn) >=0)
+      irev = merge(1, 0, mu(nn) <=0)
+      jrev = merge(1, 0, eta(nn) <=0)
+
+      psi_i(nn, merge(1, I+1, mu(nn)  >= 0), :) = 0.0
+      psi_j(nn, :, merge(1, J+1, eta(nn) >= 0)) = 0.0
+
+      mode = merge(2.0, 1.0, diamond)
+
+      do jj = jstart,jend,jstep
+        do ii = istart,iend,istep
+          denom = sigt(ii,jj) + (mode*abs(mu(nn))/dx(ii)) + (mode*abs(eta(nn))/dy(jj))
+          psi(nn,ii,jj) = ((mode*abs(mu(nn))/dx(ii))*psi_i(nn,ii+irev,jj) + (mode*abs(eta(nn))/dy(jj))*psi_j(nn,ii,jj+jrev) + q(nn,ii,jj))/denom
+          if (diamond) then
+            ! Diamond Difference
+            psi_i(nn,ii+ifor,jj) = 2.0 * psi(nn,ii,jj) - psi_i(nn,ii+irev,jj)
+            psi_j(nn,ii,jj+jfor) = 2.0 * psi(nn,ii,jj) - psi_j(nn,ii,jj+jrev) 
+          else
+            ! Step
+            psi_i(nn,ii+ifor,jj) = psi(nn,ii,jj)
+            psi_j(nn,ii,jj+jfor) = psi(nn,ii,jj)
+          end if
+
+          phi(ii,jj) = phi(ii,jj) + 0.25*w(nn)*psi(nn,ii,jj)
         end do
-        
-        do jj = 1,J
-          do ii = 1,I
-            phi(ii,jj) = phi(ii,jj) + 1.0/(4.0) * w(nn)*psi(nn,ii,jj)
-          end do
-        end do
-      end if
+      end do
 
     end do
     
-    if (sum(phi)-sum(phi_prime) <= 10E-8) print*,iter
-    if ( maxval(abs(phi - phi_prime)) < 1d-8 ) exit
-    phi_prime = phi
+    if ( maxval(abs(phi - phi_prime)) < 1d-8 ) exit !FIXED SOURCE
+    !if ( maxval(abs(phi - phi_prime)) < 1d-8 .and. abs(k_eff - k_eff_prime) < 1d-10 ) exit !EIGENVALUE
 
-  end do 
+    !k_eff = k_eff_prime * sum(phi * nu_sigf)/sum(phi_prime * nu_sigf)
+    !k_eff_prime = k_eff
 
-print*,phi(1,1),phi(I/2,J/2)
+    phi_prime = phi !FIXED SOURCE
+    !phi_prime = phi / sum(phi) !EIGENVALUE
+
+    phi = 0.0
+
+  end do
+
+  print*,maxval(phi),minval(phi), k_eff
 
 ! -----------------------------
 ! Write phi(x,y) as grid for pm3d
@@ -241,6 +202,23 @@ write(uscr,'(A)') "# splot 'phi_xy.dat' using 1:2:3 with lines lw 1 notitle"
 close(uscr)
 
 call execute_command_line("gnuplot -persist plot_phi.gp")
+
+print *, '----------------------------------------'
+print *, ' SN Quadrature'
+print *, ' NoAngles = ', sn_quad%NoAngles
+print *, '----------------------------------------'
+print *, '  ii        mu           eta          zeta          w'
+print *, '----------------------------------------'
+
+do ii = 1, sn_quad%NoAngles
+    print '(i4,5f13.6)', ii, &
+          sn_quad%Angles(ii,1), &
+          sn_quad%Angles(ii,2), &
+          sn_quad%Angles(ii,3), &
+          sn_quad%w(ii)
+end do
+
+print *, '----------------------------------------'
 
 contains
   function to_str(x) result(s)

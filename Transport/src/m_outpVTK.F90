@@ -1,16 +1,28 @@
-
 !------------------------------------------------------------------------!
-! Purpose:                                                              -!
-!  Produce VTK files for 2D discretized NDE, xy, rz and rth geometries  -!  
-!  Writes : Points, Cells, Cell_Types, Cell_Data                        -!
+! VTK output utilities for discrete ordinates transport solvers         -!
+!                                                                       -!
+! Capabilities:                                                         -!
+!  - Unstructured-grid VTK output for 3D Cartesian transport problems   -!
+!    * Cell-centered scalar fields                                      -!
+!    * Angular-flux–derived current vectors (Jx,Jy,Jz)                  -!
+!    * Per-angle vector field decomposition                             -!
+!                                                                       -!
+!  - Rectilinear-grid VTK output for 2D axisymmetric (R–Z) geometry     -!
+!    * Cell-centered scalar flux φ(r,z)                                 -!
+!    * Per-(p,q) angular current vectors (J_r, J_z)                     -!
+!                                                                       -!
+!  - Supports even-order S_N quadrature with arbitrary angular layouts  -!
+!  - Compatible with fixed-source and eigenvalue transport solvers      -!
+!                                                                       -!
+! Notes:                                                                -!
+!  - All fields written cell-centered                                   -!
+!  - Cylindrical symmetry enforced via zero azimuthal component         -!
+!                                                                       -!
 !------------------------------------------------------------------------!
-!! Record of revisions:                                                 -!
-!   Date       Programmer     Description of change                     -!
-!   ====       ==========     =====================                     -!
-! 14/11/25     T. Charlton    Implemented 2D matrix                     -!
-! 15/11/25     T. Charlton    Implemented rth matrix                    -!
-! 17/11/25     T. Charlton    Implemented rz matrix                     -! 
-!------------------------------------------------------------------------! 
+! Revision history:                                                     -!
+! 26/01/26  T. Charlton  Initial 3D Cartesian VTK support               -!
+! 02/02/26  T. Charlton  Added R–Z rectilinear-grid output              -!
+!------------------------------------------------------------------------!
 
 module m_outpVTK
    implicit none
@@ -89,7 +101,7 @@ module m_outpVTK
       close(11)
    end subroutine outpVTK_xyz_transport
 
-  subroutine outpVTK_xyz_vector(filename, psi, I, J, K, dx, dy, dz, Nang, mu, eta, zeta)
+  subroutine outpVTK_xyz_vector_field(filename, psi, I, J, K, dx, dy, dz, Nang, mu, eta, zeta)
     implicit none
 
     character(len=*), intent(in) :: filename
@@ -159,9 +171,9 @@ module m_outpVTK
 
     deallocate(Jx, Jy, Jz)
 
-  end subroutine outpVTK_xyz_vector
+  end subroutine outpVTK_xyz_vector_field
 
-  subroutine outpVTK_xyz_vector_allangles(filename, psi, I, J, K, dx, dy, dz, Nang, mu, eta, zeta)
+  subroutine outpVTK_xyz_vector_decomposition(filename, psi, I, J, K, dx, dy, dz, Nang, mu, eta, zeta)
   implicit none
 
   character(len=*), intent(in) :: filename
@@ -218,7 +230,135 @@ module m_outpVTK
 
   close(11)
 
-end subroutine outpVTK_xyz_vector_allangles
+end subroutine outpVTK_xyz_vector_decomposition
+
+subroutine outpVTK_rectilinear(filename, r_edge, z_edge, phi, I, J)
+  use iso_fortran_env, only: int32
+  implicit none
+  character(*), intent(in) :: filename
+  integer,       intent(in) :: I, J
+  real(8),      intent(in) :: r_edge(I+1), z_edge(J+1)
+  real(8),      intent(in) :: phi(I,J)
+
+  integer :: u, ii, jj
+  integer(int32) :: nx, ny, nz, ncells
+
+  nx = I + 1
+  ny = J + 1
+  nz = 1
+  ncells = I * J
+
+  open(newunit=u, file=filename, status='replace', action='write', form='formatted')
+
+  ! Header
+  write(u,'(A)') '# vtk DataFile Version 3.0'
+  write(u,'(A)') 'phi on RZ rectilinear grid'
+  write(u,'(A)') 'ASCII'
+  write(u,'(A)') 'DATASET RECTILINEAR_GRID'
+
+  ! Grid dimensions
+  write(u,'(A,1X,I0,1X,I0,1X,I0)') 'DIMENSIONS', nx, ny, nz
+
+  ! X (r) coordinates
+  write(u,'(A,1X,I0,1X,A)') 'X_COORDINATES', nx, 'double'
+  do ii = 1, nx
+    write(u,'(ES24.16)') r_edge(ii)
+  end do
+
+  ! Y (z) coordinates
+  write(u,'(A,1X,I0,1X,A)') 'Y_COORDINATES', ny, 'double'
+  do jj = 1, ny
+    write(u,'(ES24.16)') z_edge(jj)
+  end do
+
+  ! Z coordinates (single plane at z=0)
+  write(u,'(A,1X,I0,1X,A)') 'Z_COORDINATES', 1, 'double'
+  write(u,'(ES24.16)') 0.0
+
+  ! Cell data: phi(i,j), I x J cells
+  write(u,'(A,1X,I0)') 'CELL_DATA', ncells
+  write(u,'(A)') 'SCALARS phi double'
+  write(u,'(A)') 'LOOKUP_TABLE default'
+
+  ! VTK expects x (i) to vary fastest, then y (j), then z (k)
+  do jj = 1, J
+    do ii = 1, I
+      write(u,'(ES24.16)') phi(ii,jj)
+    end do
+  end do
+
+  close(u)
+end subroutine outpVTK_rectilinear
+
+subroutine outpVTK_rectilinear_vector_pq(filename, r_edge, z_edge, psi, I, J, P, Q, mu, zeta)
+  use iso_fortran_env, only: int32
+  implicit none
+  ! Inputs
+  character(*), intent(in) :: filename
+  integer,      intent(in) :: I, J, P
+  integer,      intent(in) :: Q(P)                  ! number of q per p
+  real(8),      intent(in) :: r_edge(I+1), z_edge(J+1)
+  real(8),      intent(in) :: psi(:,:,:,:)          ! (P, maxQ, I, J)
+  real(8),      intent(in) :: mu(:,:), zeta(:)      ! mu(P, maxQ), zeta(P)
+
+  ! Locals
+  integer :: u, ii, jj, pp, qq
+  integer(int32) :: nx, ny, nz, ncells
+  character(len=64) :: namebuf
+
+  ! Grid sizes
+  nx = I + 1
+  ny = J + 1
+  nz = 1
+  ncells = I * J
+
+  open(newunit=u, file=filename, status='replace', action='write', form='formatted')
+
+  ! Header
+  write(u,'(A)') '# vtk DataFile Version 3.0'
+  write(u,'(A)') 'Per-(p,q) vectors J on RZ rectilinear grid'
+  write(u,'(A)') 'ASCII'
+  write(u,'(A)') 'DATASET RECTILINEAR_GRID'
+
+  ! Grid dimensions
+  write(u,'(A,1X,I0,1X,I0,1X,I0)') 'DIMENSIONS', nx, ny, nz
+
+  ! X (r) coordinates
+  write(u,'(A,1X,I0,1X,A)') 'X_COORDINATES', nx, 'double'
+  do ii = 1, nx
+    write(u,'(ES24.16)') r_edge(ii)
+  end do
+
+  ! Y (z) coordinates
+  write(u,'(A,1X,I0,1X,A)') 'Y_COORDINATES', ny, 'double'
+  do jj = 1, ny
+    write(u,'(ES24.16)') z_edge(jj)
+  end do
+
+  ! Z coordinates (single plane at z=0)
+  write(u,'(A,1X,I0,1X,A)') 'Z_COORDINATES', 1, 'double'
+  write(u,'(ES24.16)') 0.0d0
+
+  ! Cell-centered data
+  write(u,'(A,1X,I0)') 'CELL_DATA', ncells
+
+  ! One vector field per (p,q): (Jr, Jz, 0) = (mu*psi, zeta*psi, 0)
+  do pp = 1, P
+    do qq = 1, Q(pp)
+      write(namebuf,'("VECTORS J_p",I0,"_q",I0," double")') pp, qq
+      write(u,'(A)') trim(namebuf)
+      do jj = 1, J
+        do ii = 1, I
+          write(u,'(3(1X,ES24.16))') mu(pp,qq)*psi(pp,qq,ii,jj), &
+                                      zeta(pp)  *psi(pp,qq,ii,jj), &
+                                      0.0d0
+        end do
+      end do
+    end do
+  end do
+
+  close(u)
+end subroutine outpVTK_rectilinear_vector_pq
 
 pure function itoa(i) result(str)
   integer, intent(in) :: i
